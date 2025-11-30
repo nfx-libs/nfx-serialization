@@ -1,0 +1,47 @@
+#==============================================================================
+# nfx-serialization - CMake Package Configuration
+#==============================================================================
+# This file provides CMake targets for the nfx-serialization library.
+# 
+# Usage:
+#   find_package(nfx-serialization REQUIRED)
+#   target_link_libraries(your_target PRIVATE nfx-serialization::nfx-serialization)  # Shared library
+#   # OR
+#   target_link_libraries(your_target PRIVATE nfx-serialization::static)             # Static library
+#
+# Available targets:
+#   nfx-serialization::nfx-serialization - Shared library
+#   nfx-serialization::static            - Static library
+#==============================================================================
+
+@PACKAGE_INIT@
+
+# Version information
+set(NFX_SERIALIZATION_VERSION "@PROJECT_VERSION@")
+set(NFX_SERIALIZATION_VERSION_MAJOR "@PROJECT_VERSION_MAJOR@")
+set(NFX_SERIALIZATION_VERSION_MINOR "@PROJECT_VERSION_MINOR@")
+set(NFX_SERIALIZATION_VERSION_PATCH "@PROJECT_VERSION_PATCH@")
+
+# Installation paths (for reference)
+set_and_check(NFX_SERIALIZATION_INCLUDE_DIR "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@")
+set_and_check(NFX_SERIALIZATION_LIB_DIR "@PACKAGE_CMAKE_INSTALL_LIBDIR@")
+
+# Required dependencies
+include(CMakeFindDependencyMacro)
+find_dependency(nlohmann_json @NFX_SERIALIZATION_NLOHMANN_JSON_MIN_VERSION@)
+
+# Include the targets file
+include("${CMAKE_CURRENT_LIST_DIR}/nfx-serialization-targets.cmake")
+
+# For multi-config generators, include config-specific targets if available
+if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/nfx-serialization-targets-${CMAKE_BUILD_TYPE}.cmake")
+    include("${CMAKE_CURRENT_LIST_DIR}/nfx-serialization-targets-${CMAKE_BUILD_TYPE}.cmake")
+endif()
+
+# Verify that the expected targets are available
+if(NOT TARGET nfx-serialization::nfx-serialization AND NOT TARGET nfx-serialization::static)
+    message(FATAL_ERROR "nfx-serialization installation is broken: no library targets found")
+endif()
+
+# Check that the requested components are available
+check_required_components(nfx-serialization)
