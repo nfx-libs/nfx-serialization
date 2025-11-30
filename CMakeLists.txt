@@ -19,6 +19,8 @@ project(nfx-serialization
 # Installation prefix configuration
 #----------------------------------------------
 
+include(GNUInstallDirs)
+
 # Set default installation path to nfx
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 	if(WIN32)

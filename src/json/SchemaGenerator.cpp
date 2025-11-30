@@ -30,11 +30,11 @@
 #include "nfx/serialization/json/SchemaGenerator.h"
 
 #include <map>
-#include <regex>
 #include <set>
 
+#include <nfx/StringUtils.h>
+
 #include "nfx/serialization/json/Document.h"
-#include "nfx/detail/serialization/json/Regex.h"
 #include "nfx/detail/serialization/json/Types.h"
 #include "nfx/detail/serialization/json/Vocabulary.h"
 
@@ -261,51 +261,89 @@ namespace nfx::serialization::json
 					std::string format;
 
 					// Date-time formats (most specific first)
-					if ( std::regex_match( str, regex::DATE_TIME ) )
+					if ( nfx::string::isDateTime( str ) )
 					{
 						format = vocabulary::FORMAT_DATETIME;
 					}
-					else if ( std::regex_match( str, regex::DATE ) )
+					else if ( nfx::string::isDate( str ) )
 					{
 						format = vocabulary::FORMAT_DATE;
 					}
-					else if ( std::regex_match( str, regex::TIME ) )
+					else if ( nfx::string::isTime( str ) )
 					{
 						format = vocabulary::FORMAT_TIME;
 					}
-					else if ( std::regex_match( str, regex::DURATION ) )
+					else if ( nfx::string::isDuration( str ) )
 					{
 						format = vocabulary::FORMAT_DURATION;
 					}
 					// Identifiers
-					else if ( std::regex_match( str, regex::UUID ) )
+					else if ( nfx::string::isUuid( str ) )
 					{
 						format = vocabulary::FORMAT_UUID;
 					}
-					else if ( std::regex_match( str, regex::EMAIL ) )
+					// Email: check IDN first (isIdnEmail accepts all valid emails including ASCII-only)
+					else if ( nfx::string::isIdnEmail( str ) )
 					{
-						format = vocabulary::FORMAT_EMAIL;
+						// Determine if it's IDN (contains non-ASCII or Punycode)
+						bool isIdn = str.find( "xn--" ) != std::string::npos;
+						if ( !isIdn )
+						{
+							for ( unsigned char c : str )
+							{
+								if ( c > 127 )
+								{
+									isIdn = true;
+									break;
+								}
+							}
+						}
+						format = isIdn ? vocabulary::FORMAT_IDN_EMAIL : vocabulary::FORMAT_EMAIL;
 					}
 					// Network
-					else if ( std::regex_match( str, regex::IPV4 ) )
+					else if ( nfx::string::isIpv4Address( str ) )
 					{
 						format = vocabulary::FORMAT_IPV4;
 					}
-					else if ( std::regex_match( str, regex::IPV6 ) )
+					else if ( nfx::string::isIpv6Address( str ) )
 					{
 						format = vocabulary::FORMAT_IPV6;
 					}
-					else if ( std::regex_match( str, regex::HOSTNAME ) && str.find( '.' ) != std::string::npos )
+					// Hostname: check IDN (isIdnHostname accepts all valid hostnames including ASCII-only)
+					else if ( nfx::string::isIdnHostname( str ) && str.find( '.' ) != std::string::npos )
 					{
-						format = vocabulary::FORMAT_HOSTNAME;
+						// Determine if it's IDN (contains non-ASCII or Punycode)
+						bool isIdn = str.find( "xn--" ) != std::string::npos;
+						if ( !isIdn )
+						{
+							for ( unsigned char c : str )
+							{
+								if ( c > 127 )
+								{
+									isIdn = true;
+									break;
+								}
+							}
+						}
+						format = isIdn ? vocabulary::FORMAT_IDN_HOSTNAME : vocabulary::FORMAT_HOSTNAME;
 					}
-					// URIs
-					else if ( std::regex_match( str, regex::URI ) )
+					// URIs/IRIs - check IRI first (accepts Unicode)
+					else if ( nfx::string::isIri( str ) )
 					{
-						format = vocabulary::FORMAT_URI;
+						// Determine if it's IRI (contains non-ASCII)
+						bool isInternationalized = false;
+						for ( unsigned char c : str )
+						{
+							if ( c > 127 )
+							{
+								isInternationalized = true;
+								break;
+							}
+						}
+						format = isInternationalized ? vocabulary::FORMAT_IRI : vocabulary::FORMAT_URI;
 					}
 					// JSON Pointer
-					else if ( std::regex_match( str, regex::JSON_POINTER ) && !str.empty() && str[0] == '/' )
+					else if ( nfx::string::isJsonPointer( str ) && !str.empty() && str[0] == '/' )
 					{
 						format = vocabulary::FORMAT_JSON_POINTER;
 					}

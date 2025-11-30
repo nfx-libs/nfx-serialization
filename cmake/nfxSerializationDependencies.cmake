@@ -15,6 +15,15 @@ set(CMAKE_MESSAGE_LOG_LEVEL VERBOSE    ) # [ERROR, WARNING, NOTICE, STATUS, VERB
 set(CMAKE_FIND_QUIETLY      ON         )
 
 #----------------------------------------------
+# Dependency versions
+#----------------------------------------------
+
+set(NFX_DEPS_STRINGUTILS_VERSION   "0.3.0"  )
+set(NFX_DEPS_NLOHMANN_JSON_VERSION "3.11.0" )
+set(NFX_DEPS_GOOGLETEST_VERSION    "1.17.0" )
+set(NFX_DEPS_BENCHMARK_VERSION     "1.9.4"  )
+
+#----------------------------------------------
 # FetchContent dependencies
 #----------------------------------------------
 
@@ -26,6 +35,17 @@ else()
 	set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
 endif()
 set(FETCHCONTENT_QUIET OFF)
+
+# --- nfx-stringutils ---
+find_package(nfx-stringutils ${NFX_DEPS_STRINGUTILS_VERSION} QUIET)
+if(NOT nfx-stringutils_FOUND)
+	FetchContent_Declare(
+		nfx-stringutils
+		GIT_REPOSITORY https://github.com/nfx-libs/nfx-stringutils.git
+		GIT_TAG        ${NFX_DEPS_STRINGUTILS_VERSION}
+		GIT_SHALLOW    TRUE
+	)
+endif()
 
 # --- nlohmann/json ---
 set(NFX_SERIALIZATION_NLOHMANN_JSON_MIN_VERSION "3.11.0" CACHE STRING "Minimum required nlohmann/json version")
@@ -59,7 +79,7 @@ if(NFX_SERIALIZATION_BUILD_TESTS)
 		FetchContent_Declare(
 			googleTest
 			GIT_REPOSITORY https://github.com/google/googletest.git
-			GIT_TAG        v1.17.0
+			GIT_TAG        v${NFX_DEPS_GOOGLETEST_VERSION}
 			GIT_SHALLOW    TRUE
 		)
 	else()
@@ -93,7 +113,7 @@ if(NFX_SERIALIZATION_BUILD_BENCHMARKS)
 		FetchContent_Declare(
 			googleBenchmark
 			GIT_REPOSITORY https://github.com/google/benchmark.git
-			GIT_TAG        v1.9.4
+			GIT_TAG        v${NFX_DEPS_BENCHMARK_VERSION}
 			GIT_SHALLOW    TRUE
 		)
 	else()
@@ -105,6 +125,13 @@ endif()
 # Dependency fetching
 #----------------------------------------------
 
+# --- nfx-stringutils ---
+if(NOT nfx-stringutils_FOUND)
+	FetchContent_MakeAvailable(nfx-stringutils)
+	set(NFX_STRINGUTILS_INCLUDE_DIR "${nfx-stringutils_SOURCE_DIR}/include" CACHE INTERNAL "nfx-stringutils include directory")
+endif()
+
+# --- nlohmann/json ---
 if(NFX_SERIALIZATION_WITH_JSON)
 	if(NOT nlohmann_json_FOUND)
 		FetchContent_MakeAvailable(nlohmann_json)

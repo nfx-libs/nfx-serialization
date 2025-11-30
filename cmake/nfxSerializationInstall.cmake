@@ -12,19 +12,6 @@ if(NOT NFX_SERIALIZATION_INSTALL_PROJECT)
 endif()
 
 #----------------------------------------------
-# Installation paths configuration
-#----------------------------------------------
-
-include(GNUInstallDirs)
-
-message(STATUS "System installation paths:")
-message(STATUS "  Headers      : ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
-message(STATUS "  Library      : ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
-message(STATUS "  Binaries     : ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}")
-message(STATUS "  CMake configs: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/cmake/nfx-serialization")
-message(STATUS "  Documentation: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DOCDIR}")
-
-#----------------------------------------------
 # Install headers
 #----------------------------------------------
 

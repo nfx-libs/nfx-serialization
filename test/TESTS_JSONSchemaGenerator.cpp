@@ -250,6 +250,44 @@ namespace nfx::serialization::json::test
 		EXPECT_EQ( *format, "email" );
 	}
 
+	TEST_F( SchemaGeneratorTest, InferIdnEmailFormat_Punycode )
+	{
+		// IDN email with Punycode domain (xn-- prefix)
+		auto doc = Document::fromString( R"({"email": "user@xn--n3h.com"})" );
+		ASSERT_TRUE( doc.has_value() );
+
+		SchemaGenerator gen( *doc );
+
+		auto format = gen.schema().get<std::string>( "properties.email.format" );
+		ASSERT_TRUE( format.has_value() );
+		EXPECT_EQ( *format, "idn-email" );
+	}
+
+	TEST_F( SchemaGeneratorTest, InferHostnameFormat )
+	{
+		auto doc = Document::fromString( R"({"host": "example.com"})" );
+		ASSERT_TRUE( doc.has_value() );
+
+		SchemaGenerator gen( *doc );
+
+		auto format = gen.schema().get<std::string>( "properties.host.format" );
+		ASSERT_TRUE( format.has_value() );
+		EXPECT_EQ( *format, "hostname" );
+	}
+
+	TEST_F( SchemaGeneratorTest, InferIdnHostnameFormat_Punycode )
+	{
+		// IDN hostname with Punycode label (xn-- prefix)
+		auto doc = Document::fromString( R"({"host": "xn--n3h.example.com"})" );
+		ASSERT_TRUE( doc.has_value() );
+
+		SchemaGenerator gen( *doc );
+
+		auto format = gen.schema().get<std::string>( "properties.host.format" );
+		ASSERT_TRUE( format.has_value() );
+		EXPECT_EQ( *format, "idn-hostname" );
+	}
+
 	TEST_F( SchemaGeneratorTest, InferDateTimeFormat )
 	{
 		auto doc = Document::fromString( R"({"timestamp": "2025-11-29T14:30:00Z"})" );
@@ -296,6 +334,19 @@ namespace nfx::serialization::json::test
 		auto format = gen.schema().get<std::string>( "properties.url.format" );
 		ASSERT_TRUE( format.has_value() );
 		EXPECT_EQ( *format, "uri" );
+	}
+
+	TEST_F( SchemaGeneratorTest, InferIriFormat_Unicode )
+	{
+		// IRI with Unicode path - note: using raw UTF-8 bytes
+		auto doc = Document::fromString( "{\"url\": \"https://example.com/\xE8\xB7\xAF\xE5\xBE\x84\"}" ); // 路径
+		ASSERT_TRUE( doc.has_value() );
+
+		SchemaGenerator gen( *doc );
+
+		auto format = gen.schema().get<std::string>( "properties.url.format" );
+		ASSERT_TRUE( format.has_value() );
+		EXPECT_EQ( *format, "iri" );
 	}
 
 	TEST_F( SchemaGeneratorTest, InferIpv4Format )

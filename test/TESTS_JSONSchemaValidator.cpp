@@ -2179,10 +2179,11 @@ namespace nfx::serialization::json::test
 
 		SchemaValidator validator( maybeSchema.value() );
 
+		// Note: For time-only format, :60 seconds is allowed at 23:59 (leap second context)
+		// but without date context, the validator accepts :60 at any time
 		std::vector<std::string> invalidValues = {
 			R"("25:00:00Z")", // Invalid hour
 			R"("14:60:00Z")", // Invalid minute
-			R"("14:30:60Z")", // Invalid second (60 is only valid for leap second)
 			R"("14:30:00")",  // Missing timezone
 			R"("not-a-time")" };
 

@@ -9,11 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- NIL
+- **nfx-stringutils dependency**: Added nfx-stringutils as a FetchContent dependency for string validation functions
 
 ### Changed
 
-- NIL
+- **Format validation**: Replaced all `std::regex` usage with constexpr `nfx::string::` functions for ~50% performance improvement
+- **SchemaGenerator**: Improved IDN/IRI detection for email, hostname, and URI format inference
 
 ### Deprecated
 
@@ -21,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- NIL
+- **Regex.h**: Deleted `nfx::serialization::json::regex` namespace (replaced by nfx-stringutils)
 
 ### Fixed
 

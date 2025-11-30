@@ -68,6 +68,13 @@ function(configure_target target_name)
 		)
 	endif()
 
+	# --- Add nfx-stringutils include directory ---
+	if(NFX_SERIALIZATION_WITH_JSON AND DEFINED NFX_STRINGUTILS_INCLUDE_DIR)
+		target_include_directories(${target_name}
+			PRIVATE ${NFX_STRINGUTILS_INCLUDE_DIR}
+		)
+	endif()
+
 	# --- Properties ---
 	set_target_properties(${target_name} PROPERTIES
 		CXX_STANDARD 20

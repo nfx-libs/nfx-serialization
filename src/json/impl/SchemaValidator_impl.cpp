@@ -29,16 +29,19 @@
 
 #include <algorithm>
 #include <cmath>
+#include <regex>
 #include <set>
 #include <stdexcept>
 #include <sstream>
 
+#include <nfx/StringUtils.h>
+
 #include "SchemaValidator_impl.h"
 
+#include "Document_impl.h"
 #include "nfx/serialization/json/Document.h"
 #include "nfx/serialization/json/SchemaValidator.h"
-#include "Document_impl.h"
-#include "nfx/detail/serialization/json/Regex.h"
+
 #include "nfx/detail/serialization/json/Vocabulary.h"
 
 namespace nfx::serialization::json
@@ -657,94 +660,92 @@ namespace nfx::serialization::json
 
 			if ( format == vocabulary::FORMAT_DATETIME )
 			{
-				formatValid = std::regex_match( value, regex::DATE_TIME );
+				formatValid = nfx::string::isDateTime( value );
 				expectedFormat = "RFC 3339 date-time (e.g., 2025-11-29T14:30:00Z)";
 			}
 			else if ( format == vocabulary::FORMAT_DATE )
 			{
-				formatValid = std::regex_match( value, regex::DATE );
+				formatValid = nfx::string::isDate( value );
 				expectedFormat = "RFC 3339 full-date (e.g., 2025-11-29)";
 			}
 			else if ( format == vocabulary::FORMAT_TIME )
 			{
-				formatValid = std::regex_match( value, regex::TIME );
+				formatValid = nfx::string::isTime( value );
 				expectedFormat = "RFC 3339 full-time (e.g., 14:30:00Z)";
 			}
 			else if ( format == vocabulary::FORMAT_DURATION )
 			{
-				formatValid = std::regex_match( value, regex::DURATION ) && value.length() > 1 && value != "P" && value != "PT";
+				formatValid = nfx::string::isDuration( value );
 				expectedFormat = "ISO 8601 duration (e.g., P3Y6M4DT12H30M5S)";
 			}
 			else if ( format == vocabulary::FORMAT_EMAIL )
 			{
-				formatValid = std::regex_match( value, regex::EMAIL );
+				formatValid = nfx::string::isEmail( value );
 				expectedFormat = "RFC 5321 email (e.g., user@example.com)";
 			}
 			else if ( format == vocabulary::FORMAT_IDN_EMAIL )
 			{
-				formatValid = std::regex_match( value, regex::IDN_EMAIL );
+				formatValid = nfx::string::isIdnEmail( value );
 				expectedFormat = "RFC 6531 internationalized email";
 			}
 			else if ( format == vocabulary::FORMAT_HOSTNAME )
 			{
-				formatValid = std::regex_match( value, regex::HOSTNAME ) && value.length() <= 253;
+				formatValid = nfx::string::isHostname( value );
 				expectedFormat = "RFC 1123 hostname (e.g., example.com)";
 			}
 			else if ( format == vocabulary::FORMAT_IDN_HOSTNAME )
 			{
-				// Internationalized hostname - basic check, full RFC 5890 requires IDN library
-				formatValid = !value.empty() && value.length() <= 253 && value.find( ".." ) == std::string::npos;
+				formatValid = nfx::string::isIdnHostname( value );
 				expectedFormat = "RFC 5890 internationalized hostname";
 			}
 			else if ( format == vocabulary::FORMAT_IPV4 )
 			{
-				formatValid = std::regex_match( value, regex::IPV4 );
+				formatValid = nfx::string::isIpv4Address( value );
 				expectedFormat = "RFC 2673 IPv4 (e.g., 192.168.1.1)";
 			}
 			else if ( format == vocabulary::FORMAT_IPV6 )
 			{
-				formatValid = std::regex_match( value, regex::IPV6 );
+				formatValid = nfx::string::isIpv6Address( value );
 				expectedFormat = "RFC 4291 IPv6 (e.g., 2001:db8::1)";
 			}
 			else if ( format == vocabulary::FORMAT_URI )
 			{
-				formatValid = std::regex_match( value, regex::URI );
+				formatValid = nfx::string::isUri( value );
 				expectedFormat = "RFC 3986 URI (e.g., https://example.com/path)";
 			}
 			else if ( format == vocabulary::FORMAT_URI_REFERENCE )
 			{
-				formatValid = std::regex_match( value, regex::URI_REFERENCE );
+				formatValid = nfx::string::isUriReference( value );
 				expectedFormat = "RFC 3986 URI-reference";
 			}
 			else if ( format == vocabulary::FORMAT_IRI )
 			{
-				formatValid = std::regex_match( value, regex::IRI );
+				formatValid = nfx::string::isIri( value );
 				expectedFormat = "RFC 3987 IRI";
 			}
 			else if ( format == vocabulary::FORMAT_IRI_REFERENCE )
 			{
-				// RFC 3987 IRI-reference
-				formatValid = true; // Very permissive - any non-empty string
+				formatValid = nfx::string::isIriReference( value );
 				expectedFormat = "RFC 3987 IRI-reference";
 			}
 			else if ( format == vocabulary::FORMAT_UUID )
 			{
-				formatValid = std::regex_match( value, regex::UUID );
+				formatValid = nfx::string::isUuid( value );
 				expectedFormat = "RFC 4122 UUID (e.g., 550e8400-e29b-41d4-a716-446655440000)";
 			}
 			else if ( format == vocabulary::FORMAT_URI_TEMPLATE )
 			{
-				formatValid = std::regex_match( value, regex::URI_TEMPLATE );
+				formatValid = nfx::string::isUriTemplate( value );
 				expectedFormat = "RFC 6570 URI Template";
 			}
 			else if ( format == vocabulary::FORMAT_JSON_POINTER )
 			{
-				formatValid = std::regex_match( value, regex::JSON_POINTER );
+				formatValid = nfx::string::isJsonPointer( value );
 				expectedFormat = "RFC 6901 JSON Pointer (e.g., /foo/bar/0)";
 			}
 			else if ( format == vocabulary::FORMAT_RELATIVE_JSON_POINTER )
 			{
-				formatValid = std::regex_match( value, regex::RELATIVE_JSON_POINTER );
+				formatValid = nfx::string::isRelativeJsonPointer( value );
 				expectedFormat = "Relative JSON Pointer (e.g., 1/foo)";
 			}
 			else if ( format == vocabulary::FORMAT_REGEX )

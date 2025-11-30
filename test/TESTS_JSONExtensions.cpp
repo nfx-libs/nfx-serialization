@@ -23,7 +23,7 @@
  */
 
 /**
- * @file TESTS_Extensions.cpp
+ * @file TESTS_JSONExtensions.cpp
  * @brief Comprehensive tests for extension traits (nfx-containers, nfx-datatypes, nfx-datetime)
  * @details Tests covering serialization and deserialization of external nfx library types:
  *          - nfx-containers: PerfectHashMap, FastHashMap, FastHashSet

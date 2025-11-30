@@ -90,7 +90,7 @@ set(test_sources)
 if(NFX_SERIALIZATION_WITH_JSON)
 	if(NFX_SERIALIZATION_BUILD_EXTENSION_TESTS)
 		list(APPEND test_sources
-			TESTS_Extensions.cpp
+			TESTS_JSONExtensions.cpp
 		)
 	endif()
 
@@ -100,6 +100,7 @@ if(NFX_SERIALIZATION_WITH_JSON)
 		TESTS_JSONArrays.cpp
 		TESTS_JSONDocument.cpp
 		TESTS_JSONFileLoading.cpp
+		TESTS_JSONFormats.cpp
 		TESTS_JSONObjectFieldIterator.cpp
 		TESTS_JSONObjects.cpp
 		TESTS_JSONPathView.cpp
@@ -137,17 +138,17 @@ foreach(test_source ${test_sources})
 		# Additional linking for extension tests
 		#----------------------------------------------
 
-		if(${test_target_name} STREQUAL "TESTS_Extensions")
+		if(${test_target_name} STREQUAL "TESTS_JSONExtensions")
 			target_link_libraries(${test_target_name} PRIVATE
 				nfx-containers::nfx-containers
 				nfx-datatypes::static
 				nfx-datetime::static
 			)
 
-		target_compile_options(${test_target_name} PRIVATE
-			$<$<CXX_COMPILER_ID:MSVC>:/arch:AVX2>
-			$<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>:-msse4.2>
-		)
+			target_compile_options(${test_target_name} PRIVATE
+				$<$<CXX_COMPILER_ID:MSVC>:/arch:AVX2>
+				$<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>:-msse4.2>
+			)
 		endif()
 
 		#----------------------------------------------
