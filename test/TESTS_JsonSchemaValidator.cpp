@@ -23,7 +23,7 @@
  */
 
 /**
- * @file TESTS_JSONSchemaValidator.cpp
+ * @file TESTS_JsonSchemaValidator.cpp
  * @brief Comprehensive tests for JSON Schema validation functionality
  * @details Tests covering ValidationError, ValidationResult, and SchemaValidator classes
  *          with complete API coverage, error handling, and validation scenarios.

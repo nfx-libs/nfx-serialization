@@ -23,7 +23,7 @@
  */
 
 /**
- * @file Sample_JSONSchemaGenerator.cpp
+ * @file Sample_JsonSchemaGenerator.cpp
  * @brief Comprehensive sample demonstrating JSON Schema generation functionality
  * @details Real-world examples showcasing JSON Schema generation from JSON data including
  *          type inference, format detection, and multi-sample analysis

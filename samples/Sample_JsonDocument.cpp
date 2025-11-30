@@ -23,7 +23,7 @@
  */
 
 /**
- * @file Sample_JSONDocument.cpp
+ * @file Sample_JsonDocument.cpp
  * @brief Comprehensive sample demonstrating JSON Document serialization capabilities
  * @details Real-world examples covering JSON parsing, path-based access, array operations,
  *          nested object navigation, configuration files, and API response handling

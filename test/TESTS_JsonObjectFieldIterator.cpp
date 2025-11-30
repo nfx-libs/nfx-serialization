@@ -23,7 +23,7 @@
  */
 
 /**
- * @file TESTS_JSONObjectFieldIterator.cpp
+ * @file TESTS_JsonObjectFieldIterator.cpp
  * @brief Comprehensive tests for JSON Object iterator functionality
  * @details Tests covering object field iteration, key-value access, path validation,
  *          iterator state management, and range-for loop usage.

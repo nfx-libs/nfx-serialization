@@ -23,7 +23,7 @@
  */
 
 /**
- * @file Sample_JSONSchemaValidator.cpp
+ * @file Sample_JsonSchemaValidator.cpp
  * @brief Comprehensive sample demonstrating JSON Schema validation functionality
  * @details Real-world examples showcasing JSON Schema validation including
  *          type validation, constraint checking, required field validation, and error reporting

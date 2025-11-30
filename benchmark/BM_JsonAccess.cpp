@@ -23,7 +23,7 @@
  */
 
 /**
- * @file BM_JSONAccess.cpp
+ * @file BM_JsonAccess.cpp
  * @brief Benchmarks for JSON Document value access operations
  */
 

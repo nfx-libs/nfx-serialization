@@ -23,7 +23,7 @@
  */
 
 /**
- * @file TESTS_JSONArrays.cpp
+ * @file TESTS_JsonArrays.cpp
  * @brief Comprehensive tests for JSON Array class functionality
  * @details Tests covering array construction, element access, modification, insertion,
  *          type-safe operations, nested arrays/objects, and auto-detection features

@@ -23,7 +23,7 @@
  */
 
 /**
- * @file TESTS_JSONPathView.cpp
+ * @file TESTS_JsonPathView.cpp
  * @brief Unit tests for Document::PathView
  * @details Tests for path iteration, depth tracking, format options, and leaf filtering
  */

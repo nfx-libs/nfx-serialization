@@ -23,7 +23,7 @@
  */
 
 /**
- * @file TESTS_JSONFileLoading.cpp
+ * @file TESTS_JsonFileLoading.cpp
  * @brief Tests for JSON file loading functionality
  * @details Tests covering loading JSON documents from testdata files,
  *          validating file I/O operations and real-world data parsing.

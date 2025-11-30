@@ -23,7 +23,7 @@
  */
 
 /**
- * @file BM_JSONIteration.cpp
+ * @file BM_JsonIteration.cpp
  * @brief Benchmarks for JSON container iteration operations
  */
 

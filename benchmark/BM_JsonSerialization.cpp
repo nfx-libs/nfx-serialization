@@ -23,7 +23,7 @@
  */
 
 /**
- * @file BM_JSONSerialization.cpp
+ * @file BM_JsonSerialization.cpp
  * @brief Benchmarks for JSON Document serialization to string
  */
 

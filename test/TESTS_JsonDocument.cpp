@@ -23,7 +23,7 @@
  */
 
 /**
- * @file TESTS_JSONDocument.cpp
+ * @file TESTS_JsonDocument.cpp
  * @brief Comprehensive tests for JSON Document serialization and manipulation
  * @details Tests covering JSON parsing, path-based access, array operations, validation,
  *          nested object navigation, and enterprise-grade JSON document handling

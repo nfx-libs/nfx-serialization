@@ -19,14 +19,14 @@ set(benchmark_sources)
 
 if(NFX_SERIALIZATION_WITH_JSON)
 	list(APPEND benchmark_sources
-		BM_JSONAccess.cpp
-		BM_JSONIteration.cpp
-		BM_JSONModification.cpp
-		BM_JSONObjectSerialization.cpp
-		BM_JSONParsing.cpp
-		BM_JSONSchemaGeneration.cpp
-		BM_JSONSchemaValidation.cpp
-		BM_JSONSerialization.cpp
+		BM_JsonAccess.cpp
+		BM_JsonIteration.cpp
+		BM_JsonModification.cpp
+		BM_JsonObjectSerialization.cpp
+		BM_JsonParsing.cpp
+		BM_JsonSchemaGeneration.cpp
+		BM_JsonSchemaValidation.cpp
+		BM_JsonSerialization.cpp
 	)
 endif()
 

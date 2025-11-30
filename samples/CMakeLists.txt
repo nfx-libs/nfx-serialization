@@ -19,14 +19,14 @@ set(sample_sources)
 
 if(NFX_SERIALIZATION_WITH_JSON)
 	list(APPEND sample_sources
-		Sample_JSONArrayIterator.cpp
-		Sample_JSONDocument.cpp
-		Sample_JSONObjectFieldIterator.cpp
-		Sample_JSONPathView.cpp
-		Sample_JSONPointer.cpp
-		Sample_JSONSchemaGenerator.cpp
-		Sample_JSONSchemaValidator.cpp
-		Sample_JSONSerializer.cpp
+		Sample_JsonArrayIterator.cpp
+		Sample_JsonDocument.cpp
+		Sample_JsonObjectFieldIterator.cpp
+		Sample_JsonPathView.cpp
+		Sample_JsonPointer.cpp
+		Sample_JsonSchemaGenerator.cpp
+		Sample_JsonSchemaValidator.cpp
+		Sample_JsonSerializer.cpp
 	)
 endif()
 

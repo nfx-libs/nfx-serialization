@@ -23,7 +23,7 @@
  */
 
 /**
- * @file TESTS_JSONSerializer.cpp
+ * @file TESTS_JsonSerializer.cpp
  * @brief Comprehensive tests for JSON Serializer functionality
  * @details Tests covering all type specializations including primitive types,
  *          containers, smart pointers, optional types, nfx datatypes, and custom structs.

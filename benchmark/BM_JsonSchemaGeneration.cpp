@@ -23,7 +23,7 @@
  */
 
 /**
- * @file BM_JSONSchemaGeneration.cpp
+ * @file BM_JsonSchemaGeneration.cpp
  * @brief Benchmarks for JSON Schema generation from documents
  */
 

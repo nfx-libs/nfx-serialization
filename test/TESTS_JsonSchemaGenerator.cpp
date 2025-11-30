@@ -23,7 +23,7 @@
  */
 
 /**
- * @file TESTS_JSONSchemaGenerator.cpp
+ * @file TESTS_JsonSchemaGenerator.cpp
  * @brief Comprehensive tests for JSON Schema generation functionality
  * @details Tests covering SchemaGenerator class with type inference, format detection,
  *          multi-sample analysis, and schema output validation.

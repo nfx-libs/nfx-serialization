@@ -23,7 +23,7 @@
  */
 
 /**
- * @file Sample_JSONObjectFieldIterator.cpp
+ * @file Sample_JsonObjectFieldIterator.cpp
  * @brief Demonstrates Object::iterator for JSON object field traversal
  * @details Shows efficient object field iteration with range-for loops, key-value access,
  *          and type-safe value extraction for configuration and structured data processing

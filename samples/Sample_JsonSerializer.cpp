@@ -23,7 +23,7 @@
  */
 
 /**
- * @file Sample_JSONSerializer.cpp
+ * @file Sample_JsonSerializer.cpp
  * @brief Comprehensive sample demonstrating JSON Serializer functionality
  * @details Real-world examples showcasing all serializer features including primitive types,
  *          STL containers, custom objects, and serialization options.

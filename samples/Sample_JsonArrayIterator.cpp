@@ -23,7 +23,7 @@
  */
 
 /**
- * @file Sample_JSONArrayIterator.cpp
+ * @file Sample_JsonArrayIterator.cpp
  * @brief Demonstrates Array::iterator for JSON array traversal
  * @details Shows efficient array iteration with range-for loops, element access,
  *          and type-safe value extraction for structured data processing

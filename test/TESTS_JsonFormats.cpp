@@ -23,7 +23,7 @@
  */
 
 /**
- * @file TESTS_JSONFormats.cpp
+ * @file TESTS_JsonFormats.cpp
  * @brief Unit tests for JSON Schema format validation
  * @details Tests all JSON Schema Draft 2020-12 format validators
  */

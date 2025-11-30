@@ -23,7 +23,7 @@
  */
 
 /**
- * @file BM_JSONSchemaValidation.cpp
+ * @file BM_JsonSchemaValidation.cpp
  * @brief Benchmarks for JSON Schema validation operations
  */
 

@@ -642,7 +642,7 @@ std::string json = Serializer<Point3D>::toString(origin);
 - `SerializationTraits` specializations go in `nfx::serialization::json` namespace
 - You don't modify library code - just expose the minimal interface
 - Mix both approaches: use trait marking for containers, `SerializationTraits` for custom logic
-- See `samples/Sample_JSONSerializer.cpp` for complete working examples
+- See `samples/Sample_JsonSerializer.cpp` for complete working examples
 
 ## Optional Extensions
 

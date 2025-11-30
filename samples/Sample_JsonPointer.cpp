@@ -23,7 +23,7 @@
  */
 
 /**
- * @file Sample_JSONPointer.cpp
+ * @file Sample_JsonPointer.cpp
  * @brief Comprehensive sample demonstrating JSON Pointer (RFC 6901) functionality
  * @details Real-world examples showcasing JSON Pointer syntax for document navigation,
  *          array element access, nested object manipulation, and escaped character handling

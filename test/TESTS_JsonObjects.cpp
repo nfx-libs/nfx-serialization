@@ -23,7 +23,7 @@
  */
 
 /**
- * @file TESTS_JSONObjects.cpp
+ * @file TESTS_JsonObjects.cpp
  * @brief Comprehensive tests for JSON Object class functionality
  * @details Tests covering object construction, serialization methods, factory methods,
  *          validation, and integration with Document system

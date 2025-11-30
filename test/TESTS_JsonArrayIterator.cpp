@@ -23,7 +23,7 @@
  */
 
 /**
- * @file TESTS_JSONArrayIterator.cpp
+ * @file TESTS_JsonArrayIterator.cpp
  * @brief Comprehensive tests for JSON Array iterator functionality
  * @details Tests covering array iteration, element access, path validation,
  *          iterator state management, and range-for loop usage.

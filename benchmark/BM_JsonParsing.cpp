@@ -23,7 +23,7 @@
  */
 
 /**
- * @file BM_JSONParsing.cpp
+ * @file BM_JsonParsing.cpp
  * @brief Benchmarks for JSON parsing operations
  */
 

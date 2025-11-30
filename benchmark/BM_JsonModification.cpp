@@ -23,7 +23,7 @@
  */
 
 /**
- * @file BM_JSONModification.cpp
+ * @file BM_JsonObjectSerialization.cpp
  * @brief Benchmarks for JSON Document modification operations
  */
 

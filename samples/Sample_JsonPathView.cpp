@@ -23,7 +23,7 @@
  */
 
 /**
- * @file Sample_JSONPathView.cpp
+ * @file Sample_JsonPathView.cpp
  * @brief Demonstrates PathView for iterating over all paths in a JSON document
  * @details Shows path iteration in both JSON Pointer and dot notation formats,
  *          depth tracking, leaf filtering, and practical use cases like schema discovery

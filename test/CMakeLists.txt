@@ -25,9 +25,9 @@ if(NFX_SERIALIZATION_BUILD_EXTENSION_TESTS)
 	include(FetchContent)
 
 	# Try to find libraries first, then fetch if not found
-	find_package(nfx-containers QUIET)
-	find_package(nfx-datatypes  QUIET)
-	find_package(nfx-datetime   QUIET)
+	find_package(nfx-containers 0.1.1 QUIET)
+	find_package(nfx-datatypes  0.1.1 QUIET)
+	find_package(nfx-datetime   0.1.1 QUIET)
 
 	# nfx-containers (PerfectHashMap, FastHashMap, FastHashSet) - header-only
 	if(NOT nfx-containers_FOUND)
@@ -90,23 +90,23 @@ set(test_sources)
 if(NFX_SERIALIZATION_WITH_JSON)
 	if(NFX_SERIALIZATION_BUILD_EXTENSION_TESTS)
 		list(APPEND test_sources
-			TESTS_JSONExtensions.cpp
+			TESTS_JsonExtensions.cpp
 		)
 	endif()
 
 	# Core JSON tests
 	list(APPEND test_sources
-		TESTS_JSONArrayIterator.cpp
-		TESTS_JSONArrays.cpp
-		TESTS_JSONDocument.cpp
-		TESTS_JSONFileLoading.cpp
-		TESTS_JSONFormats.cpp
-		TESTS_JSONObjectFieldIterator.cpp
-		TESTS_JSONObjects.cpp
-		TESTS_JSONPathView.cpp
-		TESTS_JSONSchemaGenerator.cpp
-		TESTS_JSONSchemaValidator.cpp
-		TESTS_JSONSerializer.cpp
+		TESTS_JsonArrayIterator.cpp
+		TESTS_JsonArrays.cpp
+		TESTS_JsonDocument.cpp
+		TESTS_JsonFileLoading.cpp
+		TESTS_JsonFormats.cpp
+		TESTS_JsonObjectFieldIterator.cpp
+		TESTS_JsonObjects.cpp
+		TESTS_JsonPathView.cpp
+		TESTS_JsonSchemaGenerator.cpp
+		TESTS_JsonSchemaValidator.cpp
+		TESTS_JsonSerializer.cpp
 	)
 endif()
 
@@ -138,7 +138,7 @@ foreach(test_source ${test_sources})
 		# Additional linking for extension tests
 		#----------------------------------------------
 
-		if(${test_target_name} STREQUAL "TESTS_JSONExtensions")
+		if(${test_target_name} STREQUAL "TESTS_JsonExtensions")
 			target_link_libraries(${test_target_name} PRIVATE
 				nfx-containers::nfx-containers
 				nfx-datatypes::static
