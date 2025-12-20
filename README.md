@@ -79,29 +79,29 @@ nfx-serialization is a modern C++20 library providing comprehensive JSON seriali
 ### CMake Integration
 
 ```cmake
+# --- JSON serialization support ---
+option(NFX_SERIALIZATION_WITH_JSON             "Enable JSON serialization support"  ON )
 
-option(NFX_SERIALIZATION_WITH_JSON              "Enable JSON serialization support"  ON  )
+# --- Library build types ---
+option(NFX_SERIALIZATION_BUILD_STATIC          "Build static library"               OFF)
+option(NFX_SERIALIZATION_BUILD_SHARED          "Build shared library"               OFF)
 
-# Build options
-option(NFX_SERIALIZATION_BUILD_STATIC           "Build static library"               ON  )
-option(NFX_SERIALIZATION_BUILD_SHARED           "Build shared library"               OFF )
+# --- Build components ---
+option(NFX_SERIALIZATION_BUILD_TESTS           "Build tests"                        OFF)
+option(NFX_SERIALIZATION_BUILD_EXTENSION_TESTS "Build extension tests"              OFF)
+option(NFX_SERIALIZATION_BUILD_SAMPLES         "Build samples"                      OFF)
+option(NFX_SERIALIZATION_BUILD_BENCHMARKS      "Build benchmarks"                   OFF)
+option(NFX_SERIALIZATION_BUILD_DOCUMENTATION   "Build Doxygen documentation"        OFF)
 
-# Development options
-option(NFX_SERIALIZATION_BUILD_TESTS            "Build tests"                        OFF )
-option(NFX_SERIALIZATION_BUILD_EXTENSION_TESTS  "Build extension tests"              OFF )
-option(NFX_SERIALIZATION_BUILD_SAMPLES          "Build samples"                      OFF )
-option(NFX_SERIALIZATION_BUILD_BENCHMARKS       "Build benchmarks"                   OFF )
-option(NFX_SERIALIZATION_BUILD_DOCUMENTATION    "Build Doxygen documentation"        OFF )
+# --- Installation ---
+option(NFX_SERIALIZATION_INSTALL_PROJECT       "Install project"                    OFF)
 
-# Installation
-option(NFX_SERIALIZATION_INSTALL_PROJECT        "Install project"                    OFF )
-
-# Packaging
-option(NFX_SERIALIZATION_PACKAGE_SOURCE         "Enable source package generation"   OFF )
-option(NFX_SERIALIZATION_PACKAGE_ARCHIVE        "Enable TGZ/ZIP package generation"  OFF )
-option(NFX_SERIALIZATION_PACKAGE_DEB            "Enable DEB package generation"      OFF )
-option(NFX_SERIALIZATION_PACKAGE_RPM            "Enable RPM package generation"      OFF )
-option(NFX_SERIALIZATION_PACKAGE_WIX            "Enable WiX MSI installer"           OFF )
+# --- Packaging ---
+option(NFX_SERIALIZATION_PACKAGE_SOURCE        "Enable source package generation"   OFF)
+option(NFX_SERIALIZATION_PACKAGE_ARCHIVE       "Enable TGZ/ZIP package generation"  OFF)
+option(NFX_SERIALIZATION_PACKAGE_DEB           "Enable DEB package generation"      OFF)
+option(NFX_SERIALIZATION_PACKAGE_RPM           "Enable RPM package generation"      OFF)
+option(NFX_SERIALIZATION_PACKAGE_WIX           "Enable WiX Windows installer (MSI)" OFF)
 ```
 
 ### Using in Your Project
@@ -781,4 +781,4 @@ All dependencies are automatically fetched via CMake FetchContent when building 
 
 ---
 
-_Updated on November 30, 2025_
+_Updated on December 20, 2025_

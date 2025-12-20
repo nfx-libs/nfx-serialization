@@ -6,7 +6,7 @@
 # Source files
 #----------------------------------------------
 
-set(private_sources)
+set(private_sources "")
 
 if(NFX_SERIALIZATION_WITH_JSON)
 	list(APPEND private_sources

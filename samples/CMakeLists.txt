@@ -7,7 +7,6 @@
 #----------------------------------------------
 
 if(NOT NFX_SERIALIZATION_BUILD_SAMPLES)
-	message(STATUS "Samples disabled, skipping...")
 	return()
 endif()
 
@@ -15,7 +14,7 @@ endif()
 # Samples source files
 #----------------------------------------------
 
-set(sample_sources)
+set(sample_sources "")
 
 if(NFX_SERIALIZATION_WITH_JSON)
 	list(APPEND sample_sources
@@ -28,11 +27,6 @@ if(NFX_SERIALIZATION_WITH_JSON)
 		Sample_JsonSchemaValidator.cpp
 		Sample_JsonSerializer.cpp
 	)
-endif()
-
-if(NOT sample_sources)
-	message(STATUS "No sample sources available, skipping...")
-	return()
 endif()
 
 #----------------------------------------------
@@ -51,6 +45,15 @@ foreach(sample_source ${sample_sources})
 
 		target_link_libraries(${sample_target_name} PRIVATE
 			nfx-serialization::static
+		)
+
+		#----------------------------------------------
+		# Enable specific CPU features
+		#----------------------------------------------
+
+		target_compile_options(${sample_target_name} PRIVATE
+			$<$<CXX_COMPILER_ID:MSVC>:/arch:AVX2>
+			$<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>:-march=native>
 		)
 
 		#----------------------------------------------

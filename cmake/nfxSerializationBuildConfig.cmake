@@ -65,10 +65,10 @@ include(GNUInstallDirs)
 # Directory configuration
 #----------------------------------------------
 
-set(NFX_SERIALIZATION_DIR           "${PROJECT_SOURCE_DIR}"              CACHE PATH  "Root directory"     )
-set(NFX_SERIALIZATION_INCLUDE_DIR   "${NFX_SERIALIZATION_DIR}/include"   CACHE PATH  "Include directory"  )
-set(NFX_SERIALIZATION_SOURCE_DIR    "${NFX_SERIALIZATION_DIR}/src"       CACHE PATH  "Source directory"   )
-set(NFX_SERIALIZATION_TESTDATA_DIR  "${NFX_SERIALIZATION_DIR}/testdata"  CACHE PATH  "Test data directory")
+set(NFX_SERIALIZATION_DIR          "${PROJECT_SOURCE_DIR}"             CACHE PATH  "Root directory"     )
+set(NFX_SERIALIZATION_INCLUDE_DIR  "${NFX_SERIALIZATION_DIR}/include"  CACHE PATH  "Include directory"  )
+set(NFX_SERIALIZATION_SOURCE_DIR    "${NFX_SERIALIZATION_DIR}/src"     CACHE PATH  "Source directory"   )
+set(NFX_SERIALIZATION_TESTDATA_DIR "${NFX_SERIALIZATION_DIR}/testdata" CACHE PATH  "Test data directory")
 
 #----------------------------------------------
 # Output directory configuration

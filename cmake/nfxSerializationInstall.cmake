@@ -7,7 +7,6 @@
 #----------------------------------------------
 
 if(NOT NFX_SERIALIZATION_INSTALL_PROJECT)
-	message(STATUS "Installation disabled, skipping...")
 	return()
 endif()
 
@@ -26,7 +25,7 @@ install(
 # Install library targets
 #----------------------------------------------
 
-set(install_targets)
+set(install_targets "")
 
 if(NFX_SERIALIZATION_BUILD_SHARED AND TARGET ${PROJECT_NAME})
 	list(APPEND install_targets ${PROJECT_NAME})

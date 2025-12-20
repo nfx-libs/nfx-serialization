@@ -2,16 +2,24 @@
 # nfx-serialization - Doxygen documentation
 #==============================================================================
 
-# --- Documentation condition check ---
+#----------------------------------------------
+# Documentation condition check
+#----------------------------------------------
+
 if(NOT NFX_SERIALIZATION_BUILD_DOCUMENTATION)
-	message(STATUS "Documentation disabled, skipping...")
 	return()
 endif()
 
-# --- Doxygen Tool Detection ---
+#----------------------------------------------
+# Doxygen tool detection
+#----------------------------------------------
+
 find_package(Doxygen COMPONENTS dot)
 
-# --- Doxygen Configuration Setup ---
+#----------------------------------------------
+# Doxygen configuration setup
+#----------------------------------------------
+
 if(Doxygen_FOUND)
 	message(STATUS "Doxygen found: ${Doxygen_EXECUTABLE}")
 	message(STATUS "Doxygen Dot (from Graphviz) found: ${Doxygen_DOT_EXECUTABLE}")

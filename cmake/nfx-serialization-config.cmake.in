@@ -5,9 +5,9 @@
 # 
 # Usage:
 #   find_package(nfx-serialization REQUIRED)
-#   target_link_libraries(your_target PRIVATE nfx-serialization::nfx-serialization)  # Shared library
+#   target_link_libraries(your_target PRIVATE nfx-serialization::nfx-serialization) # Shared library
 #   # OR
-#   target_link_libraries(your_target PRIVATE nfx-serialization::static)             # Static library
+#   target_link_libraries(your_target PRIVATE nfx-serialization::static)            # Static library
 #
 # Available targets:
 #   nfx-serialization::nfx-serialization - Shared library

@@ -7,7 +7,6 @@
 #----------------------------------------------
 
 if(NOT private_sources)
-	message(STATUS "No library sources available, skipping target creation...")
 	return()
 endif()
 
@@ -40,7 +39,7 @@ if(NFX_SERIALIZATION_BUILD_STATIC)
 	)
 
 	set_target_properties(${PROJECT_NAME}-static PROPERTIES
-		OUTPUT_NAME ${PROJECT_NAME}-static-${PROJECT_VERSION}
+		OUTPUT_NAME ${PROJECT_NAME}-static
 		ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
 	)
 
@@ -80,10 +79,16 @@ function(configure_target target_name)
 		CXX_STANDARD 20
 		CXX_STANDARD_REQUIRED ON
 		CXX_EXTENSIONS OFF
+		POSITION_INDEPENDENT_CODE ON
 		VERSION ${PROJECT_VERSION}
 		SOVERSION ${PROJECT_VERSION_MAJOR}
-		POSITION_INDEPENDENT_CODE ON
 		DEBUG_POSTFIX "-d"
+	)
+	
+	# --- Enable specific CPU features ---
+	target_compile_options(${target_name} PRIVATE
+		$<$<CXX_COMPILER_ID:MSVC>:/arch:AVX2>
+		$<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>:-march=native>
 	)
 endfunction()
 
@@ -94,7 +99,6 @@ if(NFX_SERIALIZATION_BUILD_SHARED)
 		set_target_properties(${PROJECT_NAME} PROPERTIES
 			WINDOWS_EXPORT_ALL_SYMBOLS TRUE
 		)
-
 		configure_file(
 			${CMAKE_CURRENT_SOURCE_DIR}/cmake/nfxSerializationVersion.rc.in
 			${CMAKE_BINARY_DIR}/nfxSerializationVersion.rc
