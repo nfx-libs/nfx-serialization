@@ -37,9 +37,9 @@ jobs:
           path: |
             build
             ~/.cache/ccache
-          key: ${{ runner.os }}-clang18-cmake-${{ hashFiles('**/CMakeLists.txt', 'include/**') }}
+          key: ${{ runner.os }}-clang18-ninja-${{ hashFiles('**/CMakeLists.txt', 'include/**') }}
           restore-keys: |
-            ${{ runner.os }}-clang18-cmake-
+            ${{ runner.os }}-clang18-ninja-
 
       - name: Set up build environment
         run: |
@@ -63,7 +63,7 @@ jobs:
       - name: Configure CMake
         run: |
           cmake -B build \
-                -G "Unix Makefiles" \
+                -G "Ninja" \
                 -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
                 -DNFX_SERIALIZATION_WITH_JSON=ON \
                 -DNFX_SERIALIZATION_BUILD_STATIC=ON \
@@ -80,6 +80,16 @@ jobs:
       - name: Test
         working-directory: build
         run: ctest --output-on-failure --parallel
+
+      - name: Upload test results on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-linux-clang18
+          path: |
+            build/Testing/Temporary/LastTest.log
+            build/Testing/Temporary/LastTestsFailed.log
+          retention-days: 7
 
       - name: Show ccache statistics
         run: ccache --show-stats

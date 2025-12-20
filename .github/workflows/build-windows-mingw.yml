@@ -37,9 +37,9 @@ jobs:
           path: |
             build
             ${{ runner.temp }}/ccache
-          key: ${{ runner.os }}-mingw-cmake-${{ hashFiles('**/CMakeLists.txt', 'include/**') }}
+          key: ${{ runner.os }}-mingw-ninja-${{ hashFiles('**/CMakeLists.txt', 'include/**') }}
           restore-keys: |
-            ${{ runner.os }}-mingw-cmake-
+            ${{ runner.os }}-mingw-ninja-
 
       - name: Set up MinGW
         uses: msys2/setup-msys2@v2
@@ -91,6 +91,16 @@ jobs:
         shell: msys2 {0}
         working-directory: build
         run: ctest --output-on-failure --parallel
+
+      - name: Upload test results on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-windows-mingw
+          path: |
+            build/Testing/Temporary/LastTest.log
+            build/Testing/Temporary/LastTestsFailed.log
+          retention-days: 7
 
       - name: Show ccache statistics
         shell: msys2 {0}
