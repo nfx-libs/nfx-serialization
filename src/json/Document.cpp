@@ -1484,9 +1484,7 @@ namespace nfx::serialization::json
 		{
 			if ( targetNode->is_object() )
 			{
-				Document objDoc;
-				static_cast<Document_impl*>( objDoc.m_impl )->setData( *targetNode );
-				return Object( &objDoc, "" );
+				return Object( m_doc, fullPath );
 			}
 		}
 
@@ -1494,9 +1492,7 @@ namespace nfx::serialization::json
 		{
 			if ( targetNode->is_array() )
 			{
-				Document arrayDoc;
-				static_cast<Document_impl*>( arrayDoc.m_impl )->setData( *targetNode );
-				return Document::Array( &arrayDoc, "" );
+				return Document::Array( m_doc, fullPath );
 			}
 		}
 
@@ -2626,18 +2622,14 @@ namespace nfx::serialization::json
 		{
 			if ( targetNode->is_object() )
 			{
-				Document objDoc;
-				static_cast<Document_impl*>( objDoc.m_impl )->setData( *targetNode );
-				return Object( &objDoc, "" );
+				return Object( m_doc, fullPath );
 			}
 		}
 		else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Array> )
 		{
 			if ( targetNode->is_array() )
 			{
-				Document arrayDoc;
-				static_cast<Document_impl*>( arrayDoc.m_impl )->setData( *targetNode );
-				return Array( &arrayDoc, "" );
+				return Array( m_doc, fullPath );
 			}
 		}
 

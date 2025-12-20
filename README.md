@@ -770,7 +770,6 @@ This project is licensed under the MIT License.
 ## Dependencies
 
 - **[nfx-stringutils](https://github.com/nfx-libs/nfx-stringutils)**: String validation utilities (MIT License) - Core dependency
-
 - **[nlohmann/json](https://github.com/nlohmann/json)**: Modern JSON library for C++ (MIT License) - Core dependency
 
 ### Development Dependencies

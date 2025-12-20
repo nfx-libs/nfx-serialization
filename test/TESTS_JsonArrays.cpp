@@ -889,4 +889,101 @@ namespace nfx::serialization::json::test
 		EXPECT_TRUE( emptyArray.value().isValid() );
 		EXPECT_TRUE( emptyArray.value().lastError().empty() );
 	}
+
+	//----------------------------------------------
+	// Nested object/array access via Array::get<Object/Array>(path)
+	//----------------------------------------------
+
+	TEST_F( JSONArrayTest, GetNestedObjectFromArrayByPath )
+	{
+		// Get the nested_objects array
+		auto objArray = testDoc.get<Document::Array>( "nested_objects" );
+		ASSERT_TRUE( objArray.has_value() );
+
+		// Get nested object at index 0 using path notation
+		auto firstObj = objArray.value().get<Document::Object>( "0" );
+		ASSERT_TRUE( firstObj.has_value() );
+
+		// Access fields from the nested object to ensure it's still valid
+		auto name = firstObj.value().get<std::string>( "name" );
+		ASSERT_TRUE( name.has_value() );
+		EXPECT_EQ( name.value(), "Alice" );
+
+		auto age = firstObj.value().get<int32_t>( "age" );
+		ASSERT_TRUE( age.has_value() );
+		EXPECT_EQ( age.value(), 30 );
+
+		// Get second object
+		auto secondObj = objArray.value().get<Document::Object>( "1" );
+		ASSERT_TRUE( secondObj.has_value() );
+
+		auto name2 = secondObj.value().get<std::string>( "name" );
+		ASSERT_TRUE( name2.has_value() );
+		EXPECT_EQ( name2.value(), "Bob" );
+	}
+
+	TEST_F( JSONArrayTest, GetNestedArrayFromArrayByPath )
+	{
+		// Get the nested_arrays array
+		auto arrayOfArrays = testDoc.get<Document::Array>( "nested_arrays" );
+		ASSERT_TRUE( arrayOfArrays.has_value() );
+
+		// Get nested array at index 0 using path notation
+		auto firstNestedArray = arrayOfArrays.value().get<Document::Array>( "0" );
+		ASSERT_TRUE( firstNestedArray.has_value() );
+
+		// Access elements from the nested array to ensure it's still valid
+		EXPECT_EQ( firstNestedArray.value().size(), 2 );
+
+		auto elem0 = firstNestedArray.value().get<int32_t>( 0 );
+		ASSERT_TRUE( elem0.has_value() );
+		EXPECT_EQ( elem0.value(), 1 );
+
+		auto elem1 = firstNestedArray.value().get<int32_t>( 1 );
+		ASSERT_TRUE( elem1.has_value() );
+		EXPECT_EQ( elem1.value(), 2 );
+	}
+
+	TEST_F( JSONArrayTest, GetNestedObjectAndModifyParentArray )
+	{
+		// This test ensures the returned nested object remains valid
+		// even if we continue working with the parent array
+		auto objArray = testDoc.get<Document::Array>( "nested_objects" );
+		ASSERT_TRUE( objArray.has_value() );
+
+		auto firstObj = objArray.value().get<Document::Object>( "0" );
+		ASSERT_TRUE( firstObj.has_value() );
+
+		// Access parent array after getting nested object
+		EXPECT_EQ( objArray.value().size(), 2 );
+
+		// Get another element from parent
+		auto secondObj = objArray.value().get<Document::Object>( "1" );
+		ASSERT_TRUE( secondObj.has_value() );
+
+		// First nested object should still be valid
+		auto name = firstObj.value().get<std::string>( "name" );
+		ASSERT_TRUE( name.has_value() );
+		EXPECT_EQ( name.value(), "Alice" );
+
+		// Second nested object should also be valid
+		auto name2 = secondObj.value().get<std::string>( "name" );
+		ASSERT_TRUE( name2.has_value() );
+		EXPECT_EQ( name2.value(), "Bob" );
+	}
+
+	TEST_F( JSONArrayTest, GetNestedObjectWithJsonPointerPath )
+	{
+		// Get array and use JSON Pointer path (with /) to access nested object
+		auto objArray = testDoc.get<Document::Array>( "nested_objects" );
+		ASSERT_TRUE( objArray.has_value() );
+
+		// Using JSON Pointer format for the path
+		auto firstObj = objArray.value().get<Document::Object>( "/0" );
+		ASSERT_TRUE( firstObj.has_value() );
+
+		auto name = firstObj.value().get<std::string>( "name" );
+		ASSERT_TRUE( name.has_value() );
+		EXPECT_EQ( name.value(), "Alice" );
+	}
 } // namespace nfx::serialization::json::test

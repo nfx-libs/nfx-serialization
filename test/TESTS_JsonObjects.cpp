@@ -120,4 +120,75 @@ namespace nfx::serialization::json::test
 		EXPECT_TRUE( emptyObj.value().isValid() );
 		EXPECT_TRUE( emptyObj.value().lastError().empty() );
 	}
+
+	//----------------------------------------------
+	// Nested object/array access via Object::get<Object/Array>
+	//----------------------------------------------
+
+	TEST_F( JSONObjectTest, GetNestedObjectFromObject )
+	{
+		// Get the user object
+		auto userObj = testDoc.get<Document::Object>( "user" );
+		ASSERT_TRUE( userObj.has_value() );
+
+		// a pointer to a temporary Document that would be destroyed
+		auto prefsObj = userObj.value().get<Document::Object>( "preferences" );
+		ASSERT_TRUE( prefsObj.has_value() );
+
+		// Access fields from the nested object to ensure it's still valid
+		auto theme = prefsObj.value().get<std::string>( "theme" );
+		ASSERT_TRUE( theme.has_value() );
+		EXPECT_EQ( theme.value(), "dark" );
+
+		auto notifications = prefsObj.value().get<bool>( "notifications" );
+		ASSERT_TRUE( notifications.has_value() );
+		EXPECT_TRUE( notifications.value() );
+	}
+
+	TEST_F( JSONObjectTest, GetNestedArrayFromObject )
+	{
+		// Get the user object
+		auto userObj = testDoc.get<Document::Object>( "user" );
+		ASSERT_TRUE( userObj.has_value() );
+
+		// a pointer to a temporary Document that would be destroyed
+		auto hobbiesArray = userObj.value().get<Document::Array>( "hobbies" );
+		ASSERT_TRUE( hobbiesArray.has_value() );
+
+		// Access elements from the array to ensure it's still valid
+		EXPECT_EQ( hobbiesArray.value().size(), 3 );
+
+		auto hobby0 = hobbiesArray.value().get<std::string>( 0 );
+		ASSERT_TRUE( hobby0.has_value() );
+		EXPECT_EQ( hobby0.value(), "reading" );
+
+		auto hobby1 = hobbiesArray.value().get<std::string>( 1 );
+		ASSERT_TRUE( hobby1.has_value() );
+		EXPECT_EQ( hobby1.value(), "gaming" );
+
+		auto hobby2 = hobbiesArray.value().get<std::string>( 2 );
+		ASSERT_TRUE( hobby2.has_value() );
+		EXPECT_EQ( hobby2.value(), "cooking" );
+	}
+
+	TEST_F( JSONObjectTest, GetNestedObjectAndModifyParent )
+	{
+		// This test ensures the returned nested object remains valid
+		// even if we continue working with the parent
+		auto userObj = testDoc.get<Document::Object>( "user" );
+		ASSERT_TRUE( userObj.has_value() );
+
+		auto prefsObj = userObj.value().get<Document::Object>( "preferences" );
+		ASSERT_TRUE( prefsObj.has_value() );
+
+		// Access parent object after getting nested object
+		auto userName = userObj.value().get<std::string>( "name" );
+		ASSERT_TRUE( userName.has_value() );
+		EXPECT_EQ( userName.value(), "Alice" );
+
+		// Nested object should still be valid
+		auto theme = prefsObj.value().get<std::string>( "theme" );
+		ASSERT_TRUE( theme.has_value() );
+		EXPECT_EQ( theme.value(), "dark" );
+	}
 } // namespace nfx::serialization::json::test

@@ -1,15 +1,10 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
 ## [Unreleased]
 
 ### Added
 
-- NIL
+- **Tests**: Added tests for nested `Object` and `Array` access via `get<Object>()` and `get<Array>()` methods
 
 ### Changed
 
@@ -25,7 +20,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- NIL
+- **Critical**: Fixed dangling pointer bugs in `Object::get<Object>(path)` and `Object::get<Array>(path)` methods
+  - These methods were creating temporary `Document` objects and returning `Object`/`Array` wrappers with pointers to the temporaries
+  - After function return, the temporary was destroyed, leaving dangling pointers causing undefined behavior and segmentation faults
+  - Now correctly returns `Object`/`Array` with references to the parent document and proper path
+- **Critical**: Fixed dangling pointer bugs in `Array::get<Object>(path)` and `Array::get<Array>(path)` methods
+  - Same issue as above - temporary documents were being destroyed after return
+  - Now correctly returns `Object`/`Array` with references to the parent document and proper path
 
 ### Security
 
