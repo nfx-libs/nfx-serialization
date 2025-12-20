@@ -4,7 +4,7 @@
 
 ### Added
 
-- **Tests**: Added tests for nested `Object` and `Array` access via `get<Object>()` and `get<Array>()` methods
+- NIL
 
 ### Changed
 
@@ -13,6 +13,24 @@
 ### Deprecated
 
 - NIL
+
+### Removed
+
+- NIL
+
+### Fixed
+
+- NIL
+
+### Security
+
+- NIL
+
+## [0.3.0] - 2025-12-20
+
+### Added
+
+- **Tests**: Added tests for nested `Object` and `Array` access via `get<Object>()` and `get<Array>()` methods
 
 ### Removed
 
@@ -32,10 +50,6 @@
 - **Critical**: Fixed dangling pointer bugs in `Array::get<Object>(path)` and `Array::get<Array>(path)` methods
   - Same issue as above - temporary documents were being destroyed after return
   - Now correctly returns `Object`/`Array` with references to the parent document and proper path
-
-### Security
-
-- NIL
 
 ## [0.2.0] - 2025-11-30
 
