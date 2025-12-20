@@ -412,14 +412,7 @@ namespace nfx::serialization::json
 		}
 
 		// Type-specific extraction using if constexpr
-		if constexpr ( std::is_same_v<std::decay_t<T>, std::string_view> )
-		{
-			if ( node->is_string() )
-			{
-				return std::string_view( node->get<std::string>() );
-			}
-		}
-		else if constexpr ( std::is_same_v<std::decay_t<T>, std::string> )
+		if constexpr ( std::is_same_v<std::decay_t<T>, std::string> )
 		{
 			if ( node->is_string() )
 			{
@@ -554,7 +547,6 @@ namespace nfx::serialization::json
 		return std::nullopt;
 	}
 
-	template std::optional<std::string_view> Document::get<std::string_view>( std::string_view path ) const;
 	template std::optional<std::string> Document::get<std::string>( std::string_view path ) const;
 	template std::optional<char> Document::get<char>( std::string_view path ) const;
 	template std::optional<bool> Document::get<bool>( std::string_view path ) const;
@@ -585,7 +577,6 @@ namespace nfx::serialization::json
 		return false;
 	}
 
-	template bool Document::get<std::string_view>( std::string_view path, std::string_view& value ) const;
 	template bool Document::get<std::string>( std::string_view path, std::string& value ) const;
 	template bool Document::get<char>( std::string_view path, char& value ) const;
 	template bool Document::get<bool>( std::string_view path, bool& value ) const;
@@ -680,7 +671,6 @@ namespace nfx::serialization::json
 		}
 	}
 
-	template void Document::set<std::string_view>( std::string_view path, const std::string_view& );
 	template void Document::set<std::string>( std::string_view path, const std::string& );
 	template void Document::set<char>( std::string_view path, const char& );
 	template void Document::set<bool>( std::string_view path, const bool& );
@@ -771,7 +761,6 @@ namespace nfx::serialization::json
 		}
 	}
 
-	template void Document::set<std::string_view>( std::string_view path, std::string_view&& );
 	template void Document::set<std::string>( std::string_view path, std::string&& );
 	template void Document::set<char>( std::string_view path, char&& );
 	template void Document::set<bool>( std::string_view path, bool&& );
@@ -921,7 +910,6 @@ namespace nfx::serialization::json
 		return false;
 	}
 
-	template bool Document::is<std::string_view>( std::string_view path ) const;
 	template bool Document::is<std::string>( std::string_view path ) const;
 	template bool Document::is<char>( std::string_view path ) const;
 	template bool Document::is<bool>( std::string_view path ) const;
@@ -1499,7 +1487,6 @@ namespace nfx::serialization::json
 		return std::nullopt;
 	}
 
-	template std::optional<std::string_view> Document::Object::get<std::string_view>( std::string_view path ) const;
 	template std::optional<std::string> Document::Object::get<std::string>( std::string_view path ) const;
 	template std::optional<char> Document::Object::get<char>( std::string_view path ) const;
 	template std::optional<bool> Document::Object::get<bool>( std::string_view path ) const;
@@ -1530,7 +1517,6 @@ namespace nfx::serialization::json
 		return false;
 	}
 
-	template bool Document::Object::get<std::string_view>( std::string_view path, std::string_view& value ) const;
 	template bool Document::Object::get<std::string>( std::string_view path, std::string& value ) const;
 	template bool Document::Object::get<char>( std::string_view path, char& value ) const;
 	template bool Document::Object::get<bool>( std::string_view path, bool& value ) const;
@@ -1696,7 +1682,6 @@ namespace nfx::serialization::json
 		}
 	}
 
-	template void Document::Object::set<std::string_view>( std::string_view path, const std::string_view& );
 	template void Document::Object::set<std::string>( std::string_view path, const std::string& );
 	template void Document::Object::set<char>( std::string_view path, const char& );
 	template void Document::Object::set<bool>( std::string_view path, const bool& );
@@ -1857,7 +1842,6 @@ namespace nfx::serialization::json
 		}
 	}
 
-	template void Document::Object::set<std::string_view>( std::string_view path, std::string_view&& );
 	template void Document::Object::set<std::string>( std::string_view path, std::string&& );
 	template void Document::Object::set<char>( std::string_view path, char&& );
 	template void Document::Object::set<bool>( std::string_view path, bool&& );
@@ -2386,7 +2370,6 @@ namespace nfx::serialization::json
 		return static_cast<Document_impl*>( m_doc->m_impl )->get<T>( m_path, index, m_doc );
 	}
 
-	template std::optional<std::string_view> Document::Array::get<std::string_view>( size_t index ) const;
 	template std::optional<std::string> Document::Array::get<std::string>( size_t index ) const;
 	template std::optional<char> Document::Array::get<char>( size_t index ) const;
 	template std::optional<bool> Document::Array::get<bool>( size_t index ) const;
@@ -2417,7 +2400,6 @@ namespace nfx::serialization::json
 		return false;
 	}
 
-	template bool Document::Array::get<std::string_view>( size_t index, std::string_view& value ) const;
 	template bool Document::Array::get<std::string>( size_t index, std::string& value ) const;
 	template bool Document::Array::get<char>( size_t index, char& value ) const;
 	template bool Document::Array::get<bool>( size_t index, bool& value ) const;
@@ -2636,7 +2618,6 @@ namespace nfx::serialization::json
 		return std::nullopt;
 	}
 
-	template std::optional<std::string_view> Document::Array::get<std::string_view>( std::string_view path ) const;
 	template std::optional<std::string> Document::Array::get<std::string>( std::string_view path ) const;
 	template std::optional<char> Document::Array::get<char>( std::string_view path ) const;
 	template std::optional<bool> Document::Array::get<bool>( std::string_view path ) const;
@@ -2667,7 +2648,6 @@ namespace nfx::serialization::json
 		return false;
 	}
 
-	template bool Document::Array::get<std::string_view>( std::string_view path, std::string_view& value ) const;
 	template bool Document::Array::get<std::string>( std::string_view path, std::string& value ) const;
 	template bool Document::Array::get<char>( std::string_view path, char& value ) const;
 	template bool Document::Array::get<bool>( std::string_view path, bool& value ) const;
@@ -2699,7 +2679,6 @@ namespace nfx::serialization::json
 		}
 	}
 
-	template void Document::Array::set<std::string_view>( size_t index, const std::string_view& );
 	template void Document::Array::set<std::string>( size_t index, const std::string& );
 	template void Document::Array::set<char>( size_t index, const char& );
 	template void Document::Array::set<bool>( size_t index, const bool& );
@@ -2727,7 +2706,6 @@ namespace nfx::serialization::json
 		}
 	}
 
-	template void Document::Array::set<std::string_view>( size_t index, std::string_view&& );
 	template void Document::Array::set<std::string>( size_t index, std::string&& );
 	template void Document::Array::set<char>( size_t index, char&& );
 	template void Document::Array::set<bool>( size_t index, bool&& );
@@ -2854,7 +2832,6 @@ namespace nfx::serialization::json
 		}
 	}
 
-	template void Document::Array::set<std::string_view>( std::string_view path, const std::string_view& );
 	template void Document::Array::set<std::string>( std::string_view path, const std::string& );
 	template void Document::Array::set<char>( std::string_view path, const char& );
 	template void Document::Array::set<bool>( std::string_view path, const bool& );
@@ -2976,7 +2953,6 @@ namespace nfx::serialization::json
 		}
 	}
 
-	template void Document::Array::set<std::string_view>( std::string_view path, std::string_view&& );
 	template void Document::Array::set<std::string>( std::string_view path, std::string&& );
 	template void Document::Array::set<char>( std::string_view path, char&& );
 	template void Document::Array::set<bool>( std::string_view path, bool&& );
@@ -3004,7 +2980,6 @@ namespace nfx::serialization::json
 		}
 	}
 
-	template void Document::Array::append<std::string_view>( const std::string_view& );
 	template void Document::Array::append<std::string>( const std::string& );
 	template void Document::Array::append<char>( const char& );
 	template void Document::Array::append<bool>( const bool& );
@@ -3032,7 +3007,6 @@ namespace nfx::serialization::json
 		}
 	}
 
-	template void Document::Array::append<std::string_view>( std::string_view&& );
 	template void Document::Array::append<std::string>( std::string&& );
 	template void Document::Array::append<char>( char&& );
 	template void Document::Array::append<bool>( bool&& );
@@ -3073,7 +3047,6 @@ namespace nfx::serialization::json
 		static_cast<Document_impl*>( m_doc->m_impl )->insert<T>( m_path, index, T{ value } );
 	}
 
-	template void Document::Array::insert<std::string_view>( size_t index, const std::string_view& );
 	template void Document::Array::insert<std::string>( size_t index, const std::string& );
 	template void Document::Array::insert<char>( size_t index, const char& );
 	template void Document::Array::insert<bool>( size_t index, const bool& );
@@ -3098,7 +3071,6 @@ namespace nfx::serialization::json
 		static_cast<Document_impl*>( m_doc->m_impl )->insert<T>( m_path, index, std::move( value ) );
 	}
 
-	template void Document::Array::insert<std::string_view>( size_t index, std::string_view&& );
 	template void Document::Array::insert<std::string>( size_t index, std::string&& );
 	template void Document::Array::insert<char>( size_t index, char&& );
 	template void Document::Array::insert<bool>( size_t index, bool&& );

@@ -16,7 +16,9 @@
 
 ### Removed
 
-- NIL
+- **Breaking**: Removed `std::string_view` support from `Document`, `Object`, and `Array` classes
+  - `get<std::string_view>()`, `set<std::string_view>()`, and `append<std::string_view>()` are no longer available
+  - This API created dangling references by returning views to temporary strings
 
 ### Fixed
 

@@ -81,7 +81,6 @@ namespace nfx::serialization::json
 	template <typename T>
 	concept JsonPrimitive =
 		std::is_same_v<std::decay_t<T>, std::string> ||
-		std::is_same_v<std::decay_t<T>, std::string_view> ||
 		std::is_same_v<std::decay_t<T>, char> ||
 		std::is_same_v<std::decay_t<T>, bool> ||
 		(std::is_integral_v<std::decay_t<T>> && !std::is_same_v<std::decay_t<T>, bool> && !std::is_same_v<std::decay_t<T>, char>) ||

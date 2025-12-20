@@ -223,11 +223,6 @@ namespace nfx::serialization::json::test
 
 		stringsArray.set<std::string>( 1, "modified" );
 		EXPECT_EQ( stringsArray.get<std::string>( 1 ).value_or( "" ), "modified" );
-
-		// Test string_view
-		std::string_view sv = "view_test";
-		stringsArray.set<std::string_view>( 2, std::move( sv ) );
-		EXPECT_EQ( stringsArray.get<std::string>( 2 ).value_or( "" ), "view_test" );
 	}
 
 	TEST_F( JSONArrayTest, SetIntegerElements )
@@ -328,11 +323,6 @@ namespace nfx::serialization::json::test
 		stringsArray.append<std::string>( "new_string" );
 		EXPECT_EQ( stringsArray.size(), originalSize + 1 );
 		EXPECT_EQ( stringsArray.get<std::string>( originalSize ).value_or( "" ), "new_string" );
-
-		// Test string_view
-		std::string_view sv = "view_added";
-		stringsArray.append<std::string_view>( std::move( sv ) );
-		EXPECT_EQ( stringsArray.get<std::string>( originalSize + 1 ).value_or( "" ), "view_added" );
 	}
 
 	TEST_F( JSONArrayTest, AddIntegerElements )
