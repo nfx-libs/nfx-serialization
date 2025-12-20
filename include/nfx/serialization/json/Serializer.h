@@ -160,28 +160,12 @@ namespace nfx::serialization::json
 		inline Document serialize( const T& obj ) const;
 
 		/**
-		 * @brief Serialize object to JSON string
-		 * @param obj The object to serialize
-		 * @return JSON string representation
-		 * @throws std::runtime_error if serialization fails
-		 */
-		inline std::string serializeToString( const T& obj ) const;
-
-		/**
 		 * @brief Deserialize object from JSON document
 		 * @param doc The document to deserialize from
 		 * @return Deserialized object
 		 * @throws std::runtime_error if deserialization fails
 		 */
 		inline T deserialize( const Document& doc ) const;
-
-		/**
-		 * @brief Deserialize object from JSON string
-		 * @param jsonStr The JSON string to deserialize from
-		 * @return Deserialized object
-		 * @throws std::runtime_error if deserialization fails
-		 */
-		inline T deserializeFromString( std::string_view jsonStr ) const;
 
 	private:
 		//----------------------------------------------

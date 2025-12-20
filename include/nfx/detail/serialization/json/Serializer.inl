@@ -316,14 +316,20 @@ namespace nfx::serialization::json
 	inline std::string Serializer<T>::toString( const T& obj, const Serializer<T>::Options& options )
 	{
 		Serializer<T> serializer( options );
-		return serializer.serializeToString( obj );
+		Document doc = serializer.serialize( obj );
+		return doc.toString( options.prettyPrint ? 2 : 0 );
 	}
 
 	template <typename T>
 	inline T Serializer<T>::fromString( std::string_view jsonStr, const Serializer<T>::Options& options )
 	{
 		Serializer<T> serializer( options );
-		return serializer.deserializeFromString( jsonStr );
+		auto optDoc = Document::fromString( jsonStr );
+		if ( !optDoc )
+		{
+			throw std::runtime_error( "Failed to parse JSON string" );
+		}
+		return serializer.deserialize( *optDoc );
 	}
 
 	//----------------------------------------------
@@ -359,13 +365,6 @@ namespace nfx::serialization::json
 	}
 
 	template <typename T>
-	inline std::string Serializer<T>::serializeToString( const T& obj ) const
-	{
-		Document doc = serialize( obj );
-		return doc.toString( m_options.prettyPrint ? 2 : 0 );
-	}
-
-	template <typename T>
 	inline T Serializer<T>::deserialize( const Document& doc ) const
 	{
 		T obj{};
@@ -380,17 +379,6 @@ namespace nfx::serialization::json
 			deserializeValue( doc, obj );
 		}
 		return obj;
-	}
-
-	template <typename T>
-	inline T Serializer<T>::deserializeFromString( std::string_view jsonStr ) const
-	{
-		auto optDoc = Document::fromString( jsonStr );
-		if ( !optDoc )
-		{
-			throw std::runtime_error( "Failed to parse JSON string" );
-		}
-		return deserialize( *optDoc );
 	}
 
 	//----------------------------------------------

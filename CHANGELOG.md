@@ -19,6 +19,9 @@
 - **Breaking**: Removed `std::string_view` support from `Document`, `Object`, and `Array` classes
   - `get<std::string_view>()`, `set<std::string_view>()`, and `append<std::string_view>()` are no longer available
   - This API created dangling references by returning views to temporary strings
+- **Breaking**: Removed `Serializer<T>` instance methods `serializeToString()` and `deserializeFromString()`
+  - These methods were redundant - use static methods `Serializer<T>::toString()` and `Serializer<T>::fromString()` instead
+  - Instance methods `serialize()` and `deserialize()` (working with `Document`) are still available
 
 ### Fixed
 

@@ -266,14 +266,13 @@ namespace nfx::serialization::json::test
 		void testRoundTrip( const T& original, const typename Serializer<T>::Options& options = {} )
 		{
 			// Serialize to JSON string
-			Serializer<T> serializer( options );
-			std::string jsonStr = serializer.serializeToString( original );
+			std::string jsonStr = Serializer<T>::toString( original, options );
 
 			// Verify JSON is not empty
 			EXPECT_FALSE( jsonStr.empty() ) << "Serialized JSON should not be empty";
 
 			// Deserialize back from JSON string
-			T deserialized = serializer.deserializeFromString( jsonStr );
+			T deserialized = Serializer<T>::fromString( jsonStr, options );
 
 			// Verify roundtrip integrity
 			EXPECT_EQ( original, deserialized ) << "Roundtrip must preserve original value";
@@ -448,18 +447,16 @@ namespace nfx::serialization::json::test
 	{
 		{
 			auto original = std::make_unique<int>( 123 );
-			Serializer<std::unique_ptr<int>> serializer;
-			std::string jsonStr = serializer.serializeToString( original );
-			auto deserialized = serializer.deserializeFromString( jsonStr );
+			std::string jsonStr = Serializer<std::unique_ptr<int>>::toString( original );
+			auto deserialized = Serializer<std::unique_ptr<int>>::fromString( jsonStr );
 			EXPECT_TRUE( original && deserialized );
 			EXPECT_EQ( *original, *deserialized );
 		}
 
 		{
 			std::unique_ptr<int> original = nullptr;
-			Serializer<std::unique_ptr<int>> serializer;
-			std::string jsonStr = serializer.serializeToString( original );
-			auto deserialized = serializer.deserializeFromString( jsonStr );
+			std::string jsonStr = Serializer<std::unique_ptr<int>>::toString( original );
+			auto deserialized = Serializer<std::unique_ptr<int>>::fromString( jsonStr );
 			EXPECT_FALSE( original );
 			EXPECT_FALSE( deserialized );
 		}
@@ -469,18 +466,16 @@ namespace nfx::serialization::json::test
 	{
 		{
 			auto original = std::make_shared<int>( 456 );
-			Serializer<std::shared_ptr<int>> serializer;
-			std::string jsonStr = serializer.serializeToString( original );
-			auto deserialized = serializer.deserializeFromString( jsonStr );
+			std::string jsonStr = Serializer<std::shared_ptr<int>>::toString( original );
+			auto deserialized = Serializer<std::shared_ptr<int>>::fromString( jsonStr );
 			EXPECT_TRUE( original && deserialized );
 			EXPECT_EQ( *original, *deserialized );
 		}
 
 		{
 			std::shared_ptr<std::string> original = nullptr;
-			Serializer<std::shared_ptr<std::string>> serializer;
-			std::string jsonStr = serializer.serializeToString( original );
-			auto deserialized = serializer.deserializeFromString( jsonStr );
+			std::string jsonStr = Serializer<std::shared_ptr<std::string>>::toString( original );
+			auto deserialized = Serializer<std::shared_ptr<std::string>>::fromString( jsonStr );
 			EXPECT_FALSE( original );
 			EXPECT_FALSE( deserialized );
 		}
@@ -629,8 +624,7 @@ namespace nfx::serialization::json::test
 			Serializer<Person>::Options options;
 			options.includeNullFields = true;
 
-			Serializer<Person> serializer( options );
-			std::string jsonStr = serializer.serializeToString( person );
+			std::string jsonStr = Serializer<Person>::toString( person, options );
 
 			EXPECT_NE( jsonStr.find( "email" ), std::string::npos ) << "Null email field should be included";
 		}
@@ -658,11 +652,10 @@ namespace nfx::serialization::json::test
 			Serializer<Person>::Options options;
 			options.validateOnDeserialize = true;
 
-			Serializer<Person> serializer( options );
-			std::string jsonStr = serializer.serializeToString( person );
+			std::string jsonStr = Serializer<Person>::toString( person, options );
 
 			// Should throw during deserialization due to invalid age
-			EXPECT_THROW( serializer.deserializeFromString( jsonStr ), std::runtime_error );
+			EXPECT_THROW( Serializer<Person>::fromString( jsonStr, options ), std::runtime_error );
 		}
 	}
 

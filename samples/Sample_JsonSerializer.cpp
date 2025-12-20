@@ -680,7 +680,7 @@ void demonstrateSerializerClass()
 	std::cout << "Document serialization: " << document.toString() << std::endl;
 
 	// Serialize to string
-	std::string jsonString = vectorSerializer.serializeToString( data );
+	std::string jsonString = Serializer<std::vector<int>>::toString( data );
 	std::cout << "String serialization: " << jsonString << std::endl;
 
 	// Deserialize from document
@@ -688,16 +688,15 @@ void demonstrateSerializerClass()
 	std::cout << "From document - equal: " << ( data == fromDoc ? "YES" : "NO" ) << std::endl;
 
 	// Deserialize from string
-	std::vector<int> fromString = vectorSerializer.deserializeFromString( jsonString );
+	std::vector<int> fromString = Serializer<std::vector<int>>::fromString( jsonString );
 	std::cout << "From string - equal: " << ( data == fromString ? "YES" : "NO" ) << std::endl;
 
 	// Using serializer with options
 	Serializer<std::map<std::string, int>>::Options options;
 	options.prettyPrint = true;
-	Serializer<std::map<std::string, int>> mapSerializer{ options };
 
 	std::map<std::string, int> mapData{ { "first", 1 }, { "second", 2 }, { "third", 3 } };
-	std::string prettyJson = mapSerializer.serializeToString( mapData );
+	std::string prettyJson = Serializer<std::map<std::string, int>>::toString( mapData, options );
 	std::cout << "Pretty printed map:" << std::endl
 			  << prettyJson << std::endl;
 
