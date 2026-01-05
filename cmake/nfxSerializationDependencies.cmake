@@ -18,7 +18,7 @@ set(CMAKE_FIND_QUIETLY      ON     )
 # Dependency versions
 #----------------------------------------------
 
-set(NFX_DEPS_STRINGUTILS_VERSION   "0.3.0" )
+set(NFX_DEPS_STRINGUTILS_VERSION   "0.4.0" )
 set(NFX_DEPS_NLOHMANN_JSON_VERSION "3.11.0")
 
 #----------------------------------------------
