@@ -116,7 +116,7 @@ namespace nfx::serialization::json
 		 */
 		static void serialize( const nfx::time::DateTime& obj, Document& doc )
 		{
-			std::string value = obj.toIso8601Extended();
+			std::string value = obj.toString( nfx::time::DateTime::Format::Iso8601Precise );
 			doc.set<std::string>( "", value );
 		}
 
@@ -167,7 +167,7 @@ namespace nfx::serialization::json
 		 */
 		static void serialize( const nfx::time::DateTimeOffset& obj, Document& doc )
 		{
-			std::string value = obj.toIso8601Extended();
+			std::string value = obj.toString( nfx::time::DateTime::Format::Iso8601Precise );
 			doc.set<std::string>( "", value );
 		}
 

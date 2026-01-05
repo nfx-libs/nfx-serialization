@@ -60,7 +60,7 @@ if(NFX_SERIALIZATION_BUILD_EXTENSION_TESTS)
 	# Try to find libraries first, then fetch if not found
 	find_package(nfx-containers 0.1.1 QUIET)
 	find_package(nfx-datatypes  0.1.1 QUIET)
-	find_package(nfx-datetime   0.1.1 QUIET)
+	find_package(nfx-datetime   0.2.0 QUIET)
 
 	# nfx-containers (PerfectHashMap, FastHashMap, FastHashSet) - header-only
 	if(NOT nfx-containers_FOUND)

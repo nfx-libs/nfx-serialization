@@ -8,7 +8,10 @@
 
 ### Changed
 
-- NIL
+- **Breaking**: Updated `DateTimeTraits.h` to use `nfx-datetime` 0.2.0 consolidated formatting API
+  - Replaced deprecated `toIso8601Extended()` with `toString(DateTime::Format::Iso8601Precise)`
+  - DateTime serialization now outputs fractional seconds with exactly 7 digits (tick precision) instead of stripping trailing zeros
+  - DateTimeOffset serialization now uses explicit offset format (±HH:MM) instead of 'Z' notation for UTC
 
 ### Deprecated
 
