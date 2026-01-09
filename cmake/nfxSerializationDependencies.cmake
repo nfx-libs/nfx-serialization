@@ -19,7 +19,7 @@ set(CMAKE_FIND_QUIETLY      ON     )
 #----------------------------------------------
 
 set(NFX_DEPS_STRINGUTILS_VERSION   "0.4.0" )
-set(NFX_DEPS_NLOHMANN_JSON_VERSION "3.11.0")
+set(NFX_DEPS_NLOHMANN_JSON_VERSION "3.12.0")
 
 #----------------------------------------------
 # FetchContent dependencies
