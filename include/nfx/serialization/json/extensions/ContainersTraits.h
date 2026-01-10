@@ -509,3 +509,112 @@ namespace nfx::serialization::json
 } // namespace nfx::serialization::json
 
 #endif // __has_include(<nfx/containers/FastHashSet.h>)
+
+//=====================================================================
+// SmallVector support - enabled only if header is available
+//=====================================================================
+
+#if __has_include( <nfx/containers/SmallVector.h>)
+
+#    include <nfx/containers/SmallVector.h>
+
+namespace nfx::serialization::json
+{
+    /**
+     * @brief Specialization for nfx::containers::SmallVector
+     */
+    template <typename T, std::size_t N>
+    struct SerializationTraits<nfx::containers::SmallVector<T, N>>
+    {
+        /**
+         * @brief Serialize SmallVector to JSON document as an array
+         * @param obj The SmallVector object to serialize
+         * @param doc The document to serialize into
+         */
+        static void serialize( const nfx::containers::SmallVector<T, N>& obj, Document& doc )
+        {
+            // Create array document
+            doc.set<Document::Array>( "" );
+            auto arrayRef = doc.get<Document::Array>( "" );
+
+            if ( arrayRef.has_value() )
+            {
+                // Use SmallVector's iterator to traverse all elements
+                for ( auto it = obj.begin(); it != obj.end(); ++it )
+                {
+                    const T& element = *it;
+
+                    // Serialize the element using a temporary serializer
+                    Document elementDoc;
+                    Serializer<T> elementSerializer;
+                    elementDoc = elementSerializer.serialize( element );
+
+                    // Add to array based on type
+                    if ( elementDoc.is<std::string>( "" ) )
+                    {
+                        auto str = elementDoc.get<std::string>( "" );
+                        arrayRef->append<std::string>( str.value() );
+                    }
+                    else if ( elementDoc.is<int>( "" ) )
+                    {
+                        auto val = elementDoc.get<int64_t>( "" );
+                        arrayRef->append<int64_t>( val.value() );
+                    }
+                    else if ( elementDoc.is<double>( "" ) )
+                    {
+                        auto val = elementDoc.get<double>( "" );
+                        arrayRef->append<double>( val.value() );
+                    }
+                    else if ( elementDoc.is<bool>( "" ) )
+                    {
+                        auto val = elementDoc.get<bool>( "" );
+                        arrayRef->append<bool>( val.value() );
+                    }
+                    else if ( elementDoc.isNull( "" ) )
+                    {
+                        // Append null document
+                        arrayRef->append<Document>( elementDoc );
+                    }
+                    else if ( elementDoc.is<Document::Object>( "" ) || elementDoc.is<Document::Array>( "" ) )
+                    {
+                        // Handle nested objects and arrays
+                        arrayRef->append<Document>( elementDoc );
+                    }
+                }
+            }
+        }
+
+        /**
+         * @brief Deserialize SmallVector from JSON document
+         * @param obj The SmallVector object to deserialize into
+         * @param doc The document to deserialize from
+         */
+        static void deserialize( nfx::containers::SmallVector<T, N>& obj, const Document& doc )
+        {
+            if ( !doc.is<Document::Array>( "" ) )
+            {
+                throw std::runtime_error{ "Cannot deserialize non-array JSON value into SmallVector" };
+            }
+
+            // Clear existing content
+            obj.clear();
+
+            // Get array and iterate using STL iterator
+            auto arrayOpt = doc.get<Document::Array>( "" );
+            if ( arrayOpt.has_value() )
+            {
+                for ( const auto& elementDoc : arrayOpt.value() )
+                {
+                    // Deserialize the element using a temporary serializer
+                    T element{};
+                    Serializer<T> elementSerializer;
+                    element = elementSerializer.deserialize( elementDoc );
+
+                    obj.push_back( std::move( element ) );
+                }
+            }
+        }
+    };
+} // namespace nfx::serialization::json
+
+#endif // __has_include(<nfx/containers/SmallVector.h>)

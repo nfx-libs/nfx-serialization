@@ -352,6 +352,201 @@ namespace nfx::serialization::json::test
     }
 
     //=====================================================================
+    // nfx-containers: SmallVector tests
+    //=====================================================================
+
+    class SmallVectorExtensionTest : public ::testing::Test
+    {
+    protected:
+        void SetUp() override {}
+
+        void TearDown() override {}
+    };
+
+    TEST_F( SmallVectorExtensionTest, SerializeEmptyVector )
+    {
+        nfx::containers::SmallVector<int, 8> vec;
+
+        std::string json = Serializer<decltype( vec )>::toString( vec );
+
+        EXPECT_FALSE( json.empty() );
+        EXPECT_EQ( json, "[]" );
+    }
+
+    TEST_F( SmallVectorExtensionTest, SerializeIntVector )
+    {
+        nfx::containers::SmallVector<int, 8> vec;
+        vec.push_back( 10 );
+        vec.push_back( 20 );
+        vec.push_back( 30 );
+
+        std::string json = Serializer<decltype( vec )>::toString( vec );
+
+        EXPECT_FALSE( json.empty() );
+
+        // Deserialize and verify
+        auto restored = Serializer<decltype( vec )>::fromString( json );
+        EXPECT_EQ( restored.size(), 3 );
+        EXPECT_EQ( restored[0], 10 );
+        EXPECT_EQ( restored[1], 20 );
+        EXPECT_EQ( restored[2], 30 );
+    }
+
+    TEST_F( SmallVectorExtensionTest, SerializeStringVector )
+    {
+        nfx::containers::SmallVector<std::string, 4> vec;
+        vec.push_back( "apple" );
+        vec.push_back( "banana" );
+        vec.push_back( "cherry" );
+
+        std::string json = Serializer<decltype( vec )>::toString( vec );
+
+        EXPECT_FALSE( json.empty() );
+
+        // Deserialize and verify
+        auto restored = Serializer<decltype( vec )>::fromString( json );
+        EXPECT_EQ( restored.size(), 3 );
+        EXPECT_EQ( restored[0], "apple" );
+        EXPECT_EQ( restored[1], "banana" );
+        EXPECT_EQ( restored[2], "cherry" );
+    }
+
+    TEST_F( SmallVectorExtensionTest, SerializeDoubleVector )
+    {
+        nfx::containers::SmallVector<double, 8> vec;
+        vec.push_back( 3.14 );
+        vec.push_back( 2.71 );
+        vec.push_back( 1.41 );
+
+        std::string json = Serializer<decltype( vec )>::toString( vec );
+
+        EXPECT_FALSE( json.empty() );
+
+        // Deserialize and verify
+        auto restored = Serializer<decltype( vec )>::fromString( json );
+        EXPECT_EQ( restored.size(), 3 );
+        EXPECT_DOUBLE_EQ( restored[0], 3.14 );
+        EXPECT_DOUBLE_EQ( restored[1], 2.71 );
+        EXPECT_DOUBLE_EQ( restored[2], 1.41 );
+    }
+
+    TEST_F( SmallVectorExtensionTest, RoundTripPreservesData )
+    {
+        nfx::containers::SmallVector<int, 8> original;
+        original.push_back( 100 );
+        original.push_back( 200 );
+        original.push_back( 300 );
+        original.push_back( 400 );
+
+        std::string json = Serializer<decltype( original )>::toString( original );
+        auto restored = Serializer<decltype( original )>::fromString( json );
+
+        EXPECT_EQ( restored.size(), original.size() );
+
+        for ( size_t i = 0; i < original.size(); ++i )
+        {
+            EXPECT_EQ( restored[i], original[i] );
+        }
+    }
+
+    TEST_F( SmallVectorExtensionTest, SmallCapacityStackStorage )
+    {
+        // Test with size within stack capacity (N=8)
+        nfx::containers::SmallVector<int, 8> vec;
+        for ( int i = 0; i < 5; ++i )
+        {
+            vec.push_back( i * 10 );
+        }
+
+        std::string json = Serializer<decltype( vec )>::toString( vec );
+        auto restored = Serializer<decltype( vec )>::fromString( json );
+
+        EXPECT_EQ( restored.size(), 5 );
+        for ( int i = 0; i < 5; ++i )
+        {
+            EXPECT_EQ( restored[i], i * 10 );
+        }
+    }
+
+    TEST_F( SmallVectorExtensionTest, LargeCapacityHeapStorage )
+    {
+        // Test with size exceeding stack capacity (N=8)
+        nfx::containers::SmallVector<int, 8> vec;
+        for ( int i = 0; i < 20; ++i )
+        {
+            vec.push_back( i );
+        }
+
+        std::string json = Serializer<decltype( vec )>::toString( vec );
+        auto restored = Serializer<decltype( vec )>::fromString( json );
+
+        EXPECT_EQ( restored.size(), 20 );
+        for ( int i = 0; i < 20; ++i )
+        {
+            EXPECT_EQ( restored[i], i );
+        }
+    }
+
+    TEST_F( SmallVectorExtensionTest, DirectDocumentSetGet )
+    {
+        Document doc;
+        nfx::containers::SmallVector<std::string, 4> tags;
+        tags.push_back( "cpp" );
+        tags.push_back( "json" );
+        tags.push_back( "serialization" );
+
+        doc.set<decltype( tags )>( "tags", tags );
+
+        auto retrieved = doc.get<decltype( tags )>( "tags" );
+        ASSERT_TRUE( retrieved.has_value() );
+        EXPECT_EQ( retrieved.value().size(), 3 );
+        EXPECT_EQ( retrieved.value()[0], "cpp" );
+        EXPECT_EQ( retrieved.value()[1], "json" );
+        EXPECT_EQ( retrieved.value()[2], "serialization" );
+    }
+
+    TEST_F( SmallVectorExtensionTest, DirectDocumentIsCheck )
+    {
+        Document doc;
+        nfx::containers::SmallVector<int, 8> numbers;
+        numbers.push_back( 1 );
+        numbers.push_back( 2 );
+        numbers.push_back( 3 );
+
+        doc.set<decltype( numbers )>( "numbers", numbers );
+
+        EXPECT_TRUE( doc.is<decltype( numbers )>( "numbers" ) );
+        EXPECT_FALSE( doc.is<decltype( numbers )>( "notHere" ) );
+    }
+
+    TEST_F( SmallVectorExtensionTest, NestedSmallVectors )
+    {
+        Document doc;
+        nfx::containers::SmallVector<nfx::containers::SmallVector<int, 4>, 4> nested;
+        
+        nfx::containers::SmallVector<int, 4> row1;
+        row1.push_back( 1 );
+        row1.push_back( 2 );
+        nested.push_back( row1 );
+
+        nfx::containers::SmallVector<int, 4> row2;
+        row2.push_back( 3 );
+        row2.push_back( 4 );
+        nested.push_back( row2 );
+
+        doc.set<decltype( nested )>( "matrix", nested );
+
+        auto retrieved = doc.get<decltype( nested )>( "matrix" );
+        ASSERT_TRUE( retrieved.has_value() );
+        EXPECT_EQ( retrieved.value().size(), 2 );
+        EXPECT_EQ( retrieved.value()[0].size(), 2 );
+        EXPECT_EQ( retrieved.value()[0][0], 1 );
+        EXPECT_EQ( retrieved.value()[0][1], 2 );
+        EXPECT_EQ( retrieved.value()[1][0], 3 );
+        EXPECT_EQ( retrieved.value()[1][1], 4 );
+    }
+
+    //=====================================================================
     // nfx-datatypes: Int128 tests
     //=====================================================================
 

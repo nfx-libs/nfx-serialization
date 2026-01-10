@@ -4,7 +4,8 @@
 
 ### Added
 
-- NIL
+- **ContainersTraits**: Added JSON serialization support for `nfx::containers::SmallVector`
+
 
 
 ### Changed
