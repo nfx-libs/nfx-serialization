@@ -858,4 +858,189 @@ namespace nfx::serialization::json::test
 		// Should contain T separator for ISO 8601
 		EXPECT_NE( timeJson.find( "T" ), std::string::npos );
 	}
+
+	//=====================================================================
+	// STL Types via Document API (using Serializer)
+	//=====================================================================
+
+	TEST( DirectDocument_StlTypes, VectorIntSetGet )
+	{
+		Document doc;
+		std::vector<int> vec = { 1, 2, 3, 4, 5 };
+
+		// Set via Document API
+		doc.set( "/data", vec );
+
+		// Get via Document API
+		auto result = doc.get<std::vector<int>>( "/data" );
+		ASSERT_TRUE( result.has_value() );
+		EXPECT_EQ( result.value(), vec );
+	}
+
+	TEST( DirectDocument_StlTypes, VectorIntIsCheck )
+	{
+		Document doc;
+		std::vector<int> vec = { 10, 20, 30 };
+
+		doc.set( "/numbers", vec );
+
+		EXPECT_TRUE( doc.is<std::vector<int>>( "/numbers" ) );
+		EXPECT_FALSE( doc.is<std::vector<std::string>>( "/numbers" ) );
+		EXPECT_FALSE( doc.is<std::vector<int>>( "/nonexistent" ) );
+	}
+
+	TEST( DirectDocument_StlTypes, VectorStringSetGet )
+	{
+		Document doc;
+		std::vector<std::string> vec = { "hello", "world", "test" };
+
+		doc.set( "/strings", vec );
+
+		auto result = doc.get<std::vector<std::string>>( "/strings" );
+		ASSERT_TRUE( result.has_value() );
+		EXPECT_EQ( result.value(), vec );
+	}
+
+	TEST( DirectDocument_StlTypes, OptionalIntSetGet )
+	{
+		Document doc;
+
+		// Test with value
+		std::optional<int> opt = 42;
+		doc.set( "/opt_value", opt );
+
+		auto result1 = doc.get<std::optional<int>>( "/opt_value" );
+		ASSERT_TRUE( result1.has_value() );
+		EXPECT_TRUE( result1.value().has_value() );
+		EXPECT_EQ( result1.value().value(), 42 );
+
+		// Test with nullopt
+		std::optional<int> empty;
+		doc.set( "/opt_empty", empty );
+
+		auto result2 = doc.get<std::optional<int>>( "/opt_empty" );
+		ASSERT_TRUE( result2.has_value() );
+		EXPECT_FALSE( result2.value().has_value() );
+	}
+
+	TEST( DirectDocument_StlTypes, OptionalStringIsCheck )
+	{
+		Document doc;
+		std::optional<std::string> opt = "test";
+
+		doc.set( "/opt", opt );
+
+		EXPECT_TRUE( doc.is<std::optional<std::string>>( "/opt" ) );
+		EXPECT_FALSE( doc.is<std::optional<int>>( "/opt" ) );
+	}
+
+	TEST( DirectDocument_StlTypes, UniquePtrSetGet )
+	{
+		Document doc;
+
+		// Test with value
+		auto ptr = std::make_unique<int>( 123 );
+		doc.set( "/ptr_value", ptr );
+
+		auto result1 = doc.get<std::unique_ptr<int>>( "/ptr_value" );
+		ASSERT_TRUE( result1.has_value() );
+		ASSERT_NE( result1.value(), nullptr );
+		EXPECT_EQ( *result1.value(), 123 );
+
+		// Test with nullptr
+		std::unique_ptr<int> nullPtr;
+		doc.set( "/ptr_null", nullPtr );
+
+		auto result2 = doc.get<std::unique_ptr<int>>( "/ptr_null" );
+		ASSERT_TRUE( result2.has_value() );
+		EXPECT_EQ( result2.value(), nullptr );
+	}
+
+	TEST( DirectDocument_StlTypes, SharedPtrSetGet )
+	{
+		Document doc;
+
+		auto ptr = std::make_shared<std::string>( "shared data" );
+		doc.set( "/shared", ptr );
+
+		auto result = doc.get<std::shared_ptr<std::string>>( "/shared" );
+		ASSERT_TRUE( result.has_value() );
+		ASSERT_NE( result.value(), nullptr );
+		EXPECT_EQ( *result.value(), "shared data" );
+	}
+
+	TEST( DirectDocument_StlTypes, MapStringIntSetGet )
+	{
+		Document doc;
+		std::map<std::string, int> map = { { "one", 1 }, { "two", 2 }, { "three", 3 } };
+
+		doc.set( "/map", map );
+
+		auto result = doc.get<std::map<std::string, int>>( "/map" );
+		ASSERT_TRUE( result.has_value() );
+		EXPECT_EQ( result.value(), map );
+	}
+
+	TEST( DirectDocument_StlTypes, SetIntSetGet )
+	{
+		Document doc;
+		std::set<int> set = { 1, 2, 3, 4, 5 };
+
+		doc.set( "/set", set );
+
+		auto result = doc.get<std::set<int>>( "/set" );
+		ASSERT_TRUE( result.has_value() );
+		EXPECT_EQ( result.value(), set );
+	}
+
+	TEST( DirectDocument_StlTypes, NestedVectorSetGet )
+	{
+		Document doc;
+		std::vector<std::vector<int>> nested = { { 1, 2 }, { 3, 4 }, { 5, 6 } };
+
+		doc.set( "/nested", nested );
+
+		auto result = doc.get<std::vector<std::vector<int>>>( "/nested" );
+		ASSERT_TRUE( result.has_value() );
+		EXPECT_EQ( result.value(), nested );
+	}
+
+	TEST( DirectDocument_StlTypes, ComplexTypeSetGet )
+	{
+		Document doc;
+		std::map<std::string, std::vector<int>> complex = {
+			{ "first", { 1, 2, 3 } }, { "second", { 4, 5, 6 } } };
+
+		doc.set( "/complex", complex );
+
+		auto result = doc.get<std::map<std::string, std::vector<int>>>( "/complex" );
+		ASSERT_TRUE( result.has_value() );
+		EXPECT_EQ( result.value(), complex );
+	}
+
+	TEST( DirectDocument_StlTypes, MixedWithExtensionTypes )
+	{
+		Document doc;
+
+		// Extension type
+		nfx::datatypes::Decimal dec( "123.45" );
+		doc.set( "/decimal", dec );
+
+		// STL type
+		std::vector<int> vec = { 1, 2, 3 };
+		doc.set( "/vector", vec );
+
+		// Both should work
+		EXPECT_TRUE( doc.is<nfx::datatypes::Decimal>( "/decimal" ) );
+		EXPECT_TRUE( doc.is<std::vector<int>>( "/vector" ) );
+
+		auto decResult = doc.get<nfx::datatypes::Decimal>( "/decimal" );
+		auto vecResult = doc.get<std::vector<int>>( "/vector" );
+
+		ASSERT_TRUE( decResult.has_value() );
+		ASSERT_TRUE( vecResult.has_value() );
+		EXPECT_EQ( decResult.value().toString(), "123.45" );
+		EXPECT_EQ( vecResult.value(), vec );
+	}
+
 } // namespace nfx::serialization::json::test

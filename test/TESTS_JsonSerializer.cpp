@@ -738,13 +738,13 @@ namespace nfx::serialization::json::detail
 {
 	// Specialize is_container for CustomHashMap
 	template <typename K, typename V>
-	struct is_container<nfx::serialization::json::test::CustomHashMap<K, V>> : std::true_type
+	struct is_container<::nfx::serialization::json::test::CustomHashMap<K, V>> : std::true_type
 	{
 	};
 
 	// Specialize is_container for CustomSet
 	template <typename T>
-	struct is_container<nfx::serialization::json::test::CustomSet<T>> : std::true_type
+	struct is_container<::nfx::serialization::json::test::CustomSet<T>> : std::true_type
 	{
 	};
 } // namespace nfx::serialization::json::detail

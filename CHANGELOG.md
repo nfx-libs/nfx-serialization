@@ -4,15 +4,12 @@
 
 ### Added
 
-- **Document API**: Added direct `Document::set<T>()`, `Document::get<T>()`, and `Document::is<T>()` support for extension types
-  - Inline template implementations with requires clauses for types with `SerializationTraits` specializations
-  - Full support for nfx-datatypes (`Decimal`, `Int128`)
-  - Full support for nfx-containers (`FastHashMap`, `FastHashSet`, `PerfectHashMap`)
-  - Full support for nfx-datetime (`DateTime`, `DateTimeOffset`, `TimeSpan`)
-  - SFINAE-based `has_serialization_traits` trait for compile-time detection of extension types
-- **Concepts**: Updated `JsonValue` concept to exclude types with `SerializationTraits` specializations
-  - Prevents ambiguity between native JSON types and extension types
-  - Allows separate template overload resolution for extension types
+- **Document API**: Added direct `Document::set<T>()`, `Document::get<T>()`, and `Document::is<T>()` support for custom types
+  - nfx extension types via `SerializationTraits`: `Decimal`, `Int128`, `DateTime`, `DateTimeOffset`, `TimeSpan`, `FastHashMap`, `FastHashSet`, `PerfectHashMap`
+  - STL types via `Serializer<T>`: `std::vector`, `std::map`, `std::set`, `std::list`, `std::deque`, `std::unique_ptr`, `std::shared_ptr`, `std::optional`
+  - Supports nested containers (e.g., `std::vector<std::vector<int>>`)
+  - Type traits for template selection: `has_serialization_traits`, `is_nfx_extension_type`
+- **Concepts**: Updated `JsonValue` concept to exclude types with `SerializationTraits` specializations for proper template overload resolution
 
 ### Changed
 
@@ -31,7 +28,10 @@
 
 ### Fixed
 
-- NIL
+- **Serializer**: Fixed silent type conversion during deserialization
+  - Now throws exceptions when primitive type deserialization fails (e.g., int to string)
+  - Prevents `std::vector<int>` from being incorrectly deserialized as `std::vector<std::string>` with empty strings
+  - Ensures `is<T>()` correctly rejects incompatible types
 
 ### Security
 

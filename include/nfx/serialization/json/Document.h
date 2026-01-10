@@ -46,6 +46,9 @@ namespace nfx::serialization::json
 {
 	class Document_impl;
 
+	template <typename T>
+	class Serializer;
+
 	//=====================================================================
 	// Document class
 	//=====================================================================
@@ -324,6 +327,115 @@ namespace nfx::serialization::json
 		std::string lastError() const;
 
 		//-----------------------------
+		// Serializer support for STL types
+		//-----------------------------
+
+		/**
+		 * @brief Set value using Serializer for STL types (copy version)
+		 * @tparam T STL type (e.g., std::vector, std::optional, std::unique_ptr)
+		 * @param path JSON Pointer path where to set value
+		 * @param value Value to serialize
+		 */
+		template <typename T>
+			requires( !detail::is_nfx_extension_type_v<T> &&
+					  !JsonPrimitive<T> &&
+					  !is_json_container_v<T> )
+		void set( std::string_view path, const T& value )
+		{
+			Serializer<T> serializer;
+			Document temp = serializer.serialize( value );
+			this->set<Document>( path, std::move( temp ) );
+		}
+
+		/**
+		 * @brief Set value using Serializer for STL types (move version)
+		 * @tparam T STL type (e.g., std::vector, std::optional, std::unique_ptr)
+		 * @param path JSON Pointer path where to set value
+		 * @param value Value to serialize
+		 */
+		template <typename T>
+			requires( !detail::is_nfx_extension_type_v<T> &&
+					  !JsonPrimitive<T> &&
+					  !is_json_container_v<T> )
+		void set( std::string_view path, T&& value )
+		{
+			Serializer<std::remove_cvref_t<T>> serializer;
+			Document temp = serializer.serialize( std::forward<T>( value ) );
+			this->set<Document>( path, std::move( temp ) );
+		}
+
+		/**
+		 * @brief Get value using Serializer for STL types
+		 * @tparam T STL type (e.g., std::vector, std::optional, std::unique_ptr)
+		 * @param path JSON Pointer path to value
+		 * @return Optional containing deserialized value if exists
+		 */
+		template <typename T>
+			requires( !detail::is_nfx_extension_type_v<T> &&
+					  !JsonPrimitive<T> &&
+					  !is_json_container_v<T> )
+		std::optional<T> get( std::string_view path ) const
+		{
+			auto docOpt = get<Document>( path );
+			if ( !docOpt.has_value() )
+			{
+				return std::nullopt;
+			}
+
+			Serializer<T> serializer;
+			return serializer.deserialize( docOpt.value() );
+		}
+
+		/**
+		 * @brief Get value using Serializer for STL types (output parameter version)
+		 * @tparam T STL type (e.g., std::vector, std::optional, std::unique_ptr)
+		 * @param path JSON Pointer path to value
+		 * @param[out] value Output parameter to store deserialized value
+		 * @return true if value exists and was successfully deserialized
+		 */
+		template <typename T>
+			requires( !detail::is_nfx_extension_type_v<T> &&
+					  !JsonPrimitive<T> &&
+					  !is_json_container_v<T> )
+		bool get( std::string_view path, T& value ) const
+		{
+			auto result = get<T>( path );
+			if ( result.has_value() )
+			{
+				value = std::move( result.value() );
+				return true;
+			}
+			return false;
+		}
+
+		/**
+		 * @brief Check if value at path can be deserialized as STL type T
+		 * @tparam T STL type (e.g., std::vector, std::optional, std::unique_ptr)
+		 * @param path JSON Pointer path to check
+		 * @return true if value exists and can be deserialized as T
+		 */
+		template <typename T>
+			requires( !detail::is_nfx_extension_type_v<T> &&
+					  !JsonPrimitive<T> &&
+					  !is_json_container_v<T> )
+		bool is( std::string_view path ) const
+		{
+			auto docOpt = get<Document>( path );
+			if ( !docOpt.has_value() )
+				return false;
+			try
+			{
+				Serializer<T> serializer;
+				serializer.deserialize( docOpt.value() );
+				return true;
+			}
+			catch ( ... )
+			{
+				return false;
+			}
+		}
+
+		//-----------------------------
 		// SerializationTraits support
 		//-----------------------------
 
@@ -337,7 +449,7 @@ namespace nfx::serialization::json
 		 *          temporary Document and then inserted at the specified path.
 		 */
 		template <typename T>
-			requires( detail::has_serialization_traits_v<T> &&
+			requires( detail::is_nfx_extension_type_v<T> &&
 					  !JsonPrimitive<T> &&
 					  !is_json_container_v<T> )
 		void set( std::string_view path, const T& value )
@@ -357,7 +469,7 @@ namespace nfx::serialization::json
 		 *          temporary Document and then inserted at the specified path.
 		 */
 		template <typename T>
-			requires( detail::has_serialization_traits_v<T> &&
+			requires( detail::is_nfx_extension_type_v<T> &&
 					  !JsonPrimitive<T> &&
 					  !is_json_container_v<T> )
 		void set( std::string_view path, T&& value )
@@ -374,7 +486,7 @@ namespace nfx::serialization::json
 		 * @return Optional containing deserialized value if exists
 		 */
 		template <typename T>
-			requires( detail::has_serialization_traits_v<T> &&
+			requires( detail::is_nfx_extension_type_v<T> &&
 					  !JsonPrimitive<T> &&
 					  !is_json_container_v<T> )
 		std::optional<T> get( std::string_view path ) const
@@ -398,7 +510,7 @@ namespace nfx::serialization::json
 		 * @return true if value exists and was successfully deserialized
 		 */
 		template <typename T>
-			requires( detail::has_serialization_traits_v<T> &&
+			requires( detail::is_nfx_extension_type_v<T> &&
 					  !JsonPrimitive<T> &&
 					  !is_json_container_v<T> )
 		bool get( std::string_view path, T& value ) const
@@ -419,7 +531,7 @@ namespace nfx::serialization::json
 		 * @return true if value exists and can be deserialized as T, false otherwise
 		 */
 		template <typename T>
-			requires( detail::has_serialization_traits_v<T> &&
+			requires( detail::is_nfx_extension_type_v<T> &&
 					  !JsonPrimitive<T> &&
 					  !is_json_container_v<T> )
 		bool is( std::string_view path ) const

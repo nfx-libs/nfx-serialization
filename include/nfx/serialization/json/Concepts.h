@@ -108,6 +108,103 @@ namespace nfx::serialization::json
 		 */
 		template <typename T>
 		inline constexpr bool has_serialization_traits_v = has_serialization_traits<T>::value;
+
+		//=====================================================================
+		// Type trait to identify nfx extension types
+		//=====================================================================
+
+		/**
+		 * @brief Identifies types from nfx:: namespaces that have SerializationTraits
+		 * @details This trait explicitly lists all nfx extension types to distinguish them
+		 *          from STL types. Used to route types to correct template overloads:
+		 *          - nfx types → SerializationTraits templates
+		 *          - STL types → Serializer templates
+		 */
+		template <typename T>
+		struct is_nfx_extension_type : std::false_type
+		{
+		};
+
+		namespace nfx
+		{
+			namespace datatypes
+			{
+				class Int128;
+				class Decimal;
+			} // namespace datatypes
+		} // namespace nfx
+
+		namespace nfx
+		{
+			namespace time
+			{
+				class TimeSpan;
+				class DateTime;
+				class DateTimeOffset;
+			} // namespace time
+		} // namespace nfx
+
+		namespace nfx
+		{
+			namespace containers
+			{
+				template <typename, typename, typename, auto, typename, typename>
+				class PerfectHashMap;
+				template <typename, typename, typename, auto, typename, typename>
+				class FastHashMap;
+				template <typename, typename, auto, typename, typename>
+				class FastHashSet;
+			} // namespace containers
+		} // namespace nfx
+
+		// Specializations for nfx::datatypes types
+		template <>
+		struct is_nfx_extension_type<nfx::datatypes::Int128> : std::true_type
+		{
+		};
+
+		template <>
+		struct is_nfx_extension_type<nfx::datatypes::Decimal> : std::true_type
+		{
+		};
+
+		// Specializations for nfx::time types
+		template <>
+		struct is_nfx_extension_type<nfx::time::TimeSpan> : std::true_type
+		{
+		};
+
+		template <>
+		struct is_nfx_extension_type<nfx::time::DateTime> : std::true_type
+		{
+		};
+
+		template <>
+		struct is_nfx_extension_type<nfx::time::DateTimeOffset> : std::true_type
+		{
+		};
+
+		// Specializations for nfx::containers types
+		template <typename K, typename V, typename H, auto S, typename Hr, typename E>
+		struct is_nfx_extension_type<nfx::containers::PerfectHashMap<K, V, H, S, Hr, E>> : std::true_type
+		{
+		};
+
+		template <typename K, typename V, typename H, auto S, typename Hr, typename E>
+		struct is_nfx_extension_type<nfx::containers::FastHashMap<K, V, H, S, Hr, E>> : std::true_type
+		{
+		};
+
+		template <typename K, typename H, auto S, typename Hr, typename E>
+		struct is_nfx_extension_type<nfx::containers::FastHashSet<K, H, S, Hr, E>> : std::true_type
+		{
+		};
+
+		/**
+		 * @brief Helper variable template for is_nfx_extension_type
+		 */
+		template <typename T>
+		inline constexpr bool is_nfx_extension_type_v = is_nfx_extension_type<std::decay_t<T>>::value;
 	} // namespace detail
 
 	//=====================================================================
