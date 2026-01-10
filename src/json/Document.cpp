@@ -50,21 +50,18 @@ namespace nfx::serialization::json
     //----------------------------------------------
 
     Document::Document()
-        : m_impl{ new Document_impl() }
+        : m_impl{ std::make_shared<Document_impl>() }
     {
     }
 
     Document::Document( const Document& other )
-        : m_impl{ other.m_impl
-                      ? new Document_impl{ *static_cast<Document_impl*>( other.m_impl ) }
-                      : nullptr }
+        : m_impl{ other.m_impl } // Shallow copy with shared_ptr
     {
     }
 
     Document::Document( Document&& other ) noexcept
         : m_impl{ std::move( other.m_impl ) }
     {
-        other.m_impl = nullptr;
     }
 
     //----------------------------------------------
@@ -73,11 +70,7 @@ namespace nfx::serialization::json
 
     Document::~Document()
     {
-        if ( m_impl )
-        {
-            delete static_cast<Document_impl*>( m_impl );
-            m_impl = nullptr;
-        }
+        // shared_ptr handles destruction automatically
     }
 
     //----------------------------------------------
@@ -88,22 +81,7 @@ namespace nfx::serialization::json
     {
         if ( this != &other )
         {
-            if ( other.m_impl )
-            {
-                if ( m_impl )
-                {
-                    *static_cast<Document_impl*>( m_impl ) = *static_cast<Document_impl*>( other.m_impl );
-                }
-                else
-                {
-                    m_impl = new Document_impl{ *static_cast<Document_impl*>( other.m_impl ) };
-                }
-            }
-            else
-            {
-                delete static_cast<Document_impl*>( m_impl );
-                m_impl = nullptr;
-            }
+            m_impl = other.m_impl; // Shallow copy with shared_ptr
         }
         return *this;
     }
@@ -112,9 +90,7 @@ namespace nfx::serialization::json
     {
         if ( this != &other )
         {
-            delete static_cast<Document_impl*>( m_impl );
-            m_impl = other.m_impl;
-            other.m_impl = nullptr;
+            m_impl = std::move( other.m_impl );
         }
 
         return *this;
@@ -131,8 +107,8 @@ namespace nfx::serialization::json
             return m_impl == other.m_impl;
         }
 
-        return static_cast<Document_impl*>( m_impl )->data() ==
-               static_cast<Document_impl*>( other.m_impl )->data();
+        return m_impl->data() ==
+               other.m_impl->data();
     }
 
     bool Document::operator!=( const Document& other ) const
@@ -177,8 +153,7 @@ namespace nfx::serialization::json
         {
             auto jsonData = nlohmann::ordered_json::parse( jsonStr );
             Document doc;
-            delete static_cast<Document_impl*>( doc.m_impl );
-            doc.m_impl = new Document_impl{ std::move( jsonData ) };
+            doc.m_impl = std::make_shared<Document_impl>( std::move( jsonData ) );
             return doc;
         }
         catch ( const nlohmann::ordered_json::exception& )
@@ -198,8 +173,7 @@ namespace nfx::serialization::json
         {
             auto jsonData = nlohmann::ordered_json::parse( bytes );
             Document doc;
-            delete static_cast<Document_impl*>( doc.m_impl );
-            doc.m_impl = new Document_impl{ std::move( jsonData ) };
+            doc.m_impl = std::make_shared<Document_impl>( std::move( jsonData ) );
             return doc;
         }
         catch ( const nlohmann::ordered_json::exception& )
@@ -240,11 +214,11 @@ namespace nfx::serialization::json
         {
             // Map indent=0 to dump(-1) for compact output (nlohmann uses -1 for no whitespace)
             int dumpIndent = ( indent == 0 ) ? -1 : indent;
-            return static_cast<Document_impl*>( m_impl )->data().dump( dumpIndent );
+            return m_impl->data().dump( dumpIndent );
         }
         catch ( const nlohmann::ordered_json::exception& e )
         {
-            static_cast<Document_impl*>( m_impl )->setLastError( e.what() );
+            m_impl->setLastError( e.what() );
             return "{}";
         }
     }
@@ -266,8 +240,8 @@ namespace nfx::serialization::json
             return;
         }
 
-        auto& thisData = static_cast<Document_impl*>( m_impl )->data();
-        auto& otherData = static_cast<Document_impl*>( other.m_impl )->data();
+        auto& thisData = m_impl->data();
+        auto& otherData = other.m_impl->data();
 
         // Recursive merge function
         std::function<void( nlohmann::ordered_json&, const nlohmann::ordered_json& )> mergeRecursive =
@@ -319,17 +293,17 @@ namespace nfx::serialization::json
         if ( !path.empty() && path[0] == '/' )
         {
             // JSON Pointer (RFC 6901)
-            node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( path, true );
+            node = m_impl->navigateToJsonPointer( path, true );
         }
         else
         {
             // Dot notation
-            node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
+            node = m_impl->navigateToPath( path, true );
         }
 
         if ( node )
         {
-            *node = static_cast<Document_impl*>( value.m_impl )->data();
+            *node = value.m_impl->data();
         }
     }
 
@@ -344,12 +318,12 @@ namespace nfx::serialization::json
         if ( !path.empty() && path[0] == '/' )
         {
             // JSON Pointer (RFC 6901)
-            node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( path );
+            node = m_impl->navigateToJsonPointer( path );
         }
         else
         {
             // Dot notation
-            node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
+            node = m_impl->navigateToPath( path );
         }
 
         // Return true if any JSON value exists at the path
@@ -371,12 +345,12 @@ namespace nfx::serialization::json
             if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
             {
                 Document result;
-                static_cast<Document_impl*>( result.m_impl )->setData( static_cast<Document_impl*>( m_impl )->data() );
+                result.m_impl->setData( m_impl->data() );
                 return result;
             }
             else if constexpr ( std::is_same_v<std::decay_t<T>, Object> )
             {
-                if ( static_cast<Document_impl*>( m_impl )->data().is_object() )
+                if ( m_impl->data().is_object() )
                 {
                     return Object( const_cast<Document*>( this ), "" );
                 }
@@ -384,7 +358,7 @@ namespace nfx::serialization::json
             }
             else if constexpr ( std::is_same_v<std::decay_t<T>, Array> )
             {
-                if ( static_cast<Document_impl*>( m_impl )->data().is_array() )
+                if ( m_impl->data().is_array() )
                 {
                     return Array( const_cast<Document*>( this ), "" );
                 }
@@ -392,18 +366,18 @@ namespace nfx::serialization::json
             }
             else
             {
-                node = &static_cast<Document_impl*>( m_impl )->data();
+                node = &m_impl->data();
             }
         }
         else if ( path[0] == '/' )
         {
             // JSON Pointer (RFC 6901)
-            node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( path );
+            node = m_impl->navigateToJsonPointer( path );
         }
         else
         {
             // Dot notation
-            node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
+            node = m_impl->navigateToPath( path );
         }
 
         if ( !node )
@@ -526,7 +500,7 @@ namespace nfx::serialization::json
         else if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
         {
             Document result;
-            static_cast<Document_impl*>( result.m_impl )->setData( *node );
+            result.m_impl->setData( *node );
             return result;
         }
         else if constexpr ( std::is_same_v<std::decay_t<T>, Object> )
@@ -607,12 +581,12 @@ namespace nfx::serialization::json
         if ( !path.empty() && path[0] == '/' )
         {
             // JSON Pointer (RFC 6901)
-            node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( path, true );
+            node = m_impl->navigateToJsonPointer( path, true );
         }
         else
         {
             // Dot notation
-            node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
+            node = m_impl->navigateToPath( path, true );
         }
 
         if ( !node )
@@ -659,15 +633,15 @@ namespace nfx::serialization::json
         }
         else if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
         {
-            *node = static_cast<Document_impl*>( value.m_impl )->data();
+            *node = value.m_impl->data();
         }
         else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Object> )
         {
-            *node = static_cast<Document_impl*>( value.m_doc->m_impl )->data();
+            *node = value.m_doc->m_impl->data();
         }
         else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Array> )
         {
-            *node = static_cast<Document_impl*>( value.m_doc->m_impl )->data();
+            *node = value.m_doc->m_impl->data();
         }
     }
 
@@ -697,12 +671,12 @@ namespace nfx::serialization::json
         if ( !path.empty() && path[0] == '/' )
         {
             // JSON Pointer (RFC 6901)
-            node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( path, true );
+            node = m_impl->navigateToJsonPointer( path, true );
         }
         else
         {
             // Dot notation
-            node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
+            node = m_impl->navigateToPath( path, true );
         }
 
         if ( !node )
@@ -749,15 +723,15 @@ namespace nfx::serialization::json
         }
         else if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
         {
-            *node = std::move( static_cast<Document_impl*>( value.m_impl )->data() );
+            *node = std::move( value.m_impl->data() );
         }
         else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Object> )
         {
-            *node = std::move( static_cast<Document_impl*>( value.m_doc->m_impl )->data() );
+            *node = std::move( value.m_doc->m_impl->data() );
         }
         else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Array> )
         {
-            *node = std::move( static_cast<Document_impl*>( value.m_doc->m_impl )->data() );
+            *node = std::move( value.m_doc->m_impl->data() );
         }
     }
 
@@ -790,12 +764,12 @@ namespace nfx::serialization::json
         if ( !path.empty() && path[0] == '/' )
         {
             // JSON Pointer (RFC 6901)
-            node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( path, true );
+            node = m_impl->navigateToJsonPointer( path, true );
         }
         else
         {
             // Dot notation
-            node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
+            node = m_impl->navigateToPath( path, true );
         }
 
         if ( node )
@@ -830,12 +804,12 @@ namespace nfx::serialization::json
         if ( !path.empty() && path[0] == '/' )
         {
             // JSON Pointer (RFC 6901)
-            node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( path, true );
+            node = m_impl->navigateToJsonPointer( path, true );
         }
         else
         {
             // Dot notation
-            node = static_cast<Document_impl*>( m_impl )->navigateToPath( path, true );
+            node = m_impl->navigateToPath( path, true );
         }
 
         if ( node )
@@ -856,12 +830,12 @@ namespace nfx::serialization::json
         if ( !path.empty() && path[0] == '/' )
         {
             // JSON Pointer (RFC 6901)
-            node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( path );
+            node = m_impl->navigateToJsonPointer( path );
         }
         else
         {
             // Dot notation
-            node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
+            node = m_impl->navigateToPath( path );
         }
 
         if ( !node )
@@ -933,12 +907,12 @@ namespace nfx::serialization::json
         if ( !path.empty() && path[0] == '/' )
         {
             // JSON Pointer (RFC 6901)
-            node = static_cast<Document_impl*>( m_impl )->navigateToJsonPointer( path );
+            node = m_impl->navigateToJsonPointer( path );
         }
         else
         {
             // Dot notation
-            node = static_cast<Document_impl*>( m_impl )->navigateToPath( path );
+            node = m_impl->navigateToPath( path );
         }
         return node && node->is_null();
     }
@@ -956,7 +930,7 @@ namespace nfx::serialization::json
 
         try
         {
-            const auto& data = static_cast<Document_impl*>( m_impl )->data();
+            const auto& data = m_impl->data();
 
             // Check if it's not discarded (nlohmann::ordered_json's invalid state)
             if ( data.is_discarded() )
@@ -976,7 +950,7 @@ namespace nfx::serialization::json
 
     std::string Document::lastError() const
     {
-        return static_cast<Document_impl*>( m_impl )->lastError();
+        return m_impl->lastError();
     }
 
     //----------------------------------------------
@@ -1060,28 +1034,28 @@ namespace nfx::serialization::json
 
         if ( m_path.empty() )
         {
-            thisNode = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+            thisNode = &m_doc->m_impl->data();
         }
         else if ( m_path[0] == '/' )
         {
-            thisNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path );
+            thisNode = m_doc->m_impl->navigateToJsonPointer( m_path );
         }
         else
         {
-            thisNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path );
+            thisNode = m_doc->m_impl->navigateToPath( m_path );
         }
 
         if ( other.m_path.empty() )
         {
-            otherNode = &static_cast<Document_impl*>( other.m_doc->m_impl )->data();
+            otherNode = &other.m_doc->m_impl->data();
         }
         else if ( other.m_path[0] == '/' )
         {
-            otherNode = static_cast<Document_impl*>( other.m_doc->m_impl )->navigateToJsonPointer( other.m_path );
+            otherNode = other.m_doc->m_impl->navigateToJsonPointer( other.m_path );
         }
         else
         {
-            otherNode = static_cast<Document_impl*>( other.m_doc->m_impl )->navigateToPath( other.m_path );
+            otherNode = other.m_doc->m_impl->navigateToPath( other.m_path );
         }
 
         if ( !thisNode || !otherNode || !thisNode->is_object() || !otherNode->is_object() )
@@ -1132,15 +1106,15 @@ namespace nfx::serialization::json
         const nlohmann::ordered_json* node = nullptr;
         if ( m_path.empty() )
         {
-            node = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+            node = &m_doc->m_impl->data();
         }
         else if ( m_path[0] == '/' )
         {
-            node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path );
+            node = m_doc->m_impl->navigateToJsonPointer( m_path );
         }
         else
         {
-            node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path );
+            node = m_doc->m_impl->navigateToPath( m_path );
         }
 
         if ( node && node->is_object() )
@@ -1165,15 +1139,15 @@ namespace nfx::serialization::json
         nlohmann::ordered_json* node = nullptr;
         if ( m_path.empty() )
         {
-            node = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+            node = &m_doc->m_impl->data();
         }
         else if ( m_path[0] == '/' )
         {
-            node = const_cast<nlohmann::ordered_json*>( static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path ) );
+            node = const_cast<nlohmann::ordered_json*>( m_doc->m_impl->navigateToJsonPointer( m_path ) );
         }
         else
         {
-            node = const_cast<nlohmann::ordered_json*>( static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path ) );
+            node = const_cast<nlohmann::ordered_json*>( m_doc->m_impl->navigateToPath( m_path ) );
         }
 
         if ( node && node->is_object() )
@@ -1208,15 +1182,15 @@ namespace nfx::serialization::json
         nlohmann::ordered_json* objectNode = nullptr;
         if ( m_path.empty() )
         {
-            objectNode = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+            objectNode = &m_doc->m_impl->data();
         }
         else if ( m_path[0] == '/' )
         {
-            objectNode = const_cast<nlohmann::ordered_json*>( static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path ) );
+            objectNode = const_cast<nlohmann::ordered_json*>( m_doc->m_impl->navigateToJsonPointer( m_path ) );
         }
         else
         {
-            objectNode = const_cast<nlohmann::ordered_json*>( static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path ) );
+            objectNode = const_cast<nlohmann::ordered_json*>( m_doc->m_impl->navigateToPath( m_path ) );
         }
 
         if ( objectNode && objectNode->is_object() )
@@ -1261,15 +1235,15 @@ namespace nfx::serialization::json
         const nlohmann::ordered_json* objectNode = nullptr;
         if ( m_path.empty() )
         {
-            objectNode = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+            objectNode = &m_doc->m_impl->data();
         }
         else if ( m_path[0] == '/' )
         {
-            objectNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path );
+            objectNode = m_doc->m_impl->navigateToJsonPointer( m_path );
         }
         else
         {
-            objectNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path );
+            objectNode = m_doc->m_impl->navigateToPath( m_path );
         }
 
         if ( objectNode && objectNode->is_object() )
@@ -1337,7 +1311,7 @@ namespace nfx::serialization::json
         }
 
         // Always use JSON pointer navigation since we've normalized the path
-        const nlohmann::ordered_json* targetNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( fullPath );
+        const nlohmann::ordered_json* targetNode = m_doc->m_impl->navigateToJsonPointer( fullPath );
 
         if ( !targetNode )
         {
@@ -1465,7 +1439,7 @@ namespace nfx::serialization::json
         else if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
         {
             Document newDoc;
-            static_cast<Document_impl*>( newDoc.m_impl )->setData( *targetNode );
+            newDoc.m_impl->setData( *targetNode );
             return newDoc;
         }
         else if constexpr ( std::is_same_v<std::decay_t<T>, Object> )
@@ -1592,7 +1566,7 @@ namespace nfx::serialization::json
         }
 
         // Always use JSON pointer navigation since we've normalized the path
-        nlohmann::ordered_json* targetNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( fullPath, true );
+        nlohmann::ordered_json* targetNode = m_doc->m_impl->navigateToJsonPointer( fullPath, true );
 
         if ( !targetNode )
         {
@@ -1631,7 +1605,7 @@ namespace nfx::serialization::json
         {
             if ( value.m_impl )
             {
-                *targetNode = static_cast<Document_impl*>( value.m_impl )->data();
+                *targetNode = value.m_impl->data();
             }
         }
         else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Object> )
@@ -1641,15 +1615,15 @@ namespace nfx::serialization::json
                 const nlohmann::ordered_json* objectNode = nullptr;
                 if ( value.m_path.empty() )
                 {
-                    objectNode = &static_cast<Document_impl*>( value.m_doc->m_impl )->data();
+                    objectNode = &value.m_doc->m_impl->data();
                 }
                 else if ( value.m_path[0] == '/' )
                 {
-                    objectNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToJsonPointer( value.m_path );
+                    objectNode = value.m_doc->m_impl->navigateToJsonPointer( value.m_path );
                 }
                 else
                 {
-                    objectNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToPath( value.m_path );
+                    objectNode = value.m_doc->m_impl->navigateToPath( value.m_path );
                 }
                 if ( objectNode )
                 {
@@ -1664,15 +1638,15 @@ namespace nfx::serialization::json
                 const nlohmann::ordered_json* arrayNode = nullptr;
                 if ( value.m_path.empty() )
                 {
-                    arrayNode = &static_cast<Document_impl*>( value.m_doc->m_impl )->data();
+                    arrayNode = &value.m_doc->m_impl->data();
                 }
                 else if ( value.m_path[0] == '/' )
                 {
-                    arrayNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToJsonPointer( value.m_path );
+                    arrayNode = value.m_doc->m_impl->navigateToJsonPointer( value.m_path );
                 }
                 else
                 {
-                    arrayNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToPath( value.m_path );
+                    arrayNode = value.m_doc->m_impl->navigateToPath( value.m_path );
                 }
                 if ( arrayNode )
                 {
@@ -1752,7 +1726,7 @@ namespace nfx::serialization::json
         }
 
         // Always use JSON pointer navigation since we've normalized the path
-        nlohmann::ordered_json* targetNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( fullPath, true );
+        nlohmann::ordered_json* targetNode = m_doc->m_impl->navigateToJsonPointer( fullPath, true );
 
         if ( !targetNode )
         {
@@ -1791,7 +1765,7 @@ namespace nfx::serialization::json
         {
             if ( value.m_impl )
             {
-                *targetNode = std::move( static_cast<Document_impl*>( value.m_impl )->data() );
+                *targetNode = std::move( value.m_impl->data() );
             }
         }
         else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Object> )
@@ -1801,15 +1775,15 @@ namespace nfx::serialization::json
                 const nlohmann::ordered_json* objectNode = nullptr;
                 if ( value.m_path.empty() )
                 {
-                    objectNode = &static_cast<Document_impl*>( value.m_doc->m_impl )->data();
+                    objectNode = &value.m_doc->m_impl->data();
                 }
                 else if ( value.m_path[0] == '/' )
                 {
-                    objectNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToJsonPointer( value.m_path );
+                    objectNode = value.m_doc->m_impl->navigateToJsonPointer( value.m_path );
                 }
                 else
                 {
-                    objectNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToPath( value.m_path );
+                    objectNode = value.m_doc->m_impl->navigateToPath( value.m_path );
                 }
                 if ( objectNode )
                 {
@@ -1824,15 +1798,15 @@ namespace nfx::serialization::json
                 const nlohmann::ordered_json* arrayNode = nullptr;
                 if ( value.m_path.empty() )
                 {
-                    arrayNode = &static_cast<Document_impl*>( value.m_doc->m_impl )->data();
+                    arrayNode = &value.m_doc->m_impl->data();
                 }
                 else if ( value.m_path[0] == '/' )
                 {
-                    arrayNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToJsonPointer( value.m_path );
+                    arrayNode = value.m_doc->m_impl->navigateToJsonPointer( value.m_path );
                 }
                 else
                 {
-                    arrayNode = static_cast<Document_impl*>( value.m_doc->m_impl )->navigateToPath( value.m_path );
+                    arrayNode = value.m_doc->m_impl->navigateToPath( value.m_path );
                 }
                 if ( arrayNode )
                 {
@@ -1878,15 +1852,15 @@ namespace nfx::serialization::json
         const nlohmann::ordered_json* node = nullptr;
         if ( m_path.empty() )
         {
-            node = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+            node = &m_doc->m_impl->data();
         }
         else if ( m_path[0] == '/' )
         {
-            node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path );
+            node = m_doc->m_impl->navigateToJsonPointer( m_path );
         }
         else
         {
-            node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path );
+            node = m_doc->m_impl->navigateToPath( m_path );
         }
 
         return node && node->is_object();
@@ -1908,15 +1882,15 @@ namespace nfx::serialization::json
         const nlohmann::ordered_json* node = nullptr;
         if ( m_path.empty() )
         {
-            node = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+            node = &m_doc->m_impl->data();
         }
         else if ( m_path[0] == '/' )
         {
-            node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path );
+            node = m_doc->m_impl->navigateToJsonPointer( m_path );
         }
         else
         {
-            node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path );
+            node = m_doc->m_impl->navigateToPath( m_path );
         }
 
         if ( !node )
@@ -2009,15 +1983,15 @@ namespace nfx::serialization::json
         const nlohmann::ordered_json* node = nullptr;
         if ( m_path.empty() )
         {
-            node = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+            node = &m_doc->m_impl->data();
         }
         else if ( m_path[0] == '/' )
         {
-            node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path );
+            node = m_doc->m_impl->navigateToJsonPointer( m_path );
         }
         else
         {
-            node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path );
+            node = m_doc->m_impl->navigateToPath( m_path );
         }
 
         if ( !node || !node->is_object() || index >= node->size() )
@@ -2041,15 +2015,15 @@ namespace nfx::serialization::json
         const nlohmann::ordered_json* node = nullptr;
         if ( m_path.empty() )
         {
-            node = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+            node = &m_doc->m_impl->data();
         }
         else if ( m_path[0] == '/' )
         {
-            node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path );
+            node = m_doc->m_impl->navigateToJsonPointer( m_path );
         }
         else
         {
-            node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path );
+            node = m_doc->m_impl->navigateToPath( m_path );
         }
 
         if ( !node || !node->is_object() || index >= node->size() )
@@ -2062,7 +2036,7 @@ namespace nfx::serialization::json
         std::advance( it, static_cast<std::ptrdiff_t>( index ) );
 
         Document result;
-        static_cast<Document_impl*>( result.m_impl )->data() = it.value();
+        result.m_impl->data() = it.value();
         return result;
     }
 
@@ -2147,28 +2121,28 @@ namespace nfx::serialization::json
 
         if ( m_path.empty() )
         {
-            thisNode = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+            thisNode = &m_doc->m_impl->data();
         }
         else if ( m_path[0] == '/' )
         {
-            thisNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path );
+            thisNode = m_doc->m_impl->navigateToJsonPointer( m_path );
         }
         else
         {
-            thisNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path );
+            thisNode = m_doc->m_impl->navigateToPath( m_path );
         }
 
         if ( other.m_path.empty() )
         {
-            otherNode = &static_cast<Document_impl*>( other.m_doc->m_impl )->data();
+            otherNode = &other.m_doc->m_impl->data();
         }
         else if ( other.m_path[0] == '/' )
         {
-            otherNode = static_cast<Document_impl*>( other.m_doc->m_impl )->navigateToJsonPointer( other.m_path );
+            otherNode = other.m_doc->m_impl->navigateToJsonPointer( other.m_path );
         }
         else
         {
-            otherNode = static_cast<Document_impl*>( other.m_doc->m_impl )->navigateToPath( other.m_path );
+            otherNode = other.m_doc->m_impl->navigateToPath( other.m_path );
         }
 
         if ( !thisNode || !otherNode || !thisNode->is_array() || !otherNode->is_array() )
@@ -2219,15 +2193,15 @@ namespace nfx::serialization::json
         const nlohmann::ordered_json* node = nullptr;
         if ( m_path.empty() )
         {
-            node = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+            node = &m_doc->m_impl->data();
         }
         else if ( m_path[0] == '/' )
         {
-            node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path );
+            node = m_doc->m_impl->navigateToJsonPointer( m_path );
         }
         else
         {
-            node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path );
+            node = m_doc->m_impl->navigateToPath( m_path );
         }
 
         if ( node && node->is_array() )
@@ -2252,15 +2226,15 @@ namespace nfx::serialization::json
         nlohmann::ordered_json* node = nullptr;
         if ( m_path.empty() )
         {
-            node = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+            node = &m_doc->m_impl->data();
         }
         else if ( m_path[0] == '/' )
         {
-            node = const_cast<nlohmann::ordered_json*>( static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path ) );
+            node = const_cast<nlohmann::ordered_json*>( m_doc->m_impl->navigateToJsonPointer( m_path ) );
         }
         else
         {
-            node = const_cast<nlohmann::ordered_json*>( static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path ) );
+            node = const_cast<nlohmann::ordered_json*>( m_doc->m_impl->navigateToPath( m_path ) );
         }
 
         if ( node && node->is_array() )
@@ -2283,15 +2257,15 @@ namespace nfx::serialization::json
         nlohmann::ordered_json* arrayNode = nullptr;
         if ( m_path.empty() )
         {
-            arrayNode = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+            arrayNode = &m_doc->m_impl->data();
         }
         else if ( m_path[0] == '/' )
         {
-            arrayNode = const_cast<nlohmann::ordered_json*>( static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path ) );
+            arrayNode = const_cast<nlohmann::ordered_json*>( m_doc->m_impl->navigateToJsonPointer( m_path ) );
         }
         else
         {
-            arrayNode = const_cast<nlohmann::ordered_json*>( static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path ) );
+            arrayNode = const_cast<nlohmann::ordered_json*>( m_doc->m_impl->navigateToPath( m_path ) );
         }
 
         if ( arrayNode && arrayNode->is_array() && index < arrayNode->size() )
@@ -2331,15 +2305,15 @@ namespace nfx::serialization::json
             const nlohmann::ordered_json* arrayNode = nullptr;
             if ( m_path.empty() )
             {
-                arrayNode = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+                arrayNode = &m_doc->m_impl->data();
             }
             else if ( m_path[0] == '/' )
             {
-                arrayNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path );
+                arrayNode = m_doc->m_impl->navigateToJsonPointer( m_path );
             }
             else
             {
-                arrayNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path );
+                arrayNode = m_doc->m_impl->navigateToPath( m_path );
             }
 
             if ( arrayNode && arrayNode->is_array() )
@@ -2367,7 +2341,7 @@ namespace nfx::serialization::json
             return std::nullopt;
         }
 
-        return static_cast<Document_impl*>( m_doc->m_impl )->get<T>( m_path, index, m_doc );
+        return m_doc->m_impl->get<T>( m_path, index, m_doc );
     }
 
     template std::optional<std::string> Document::Array::get<std::string>( size_t index ) const;
@@ -2468,7 +2442,7 @@ namespace nfx::serialization::json
             }
         }
 
-        const nlohmann::ordered_json* targetNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( fullPath );
+        const nlohmann::ordered_json* targetNode = m_doc->m_impl->navigateToJsonPointer( fullPath );
 
         if ( !targetNode )
         {
@@ -2597,7 +2571,7 @@ namespace nfx::serialization::json
         else if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
         {
             Document newDoc;
-            static_cast<Document_impl*>( newDoc.m_impl )->setData( *targetNode );
+            newDoc.m_impl->setData( *targetNode );
             return newDoc;
         }
         else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Object> )
@@ -2675,7 +2649,7 @@ namespace nfx::serialization::json
     {
         if ( m_doc )
         {
-            static_cast<Document_impl*>( m_doc->m_impl )->set<T>( m_path, index, T{ value } );
+            m_doc->m_impl->set<T>( m_path, index, T{ value } );
         }
     }
 
@@ -2702,7 +2676,7 @@ namespace nfx::serialization::json
     {
         if ( m_doc )
         {
-            static_cast<Document_impl*>( m_doc->m_impl )->set<T>( m_path, index, std::move( value ) );
+            m_doc->m_impl->set<T>( m_path, index, std::move( value ) );
         }
     }
 
@@ -2775,7 +2749,7 @@ namespace nfx::serialization::json
             }
         }
 
-        nlohmann::ordered_json* targetNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( fullPath, true );
+        nlohmann::ordered_json* targetNode = m_doc->m_impl->navigateToJsonPointer( fullPath, true );
 
         if ( !targetNode )
         {
@@ -2812,14 +2786,14 @@ namespace nfx::serialization::json
         }
         else if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
         {
-            *targetNode = static_cast<Document_impl*>( value.m_impl )->data();
+            *targetNode = value.m_impl->data();
         }
         else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Object> )
         {
             if ( value.m_doc )
             {
                 Document objDoc = value.m_doc->template get<Document>( value.m_path ).value_or( Document{} );
-                *targetNode = static_cast<Document_impl*>( objDoc.m_impl )->data();
+                *targetNode = objDoc.m_impl->data();
             }
         }
         else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Array> )
@@ -2827,7 +2801,7 @@ namespace nfx::serialization::json
             if ( value.m_doc )
             {
                 Document arrDoc = value.m_doc->template get<Document>( value.m_path ).value_or( Document{} );
-                *targetNode = static_cast<Document_impl*>( arrDoc.m_impl )->data();
+                *targetNode = arrDoc.m_impl->data();
             }
         }
     }
@@ -2897,7 +2871,7 @@ namespace nfx::serialization::json
             }
         }
 
-        nlohmann::ordered_json* targetNode = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( fullPath, true );
+        nlohmann::ordered_json* targetNode = m_doc->m_impl->navigateToJsonPointer( fullPath, true );
 
         if ( !targetNode )
         {
@@ -2933,14 +2907,14 @@ namespace nfx::serialization::json
         }
         else if constexpr ( std::is_same_v<std::decay_t<T>, Document> )
         {
-            *targetNode = std::move( static_cast<Document_impl*>( value.m_impl )->data() );
+            *targetNode = std::move( value.m_impl->data() );
         }
         else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Object> )
         {
             if ( value.m_doc )
             {
                 Document objDoc = value.m_doc->template get<Document>( value.m_path ).value_or( Document{} );
-                *targetNode = std::move( static_cast<Document_impl*>( objDoc.m_impl )->data() );
+                *targetNode = std::move( objDoc.m_impl->data() );
             }
         }
         else if constexpr ( std::is_same_v<std::decay_t<T>, Document::Array> )
@@ -2948,7 +2922,7 @@ namespace nfx::serialization::json
             if ( value.m_doc )
             {
                 Document arrDoc = value.m_doc->template get<Document>( value.m_path ).value_or( Document{} );
-                *targetNode = std::move( static_cast<Document_impl*>( arrDoc.m_impl )->data() );
+                *targetNode = std::move( arrDoc.m_impl->data() );
             }
         }
     }
@@ -2976,7 +2950,7 @@ namespace nfx::serialization::json
     {
         if ( m_doc )
         {
-            static_cast<Document_impl*>( m_doc->m_impl )->append<T>( m_path, T{ value } );
+            m_doc->m_impl->append<T>( m_path, T{ value } );
         }
     }
 
@@ -3003,7 +2977,7 @@ namespace nfx::serialization::json
     {
         if ( m_doc )
         {
-            static_cast<Document_impl*>( m_doc->m_impl )->append<T>( m_path, std::move( value ) );
+            m_doc->m_impl->append<T>( m_path, std::move( value ) );
         }
     }
 
@@ -3044,7 +3018,7 @@ namespace nfx::serialization::json
     template <JsonValue T>
     void Document::Array::insert( size_t index, const T& value )
     {
-        static_cast<Document_impl*>( m_doc->m_impl )->insert<T>( m_path, index, T{ value } );
+        m_doc->m_impl->insert<T>( m_path, index, T{ value } );
     }
 
     template void Document::Array::insert<std::string>( size_t index, const std::string& );
@@ -3068,7 +3042,7 @@ namespace nfx::serialization::json
     template <JsonValue T>
     void Document::Array::insert( size_t index, T&& value )
     {
-        static_cast<Document_impl*>( m_doc->m_impl )->insert<T>( m_path, index, std::move( value ) );
+        m_doc->m_impl->insert<T>( m_path, index, std::move( value ) );
     }
 
     template void Document::Array::insert<std::string>( size_t index, std::string&& );
@@ -3123,15 +3097,15 @@ namespace nfx::serialization::json
         const nlohmann::ordered_json* node = nullptr;
         if ( m_path.empty() )
         {
-            node = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+            node = &m_doc->m_impl->data();
         }
         else if ( m_path[0] == '/' )
         {
-            node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path );
+            node = m_doc->m_impl->navigateToJsonPointer( m_path );
         }
         else
         {
-            node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path );
+            node = m_doc->m_impl->navigateToPath( m_path );
         }
 
         return node && node->is_array();
@@ -3153,15 +3127,15 @@ namespace nfx::serialization::json
         const nlohmann::ordered_json* node = nullptr;
         if ( m_path.empty() )
         {
-            node = &static_cast<Document_impl*>( m_doc->m_impl )->data();
+            node = &m_doc->m_impl->data();
         }
         else if ( m_path[0] == '/' )
         {
-            node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToJsonPointer( m_path );
+            node = m_doc->m_impl->navigateToJsonPointer( m_path );
         }
         else
         {
-            node = static_cast<Document_impl*>( m_doc->m_impl )->navigateToPath( m_path );
+            node = m_doc->m_impl->navigateToPath( m_path );
         }
 
         if ( !node )
@@ -3313,7 +3287,7 @@ namespace nfx::serialization::json
             return;
         }
 
-        auto* impl = static_cast<Document_impl*>( doc.m_impl );
+        auto* impl = doc.m_impl.get();
         const auto& root = impl->data();
 
         // Stack for depth-first traversal
@@ -3353,7 +3327,7 @@ namespace nfx::serialization::json
 
                 // Create a Document copy for this value
                 entry.valuePtr = std::make_unique<Document>();
-                auto* valueImpl = static_cast<Document_impl*>( entry.valuePtr->m_impl );
+                auto* valueImpl = entry.valuePtr->m_impl.get();
                 valueImpl->data() = *current.node;
 
                 m_entries.push_back( std::move( entry ) );

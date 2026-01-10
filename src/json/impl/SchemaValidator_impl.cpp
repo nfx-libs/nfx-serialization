@@ -778,7 +778,7 @@ namespace nfx::serialization::json
     void SchemaValidator_impl::validateEnum( const Document& document, const Document& schema, std::string_view path, ValidationResult& result ) const
     {
         // Get the document value as nlohmann::json for comparison
-        auto* docImpl = static_cast<Document_impl*>( document.m_impl );
+        auto* docImpl = document.m_impl.get();
         const nlohmann::ordered_json* docValue = nullptr;
 
         if ( path.empty() )
@@ -800,7 +800,7 @@ namespace nfx::serialization::json
         }
 
         // Get the enum array from schema
-        auto* schemaImpl = static_cast<Document_impl*>( schema.m_impl );
+        auto* schemaImpl = schema.m_impl.get();
         const nlohmann::ordered_json* enumArray = schemaImpl->navigateToPath( vocabulary::VALIDATION_ENUM );
 
         if ( !enumArray || !enumArray->is_array() )
@@ -841,7 +841,7 @@ namespace nfx::serialization::json
     void SchemaValidator_impl::validateConst( const Document& document, const Document& schema, std::string_view path, ValidationResult& result ) const
     {
         // Get the document value as nlohmann::json for comparison
-        auto* docImpl = static_cast<Document_impl*>( document.m_impl );
+        auto* docImpl = document.m_impl.get();
         const nlohmann::ordered_json* docValue = nullptr;
 
         if ( path.empty() )
@@ -863,7 +863,7 @@ namespace nfx::serialization::json
         }
 
         // Get the const value from schema
-        auto* schemaImpl = static_cast<Document_impl*>( schema.m_impl );
+        auto* schemaImpl = schema.m_impl.get();
         const nlohmann::ordered_json* constValue = schemaImpl->navigateToPath( vocabulary::VALIDATION_CONST );
 
         if ( !constValue )
@@ -1038,7 +1038,7 @@ namespace nfx::serialization::json
     Document SchemaValidator_impl::extractSubDocument( const Document& sourceDocument, std::string_view path ) const
     {
         // Direct extraction via nlohmann::json - O(1) lookup + single copy
-        auto* sourceImpl = static_cast<Document_impl*>( sourceDocument.m_impl );
+        auto* sourceImpl = sourceDocument.m_impl.get();
         if ( !sourceImpl )
         {
             return Document{};
@@ -1063,7 +1063,7 @@ namespace nfx::serialization::json
 
         // Create new Document with a copy of the subtree
         Document result;
-        auto* resultImpl = static_cast<Document_impl*>( result.m_impl );
+        auto* resultImpl = result.m_impl.get();
         resultImpl->setData( *subtree );
 
         return result;
@@ -1425,7 +1425,7 @@ namespace nfx::serialization::json
             if ( uniqueItemsOpt.value_or( false ) )
             {
                 // Use nlohmann::json comparison for deep equality check
-                auto* docImpl = static_cast<Document_impl*>( document.m_impl );
+                auto* docImpl = document.m_impl.get();
                 const nlohmann::ordered_json* arrayNode = nullptr;
 
                 if ( path.empty() )

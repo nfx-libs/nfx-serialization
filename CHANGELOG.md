@@ -9,7 +9,11 @@
 
 ### Changed
 
-- NIL
+- **Performance**: Document now uses `std::shared_ptr<Document_impl>` for reference-counted internal data
+  - Document copy constructor and assignment now perform shallow copy (shared ownership) instead of deep copy
+  - Significantly improves iterator performance by eliminating redundant deep copies when dereferencing `Object::Iterator` and `Array::Iterator`
+  - Multiple Document instances can share the same underlying JSON data (similar to STL container semantics)
+  - Note: Document follows STL container thread-safety model - concurrent modifications require external synchronization
 
 
 ### Deprecated

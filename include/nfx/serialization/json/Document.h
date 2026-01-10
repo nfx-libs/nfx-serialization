@@ -1612,7 +1612,7 @@ namespace nfx::serialization::json
         // Pimpl
         //----------------------------------------------
 
-        void* m_impl;
+        std::shared_ptr<Document_impl> m_impl;
     };
 
     //=====================================================================
