@@ -41,132 +41,132 @@
 
 namespace nfx::serialization::json
 {
-	//=====================================================================
-	// SchemaGenerator class
-	//=====================================================================
+    //=====================================================================
+    // SchemaGenerator class
+    //=====================================================================
 
-	/**
-	 * @brief JSON Schema generator from Document instances
-	 * @details Analyzes JSON data to generate JSON Schema Draft 2020-12 compliant schemas.
-	 *          Infers types, detects string formats (email, date, URI, UUID, etc.),
-	 *          and generates constraints based on observed values.
-	 */
-	class SchemaGenerator final
-	{
-	public:
-		//----------------------------------------------
-		// Options
-		//----------------------------------------------
+    /**
+     * @brief JSON Schema generator from Document instances
+     * @details Analyzes JSON data to generate JSON Schema Draft 2020-12 compliant schemas.
+     *          Infers types, detects string formats (email, date, URI, UUID, etc.),
+     *          and generates constraints based on observed values.
+     */
+    class SchemaGenerator final
+    {
+    public:
+        //----------------------------------------------
+        // Options
+        //----------------------------------------------
 
-		/**
-		 * @brief Configuration options for schema generation
-		 */
-		struct Options
-		{
-			bool inferFormats = true;	   ///< Detect string formats (email, date, URI, UUID, etc.)
-			bool inferConstraints = false; ///< Generate constraints (minLength, minimum, etc.) - requires multi-sample
-			bool detectEnums = false;	   ///< Detect limited value sets as enums - requires multi-sample
-			size_t enumThreshold = 10;	   ///< Maximum unique values to consider as enum
-			std::string title = {};		   ///< Schema title (optional)
-			std::string description = {};  ///< Schema description (optional)
-			std::string id = {};		   ///< Schema $id URI (optional)
-		};
+        /**
+         * @brief Configuration options for schema generation
+         */
+        struct Options
+        {
+            bool inferFormats = true;      ///< Detect string formats (email, date, URI, UUID, etc.)
+            bool inferConstraints = false; ///< Generate constraints (minLength, minimum, etc.) - requires multi-sample
+            bool detectEnums = false;      ///< Detect limited value sets as enums - requires multi-sample
+            size_t enumThreshold = 10;     ///< Maximum unique values to consider as enum
+            std::string title = {};        ///< Schema title (optional)
+            std::string description = {};  ///< Schema description (optional)
+            std::string id = {};           ///< Schema $id URI (optional)
+        };
 
-		//----------------------------------------------
-		// Construction
-		//----------------------------------------------
+        //----------------------------------------------
+        // Construction
+        //----------------------------------------------
 
-		/**
-		 * @brief Generate JSON Schema from a single document
-		 * @param document The JSON document to analyze
-		 */
-		explicit SchemaGenerator( const Document& document );
+        /**
+         * @brief Generate JSON Schema from a single document
+         * @param document The JSON document to analyze
+         */
+        explicit SchemaGenerator( const Document& document );
 
-		/**
-		 * @brief Generate JSON Schema from a single document
-		 * @param document The JSON document to analyze
-		 * @param options Generation options
-		 */
-		SchemaGenerator( const Document& document, const Options& options );
+        /**
+         * @brief Generate JSON Schema from a single document
+         * @param document The JSON document to analyze
+         * @param options Generation options
+         */
+        SchemaGenerator( const Document& document, const Options& options );
 
-		/**
-		 * @brief Generate JSON Schema from multiple sample documents
-		 * @details Analyzes multiple samples to infer required properties,
-		 *          detect enums, and generate more accurate constraints.
-		 * @param documents Vector of JSON documents to analyze
-		 */
-		explicit SchemaGenerator( const std::vector<Document>& documents );
+        /**
+         * @brief Generate JSON Schema from multiple sample documents
+         * @details Analyzes multiple samples to infer required properties,
+         *          detect enums, and generate more accurate constraints.
+         * @param documents Vector of JSON documents to analyze
+         */
+        explicit SchemaGenerator( const std::vector<Document>& documents );
 
-		/**
-		 * @brief Generate JSON Schema from multiple sample documents
-		 * @details Analyzes multiple samples to infer required properties,
-		 *          detect enums, and generate more accurate constraints.
-		 * @param documents Vector of JSON documents to analyze
-		 * @param options Generation options
-		 */
-		SchemaGenerator( const std::vector<Document>& documents, const Options& options );
+        /**
+         * @brief Generate JSON Schema from multiple sample documents
+         * @details Analyzes multiple samples to infer required properties,
+         *          detect enums, and generate more accurate constraints.
+         * @param documents Vector of JSON documents to analyze
+         * @param options Generation options
+         */
+        SchemaGenerator( const std::vector<Document>& documents, const Options& options );
 
-		/** @brief Copy constructor */
-		SchemaGenerator( const SchemaGenerator& ) = default;
+        /** @brief Copy constructor */
+        SchemaGenerator( const SchemaGenerator& ) = default;
 
-		/** @brief Move constructor */
-		SchemaGenerator( SchemaGenerator&& ) noexcept = default;
+        /** @brief Move constructor */
+        SchemaGenerator( SchemaGenerator&& ) noexcept = default;
 
-		//----------------------------------------------
-		// Destruction
-		//----------------------------------------------
+        //----------------------------------------------
+        // Destruction
+        //----------------------------------------------
 
-		/** @brief Destructor */
-		~SchemaGenerator() = default;
+        /** @brief Destructor */
+        ~SchemaGenerator() = default;
 
-		//----------------------------------------------
-		// Assignment
-		//----------------------------------------------
+        //----------------------------------------------
+        // Assignment
+        //----------------------------------------------
 
-		/**
-		 * @brief Copy assignment operator
-		 * @return Reference to this generator
-		 */
-		SchemaGenerator& operator=( const SchemaGenerator& ) = default;
+        /**
+         * @brief Copy assignment operator
+         * @return Reference to this generator
+         */
+        SchemaGenerator& operator=( const SchemaGenerator& ) = default;
 
-		/**
-		 * @brief Move assignment operator
-		 * @return Reference to this generator
-		 */
-		SchemaGenerator& operator=( SchemaGenerator&& ) noexcept = default;
+        /**
+         * @brief Move assignment operator
+         * @return Reference to this generator
+         */
+        SchemaGenerator& operator=( SchemaGenerator&& ) noexcept = default;
 
-		//----------------------------------------------
-		// Accessors
-		//----------------------------------------------
+        //----------------------------------------------
+        // Accessors
+        //----------------------------------------------
 
-		/**
-		 * @brief Get the generated schema
-		 * @return Const reference to the generated JSON Schema
-		 */
-		const Document& schema() const noexcept { return m_schema; }
+        /**
+         * @brief Get the generated schema
+         * @return Const reference to the generated JSON Schema
+         */
+        const Document& schema() const noexcept { return m_schema; }
 
-	private:
-		//----------------------------------------------
-		// Internal methods
-		//----------------------------------------------
+    private:
+        //----------------------------------------------
+        // Internal methods
+        //----------------------------------------------
 
-		/**
-		 * @brief Add schema metadata ($schema, $id, title, description)
-		 */
-		void addMetadata();
+        /**
+         * @brief Add schema metadata ($schema, $id, title, description)
+         */
+        void addMetadata();
 
-		/**
-		 * @brief Generate schema for a JSON value
-		 * @param value The JSON value to analyze
-		 * @return Schema document for the value
-		 */
-		Document generateSchema( const Document& value ) const;
+        /**
+         * @brief Generate schema for a JSON value
+         * @param value The JSON value to analyze
+         * @return Schema document for the value
+         */
+        Document generateSchema( const Document& value ) const;
 
-		//----------------------------------------------
-		// Member data
-		//----------------------------------------------
+        //----------------------------------------------
+        // Member data
+        //----------------------------------------------
 
-		Document m_schema; ///< The generated JSON Schema
-		Options m_options; ///< Generation options
-	};
+        Document m_schema; ///< The generated JSON Schema
+        Options m_options; ///< Generation options
+    };
 } // namespace nfx::serialization::json

@@ -9,10 +9,10 @@
 cmake_minimum_required(VERSION 3.20)
 
 project(nfx-serialization
-	VERSION 0.3.0
-	DESCRIPTION "Cross-platform C++ JSON serialization library with extensible trait capabilities"
-	HOMEPAGE_URL "https://github.com/nfx-libs/nfx-serialization"
-	LANGUAGES CXX
+    VERSION 0.3.0
+    DESCRIPTION "Cross-platform C++ JSON serialization library with extensible trait capabilities"
+    HOMEPAGE_URL "https://github.com/nfx-libs/nfx-serialization"
+    LANGUAGES CXX
 )
 
 #----------------------------------------------
@@ -23,12 +23,12 @@ include(GNUInstallDirs)
 
 # Set default installation path to nfx
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-	if(WIN32)
-		set(CMAKE_INSTALL_PREFIX "C:/Program Files/nfx" CACHE PATH "Installation directory" FORCE)
-	else()
-		set(CMAKE_INSTALL_PREFIX "/usr/local/nfx" CACHE PATH "Installation directory" FORCE)
-	endif()
-	message(STATUS "Setting install prefix to '${CMAKE_INSTALL_PREFIX}'")
+    if(WIN32)
+        set(CMAKE_INSTALL_PREFIX "C:/Program Files/nfx" CACHE PATH "Installation directory" FORCE)
+    else()
+        set(CMAKE_INSTALL_PREFIX "/usr/local/nfx" CACHE PATH "Installation directory" FORCE)
+    endif()
+    message(STATUS "Setting install prefix to '${CMAKE_INSTALL_PREFIX}'")
 endif()
 
 #----------------------------------------------

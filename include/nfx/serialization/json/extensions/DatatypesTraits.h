@@ -48,52 +48,52 @@
 
 #if __has_include( "nfx/datatypes/Int128.h" )
 
-#	include "nfx/datatypes/Int128.h"
+#    include "nfx/datatypes/Int128.h"
 
 namespace nfx::serialization::json
 {
-	/**
-	 * @brief Specialization for nfx::datatypes::Int128
-	 */
-	template <>
-	struct SerializationTraits<nfx::datatypes::Int128>
-	{
-		/**
-		 * @brief Serialize Int128 to JSON document using platform-independent string representation
-		 * @param obj The Int128 object to serialize
-		 * @param doc The document to serialize into
-		 * @details Uses toString() method to ensure cross-platform compatibility.
-		 *          String representation works consistently across GCC/Clang (native __int128)
-		 *          and MSVC (manual implementation) platforms.
-		 */
-		static void serialize( const nfx::datatypes::Int128& obj, Document& doc )
-		{
-			std::string value = obj.toString();
-			doc.set<std::string>( "", value );
-		}
+    /**
+     * @brief Specialization for nfx::datatypes::Int128
+     */
+    template <>
+    struct SerializationTraits<nfx::datatypes::Int128>
+    {
+        /**
+         * @brief Serialize Int128 to JSON document using platform-independent string representation
+         * @param obj The Int128 object to serialize
+         * @param doc The document to serialize into
+         * @details Uses toString() method to ensure cross-platform compatibility.
+         *          String representation works consistently across GCC/Clang (native __int128)
+         *          and MSVC (manual implementation) platforms.
+         */
+        static void serialize( const nfx::datatypes::Int128& obj, Document& doc )
+        {
+            std::string value = obj.toString();
+            doc.set<std::string>( "", value );
+        }
 
-		/**
-		 * @brief Deserialize Int128 from JSON document using platform-independent string parsing
-		 * @param obj The Int128 object to deserialize into
-		 * @param doc The document to deserialize from
-		 * @details Uses fromString() method to ensure cross-platform compatibility.
-		 *          Can deserialize values created on any platform (GCC/Clang/MSVC).
-		 */
-		static void deserialize( nfx::datatypes::Int128& obj, const Document& doc )
-		{
-			if ( doc.is<std::string>( "" ) )
-			{
-				auto val = doc.get<std::string>( "" );
-				if ( val.has_value() && !val.value().empty() )
-				{
-					if ( !nfx::datatypes::Int128::fromString( val.value(), obj ) )
-					{
-						throw std::runtime_error( "Invalid Int128 format: unable to parse string representation" );
-					}
-				}
-			}
-		}
-	};
+        /**
+         * @brief Deserialize Int128 from JSON document using platform-independent string parsing
+         * @param obj The Int128 object to deserialize into
+         * @param doc The document to deserialize from
+         * @details Uses fromString() method to ensure cross-platform compatibility.
+         *          Can deserialize values created on any platform (GCC/Clang/MSVC).
+         */
+        static void deserialize( nfx::datatypes::Int128& obj, const Document& doc )
+        {
+            if ( doc.is<std::string>( "" ) )
+            {
+                auto val = doc.get<std::string>( "" );
+                if ( val.has_value() && !val.value().empty() )
+                {
+                    if ( !nfx::datatypes::Int128::fromString( val.value(), obj ) )
+                    {
+                        throw std::runtime_error{ "Invalid Int128 format: unable to parse string representation" };
+                    }
+                }
+            }
+        }
+    };
 } // namespace nfx::serialization::json
 
 #endif // __has_include("nfx/datatypes/Int128.h")
@@ -104,51 +104,51 @@ namespace nfx::serialization::json
 
 #if __has_include( "nfx/datatypes/Decimal.h" )
 
-#	include "nfx/datatypes/Decimal.h"
+#    include "nfx/datatypes/Decimal.h"
 
 namespace nfx::serialization::json
 {
-	/**
-	 * @brief Specialization for nfx::datatypes::Decimal
-	 */
-	template <>
-	struct SerializationTraits<nfx::datatypes::Decimal>
-	{
-		/**
-		 * @brief Serialize Decimal to JSON document using platform-independent string representation
-		 * @param obj The Decimal object to serialize
-		 * @param doc The document to serialize into
-		 * @details Uses toString() method to ensure cross-platform compatibility.
-		 *          String representation is platform-independent and preserves full precision.
-		 */
-		static void serialize( const nfx::datatypes::Decimal& obj, Document& doc )
-		{
-			std::string value = obj.toString();
-			doc.set<std::string>( "", value );
-		}
+    /**
+     * @brief Specialization for nfx::datatypes::Decimal
+     */
+    template <>
+    struct SerializationTraits<nfx::datatypes::Decimal>
+    {
+        /**
+         * @brief Serialize Decimal to JSON document using platform-independent string representation
+         * @param obj The Decimal object to serialize
+         * @param doc The document to serialize into
+         * @details Uses toString() method to ensure cross-platform compatibility.
+         *          String representation is platform-independent and preserves full precision.
+         */
+        static void serialize( const nfx::datatypes::Decimal& obj, Document& doc )
+        {
+            std::string value = obj.toString();
+            doc.set<std::string>( "", value );
+        }
 
-		/**
-		 * @brief Deserialize Decimal from JSON document using platform-independent string parsing
-		 * @param obj The Decimal object to deserialize into
-		 * @param doc The document to deserialize from
-		 * @details Uses fromString() method to ensure cross-platform compatibility.
-		 *          Can deserialize values created on any platform (GCC/Clang/MSVC).
-		 */
-		static void deserialize( nfx::datatypes::Decimal& obj, const Document& doc )
-		{
-			if ( doc.is<std::string>( "" ) )
-			{
-				auto val = doc.get<std::string>( "" );
-				if ( val.has_value() && !val.value().empty() )
-				{
-					if ( !nfx::datatypes::Decimal::fromString( val.value(), obj ) )
-					{
-						throw std::runtime_error( "Invalid Decimal format: unable to parse string representation" );
-					}
-				}
-			}
-		}
-	};
+        /**
+         * @brief Deserialize Decimal from JSON document using platform-independent string parsing
+         * @param obj The Decimal object to deserialize into
+         * @param doc The document to deserialize from
+         * @details Uses fromString() method to ensure cross-platform compatibility.
+         *          Can deserialize values created on any platform (GCC/Clang/MSVC).
+         */
+        static void deserialize( nfx::datatypes::Decimal& obj, const Document& doc )
+        {
+            if ( doc.is<std::string>( "" ) )
+            {
+                auto val = doc.get<std::string>( "" );
+                if ( val.has_value() && !val.value().empty() )
+                {
+                    if ( !nfx::datatypes::Decimal::fromString( val.value(), obj ) )
+                    {
+                        throw std::runtime_error{ "Invalid Decimal format: unable to parse string representation" };
+                    }
+                }
+            }
+        }
+    };
 } // namespace nfx::serialization::json
 
 #endif // __has_include("nfx/datatypes/Decimal.h")

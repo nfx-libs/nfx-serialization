@@ -36,28 +36,28 @@
 
 namespace nfx::serialization::json::types
 {
-	//=====================================================================
-	// JSON Schema type constants
-	//=====================================================================
+    //=====================================================================
+    // JSON Schema type constants
+    //=====================================================================
 
-	/// @brief JSON string type
-	inline constexpr std::string_view STRING{ "string" };
+    /// @brief JSON string type
+    inline constexpr std::string_view STRING{ "string" };
 
-	/// @brief JSON number type (includes integers)
-	inline constexpr std::string_view NUMBER{ "number" };
+    /// @brief JSON number type (includes integers)
+    inline constexpr std::string_view NUMBER{ "number" };
 
-	/// @brief JSON integer type (subset of number)
-	inline constexpr std::string_view INTEGER{ "integer" };
+    /// @brief JSON integer type (subset of number)
+    inline constexpr std::string_view INTEGER{ "integer" };
 
-	/// @brief JSON object type
-	inline constexpr std::string_view OBJECT{ "object" };
+    /// @brief JSON object type
+    inline constexpr std::string_view OBJECT{ "object" };
 
-	/// @brief JSON array type
-	inline constexpr std::string_view ARRAY{ "array" };
+    /// @brief JSON array type
+    inline constexpr std::string_view ARRAY{ "array" };
 
-	/// @brief JSON boolean type
-	inline constexpr std::string_view BOOLEAN{ "boolean" };
+    /// @brief JSON boolean type
+    inline constexpr std::string_view BOOLEAN{ "boolean" };
 
-	/// @brief JSON null type
-	inline constexpr std::string_view NULL_TYPE{ "null" };
+    /// @brief JSON null type
+    inline constexpr std::string_view NULL_TYPE{ "null" };
 } // namespace nfx::serialization::json::types

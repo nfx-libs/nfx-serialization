@@ -48,93 +48,93 @@
 
 namespace nfx::serialization::json
 {
-	//=====================================================================
-	// Forward declarations
-	//=====================================================================
+    //=====================================================================
+    // Forward declarations
+    //=====================================================================
 
-	template <typename T>
-	class Serializer;
+    template <typename T>
+    class Serializer;
 
-	namespace detail
-	{
-		template <typename T>
-		struct has_serialize_method;
+    namespace detail
+    {
+        template <typename T>
+        struct has_serialize_method;
 
-		template <typename T>
-		struct has_serialize_method_returning_document;
+        template <typename T>
+        struct has_serialize_method_returning_document;
 
-		template <typename T>
-		struct has_serialize_method_no_params;
+        template <typename T>
+        struct has_serialize_method_no_params;
 
-		template <typename T>
-		struct has_deserialize_method;
-	} // namespace detail
+        template <typename T>
+        struct has_deserialize_method;
+    } // namespace detail
 
-	//=====================================================================
-	// Serialization Traits (extensible by users)
-	//=====================================================================
+    //=====================================================================
+    // Serialization Traits (extensible by users)
+    //=====================================================================
 
-	/**
-	 * @brief Default serialization traits - users can specialize this
-	 * @tparam T The type to serialize/deserialize
-	 * @details This is the extension point for users to define custom serialization.
-	 *          Users can specialize this template for their types or even override
-	 *          library types with custom serialization logic.
-	 */
-	template <typename T>
-	struct SerializationTraits
-	{
-		/**
-		 * @brief Default serialize implementation - delegates to member method
-		 * @param obj Object to serialize
-		 * @param doc Document to serialize into
-		 */
-		static void serialize( const T& obj, Document& doc )
-		{
-			// Look for serialize method with no parameters
-			if constexpr ( detail::has_serialize_method_no_params<T>::value )
-			{
-				doc = obj.serialize();
-			}
-			// Look for serialize method returning Document with serializer parameter
-			else if constexpr ( detail::has_serialize_method_returning_document<T>::value )
-			{
-				Serializer<T> serializer;
-				doc = obj.serialize( serializer );
-			}
-			// Look for traditional serialize method with serializer and document parameters
-			else if constexpr ( detail::has_serialize_method<T>::value )
-			{
-				Serializer<T> serializer;
-				obj.serialize( serializer, doc );
-			}
-			else
-			{
-				static_assert( detail::has_serialize_method<T>::value ||
-								   detail::has_serialize_method_returning_document<T>::value ||
-								   detail::has_serialize_method_no_params<T>::value,
-					"Type must either specialize SerializationTraits or have a serialize() member method" );
-			}
-		}
+    /**
+     * @brief Default serialization traits - users can specialize this
+     * @tparam T The type to serialize/deserialize
+     * @details This is the extension point for users to define custom serialization.
+     *          Users can specialize this template for their types or even override
+     *          library types with custom serialization logic.
+     */
+    template <typename T>
+    struct SerializationTraits
+    {
+        /**
+         * @brief Default serialize implementation - delegates to member method
+         * @param obj Object to serialize
+         * @param doc Document to serialize into
+         */
+        static void serialize( const T& obj, Document& doc )
+        {
+            // Look for serialize method with no parameters
+            if constexpr ( detail::has_serialize_method_no_params<T>::value )
+            {
+                doc = obj.serialize();
+            }
+            // Look for serialize method returning Document with serializer parameter
+            else if constexpr ( detail::has_serialize_method_returning_document<T>::value )
+            {
+                Serializer<T> serializer;
+                doc = obj.serialize( serializer );
+            }
+            // Look for traditional serialize method with serializer and document parameters
+            else if constexpr ( detail::has_serialize_method<T>::value )
+            {
+                Serializer<T> serializer;
+                obj.serialize( serializer, doc );
+            }
+            else
+            {
+                static_assert( detail::has_serialize_method<T>::value ||
+                                   detail::has_serialize_method_returning_document<T>::value ||
+                                   detail::has_serialize_method_no_params<T>::value,
+                    "Type must either specialize SerializationTraits or have a serialize() member method" );
+            }
+        }
 
-		/**
-		 * @brief Default deserialize implementation - delegates to member method
-		 * @param obj Object to deserialize into
-		 * @param doc Document to deserialize from
-		 */
-		static void deserialize( T& obj, const Document& doc )
-		{
-			// Look for member deserialize method
-			if constexpr ( detail::has_deserialize_method<T>::value )
-			{
-				Serializer<T> serializer;
-				obj.deserialize( serializer, doc );
-			}
-			else
-			{
-				static_assert( detail::has_deserialize_method<T>::value,
-					"Type must either specialize SerializationTraits or have a deserialize() member method" );
-			}
-		}
-	};
+        /**
+         * @brief Default deserialize implementation - delegates to member method
+         * @param obj Object to deserialize into
+         * @param doc Document to deserialize from
+         */
+        static void deserialize( T& obj, const Document& doc )
+        {
+            // Look for member deserialize method
+            if constexpr ( detail::has_deserialize_method<T>::value )
+            {
+                Serializer<T> serializer;
+                obj.deserialize( serializer, doc );
+            }
+            else
+            {
+                static_assert( detail::has_deserialize_method<T>::value,
+                    "Type must either specialize SerializationTraits or have a deserialize() member method" );
+            }
+        }
+    };
 } // namespace nfx::serialization::json

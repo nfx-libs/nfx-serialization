@@ -35,13 +35,13 @@
 
 namespace nfx::serialization::json::benchmark
 {
-	//----------------------------------------------
-	// Test JSON strings
-	//----------------------------------------------
+    //----------------------------------------------
+    // Test JSON strings
+    //----------------------------------------------
 
-	static constexpr const char* SMALL_OBJECT = R"({"name":"John","age":30,"active":true})";
+    static constexpr const char* SMALL_OBJECT = R"({"name":"John","age":30,"active":true})";
 
-	static constexpr const char* MEDIUM_OBJECT = R"({
+    static constexpr const char* MEDIUM_OBJECT = R"({
 		"name": "John Doe",
 		"age": 30,
 		"email": "john@example.com",
@@ -56,7 +56,7 @@ namespace nfx::serialization::json::benchmark
 		"tags": ["developer", "senior", "remote"]
 	})";
 
-	static constexpr const char* LARGE_OBJECT = R"({
+    static constexpr const char* LARGE_OBJECT = R"({
 		"id": "550e8400-e29b-41d4-a716-446655440000",
 		"name": "John Doe",
 		"email": "john.doe@example.com",
@@ -90,7 +90,7 @@ namespace nfx::serialization::json::benchmark
 		}
 	})";
 
-	static constexpr const char* NESTED_OBJECT = R"({
+    static constexpr const char* NESTED_OBJECT = R"({
 		"level1": {
 			"level2": {
 				"level3": {
@@ -104,9 +104,9 @@ namespace nfx::serialization::json::benchmark
 		}
 	})";
 
-	static constexpr const char* SMALL_ARRAY = R"([1, 2, 3, 4, 5])";
+    static constexpr const char* SMALL_ARRAY = R"([1, 2, 3, 4, 5])";
 
-	static constexpr const char* LARGE_ARRAY = R"([
+    static constexpr const char* LARGE_ARRAY = R"([
 		{"id": 1, "name": "Item 1", "value": 100},
 		{"id": 2, "name": "Item 2", "value": 200},
 		{"id": 3, "name": "Item 3", "value": 300},
@@ -119,7 +119,7 @@ namespace nfx::serialization::json::benchmark
 		{"id": 10, "name": "Item 10", "value": 1000}
 	])";
 
-	static constexpr const char* MIXED_TYPES = R"({
+    static constexpr const char* MIXED_TYPES = R"({
 		"string": "hello world",
 		"integer": 42,
 		"float": 3.14159,
@@ -129,79 +129,79 @@ namespace nfx::serialization::json::benchmark
 		"object": {"nested": "value"}
 	})";
 
-	//----------------------------------------------
-	// Parse benchmarks
-	//----------------------------------------------
+    //----------------------------------------------
+    // Parse benchmarks
+    //----------------------------------------------
 
-	static void BM_ParseSmallObject( ::benchmark::State& state )
-	{
-		for ( auto _ : state )
-		{
-			auto doc = Document::fromString( SMALL_OBJECT );
-			::benchmark::DoNotOptimize( doc );
-		}
-		state.SetBytesProcessed( state.iterations() * strlen( SMALL_OBJECT ) );
-	}
+    static void BM_ParseSmallObject( ::benchmark::State& state )
+    {
+        for ( auto _ : state )
+        {
+            auto doc = Document::fromString( SMALL_OBJECT );
+            ::benchmark::DoNotOptimize( doc );
+        }
+        state.SetBytesProcessed( state.iterations() * strlen( SMALL_OBJECT ) );
+    }
 
-	static void BM_ParseMediumObject( ::benchmark::State& state )
-	{
-		for ( auto _ : state )
-		{
-			auto doc = Document::fromString( MEDIUM_OBJECT );
-			::benchmark::DoNotOptimize( doc );
-		}
-		state.SetBytesProcessed( state.iterations() * strlen( MEDIUM_OBJECT ) );
-	}
+    static void BM_ParseMediumObject( ::benchmark::State& state )
+    {
+        for ( auto _ : state )
+        {
+            auto doc = Document::fromString( MEDIUM_OBJECT );
+            ::benchmark::DoNotOptimize( doc );
+        }
+        state.SetBytesProcessed( state.iterations() * strlen( MEDIUM_OBJECT ) );
+    }
 
-	static void BM_ParseLargeObject( ::benchmark::State& state )
-	{
-		for ( auto _ : state )
-		{
-			auto doc = Document::fromString( LARGE_OBJECT );
-			::benchmark::DoNotOptimize( doc );
-		}
-		state.SetBytesProcessed( state.iterations() * strlen( LARGE_OBJECT ) );
-	}
+    static void BM_ParseLargeObject( ::benchmark::State& state )
+    {
+        for ( auto _ : state )
+        {
+            auto doc = Document::fromString( LARGE_OBJECT );
+            ::benchmark::DoNotOptimize( doc );
+        }
+        state.SetBytesProcessed( state.iterations() * strlen( LARGE_OBJECT ) );
+    }
 
-	static void BM_ParseNestedObjects( ::benchmark::State& state )
-	{
-		for ( auto _ : state )
-		{
-			auto doc = Document::fromString( NESTED_OBJECT );
-			::benchmark::DoNotOptimize( doc );
-		}
-		state.SetBytesProcessed( state.iterations() * strlen( NESTED_OBJECT ) );
-	}
+    static void BM_ParseNestedObjects( ::benchmark::State& state )
+    {
+        for ( auto _ : state )
+        {
+            auto doc = Document::fromString( NESTED_OBJECT );
+            ::benchmark::DoNotOptimize( doc );
+        }
+        state.SetBytesProcessed( state.iterations() * strlen( NESTED_OBJECT ) );
+    }
 
-	static void BM_ParseSmallArray( ::benchmark::State& state )
-	{
-		for ( auto _ : state )
-		{
-			auto doc = Document::fromString( SMALL_ARRAY );
-			::benchmark::DoNotOptimize( doc );
-		}
-		state.SetBytesProcessed( state.iterations() * strlen( SMALL_ARRAY ) );
-	}
+    static void BM_ParseSmallArray( ::benchmark::State& state )
+    {
+        for ( auto _ : state )
+        {
+            auto doc = Document::fromString( SMALL_ARRAY );
+            ::benchmark::DoNotOptimize( doc );
+        }
+        state.SetBytesProcessed( state.iterations() * strlen( SMALL_ARRAY ) );
+    }
 
-	static void BM_ParseLargeArray( ::benchmark::State& state )
-	{
-		for ( auto _ : state )
-		{
-			auto doc = Document::fromString( LARGE_ARRAY );
-			::benchmark::DoNotOptimize( doc );
-		}
-		state.SetBytesProcessed( state.iterations() * strlen( LARGE_ARRAY ) );
-	}
+    static void BM_ParseLargeArray( ::benchmark::State& state )
+    {
+        for ( auto _ : state )
+        {
+            auto doc = Document::fromString( LARGE_ARRAY );
+            ::benchmark::DoNotOptimize( doc );
+        }
+        state.SetBytesProcessed( state.iterations() * strlen( LARGE_ARRAY ) );
+    }
 
-	static void BM_ParseMixedTypes( ::benchmark::State& state )
-	{
-		for ( auto _ : state )
-		{
-			auto doc = Document::fromString( MIXED_TYPES );
-			::benchmark::DoNotOptimize( doc );
-		}
-		state.SetBytesProcessed( state.iterations() * strlen( MIXED_TYPES ) );
-	}
+    static void BM_ParseMixedTypes( ::benchmark::State& state )
+    {
+        for ( auto _ : state )
+        {
+            auto doc = Document::fromString( MIXED_TYPES );
+            ::benchmark::DoNotOptimize( doc );
+        }
+        state.SetBytesProcessed( state.iterations() * strlen( MIXED_TYPES ) );
+    }
 } // namespace nfx::serialization::json::benchmark
 
 //=====================================================================

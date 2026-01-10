@@ -36,12 +36,12 @@
 
 int main()
 {
-	using namespace nfx::serialization::json;
+    using namespace nfx::serialization::json;
 
-	std::cout << "=== Object Iterator Sample ===\n\n";
+    std::cout << "=== Object Iterator Sample ===\n\n";
 
-	// Create test JSON document with nested objects
-	std::string jsonStr = R"({
+    // Create test JSON document with nested objects
+    std::string jsonStr = R"({
 		"user": {
 			"name": "Alice Johnson",
 			"age": 28,
@@ -69,195 +69,195 @@ int main()
 		}
 	})";
 
-	auto doc = Document::fromString( jsonStr );
-	if ( !doc.has_value() )
-	{
-		std::cerr << "Failed to parse JSON\n";
-		return 1;
-	}
+    auto doc = Document::fromString( jsonStr );
+    if ( !doc.has_value() )
+    {
+        std::cerr << "Failed to parse JSON\n";
+        return 1;
+    }
 
-	//=====================================================================
-	// 1. Range-for loop over object fields
-	//=====================================================================
-	{
-		std::cout << "1. Range-for loop over object fields\n";
-		std::cout << "--------------------------------------\n";
+    //=====================================================================
+    // 1. Range-for loop over object fields
+    //=====================================================================
+    {
+        std::cout << "1. Range-for loop over object fields\n";
+        std::cout << "--------------------------------------\n";
 
-		auto userOpt = doc->get<Document::Object>( "user" );
-		if ( userOpt.has_value() )
-		{
-			Document::Object& user = userOpt.value();
-			std::cout << "Object field count: " << user.size() << "\n";
+        auto userOpt = doc->get<Document::Object>( "user" );
+        if ( userOpt.has_value() )
+        {
+            Document::Object& user = userOpt.value();
+            std::cout << "Object field count: " << user.size() << "\n";
 
-			for ( const auto& [key, value] : user )
-			{
-				std::cout << "Field '" << key << "': ";
+            for ( const auto& [key, value] : user )
+            {
+                std::cout << "Field '" << key << "': ";
 
-				if ( auto stringVal = value.get<std::string>( "" ) )
-				{
-					std::cout << *stringVal << "\n";
-				}
-				else if ( auto intVal = value.get<int>( "" ) )
-				{
-					std::cout << *intVal << "\n";
-				}
-				else if ( auto doubleVal = value.get<double>( "" ) )
-				{
-					std::cout << *doubleVal << "\n";
-				}
-				else if ( auto boolVal = value.get<bool>( "" ) )
-				{
-					std::cout << ( *boolVal ? "true" : "false" ) << "\n";
-				}
-			}
-		}
+                if ( auto stringVal = value.get<std::string>( "" ) )
+                {
+                    std::cout << *stringVal << "\n";
+                }
+                else if ( auto intVal = value.get<int>( "" ) )
+                {
+                    std::cout << *intVal << "\n";
+                }
+                else if ( auto doubleVal = value.get<double>( "" ) )
+                {
+                    std::cout << *doubleVal << "\n";
+                }
+                else if ( auto boolVal = value.get<bool>( "" ) )
+                {
+                    std::cout << ( *boolVal ? "true" : "false" ) << "\n";
+                }
+            }
+        }
 
-		std::cout << "\n";
-	}
+        std::cout << "\n";
+    }
 
-	//=====================================================================
-	// 2. JSON Pointer navigation
-	//=====================================================================
-	{
-		std::cout << "2. JSON Pointer navigation\n";
-		std::cout << "--------------------------\n";
+    //=====================================================================
+    // 2. JSON Pointer navigation
+    //=====================================================================
+    {
+        std::cout << "2. JSON Pointer navigation\n";
+        std::cout << "--------------------------\n";
 
-		auto prefsOpt = doc->get<Document::Object>( "/preferences" );
-		if ( prefsOpt.has_value() )
-		{
-			Document::Object& prefs = prefsOpt.value();
-			std::cout << "Preferences field count: " << prefs.size() << "\n";
+        auto prefsOpt = doc->get<Document::Object>( "/preferences" );
+        if ( prefsOpt.has_value() )
+        {
+            Document::Object& prefs = prefsOpt.value();
+            std::cout << "Preferences field count: " << prefs.size() << "\n";
 
-			for ( const auto& [key, value] : prefs )
-			{
-				std::cout << "Preference '" << key << "': ";
+            for ( const auto& [key, value] : prefs )
+            {
+                std::cout << "Preference '" << key << "': ";
 
-				if ( auto stringVal = value.get<std::string>( "" ) )
-				{
-					std::cout << "\"" << *stringVal << "\"\n";
-				}
-				else if ( auto boolVal = value.get<bool>( "" ) )
-				{
-					std::cout << ( *boolVal ? "true" : "false" ) << "\n";
-				}
-				else if ( auto intVal = value.get<int>( "" ) )
-				{
-					std::cout << *intVal << "\n";
-				}
-			}
-		}
+                if ( auto stringVal = value.get<std::string>( "" ) )
+                {
+                    std::cout << "\"" << *stringVal << "\"\n";
+                }
+                else if ( auto boolVal = value.get<bool>( "" ) )
+                {
+                    std::cout << ( *boolVal ? "true" : "false" ) << "\n";
+                }
+                else if ( auto intVal = value.get<int>( "" ) )
+                {
+                    std::cout << *intVal << "\n";
+                }
+            }
+        }
 
-		std::cout << "\n";
-	}
+        std::cout << "\n";
+    }
 
-	//=====================================================================
-	// 3. Direct field access with contains() and get()
-	//=====================================================================
-	{
-		std::cout << "3. Direct field access with contains() and get()\n";
-		std::cout << "-------------------------------------------------\n";
+    //=====================================================================
+    // 3. Direct field access with contains() and get()
+    //=====================================================================
+    {
+        std::cout << "3. Direct field access with contains() and get()\n";
+        std::cout << "-------------------------------------------------\n";
 
-		auto userOpt = doc->get<Document::Object>( "user" );
-		if ( userOpt.has_value() )
-		{
-			Document::Object& user = userOpt.value();
+        auto userOpt = doc->get<Document::Object>( "user" );
+        if ( userOpt.has_value() )
+        {
+            Document::Object& user = userOpt.value();
 
-			if ( user.contains( "name" ) )
-			{
-				std::cout << "Direct access to 'name': " << *user.get<std::string>( "name" ) << "\n";
-			}
+            if ( user.contains( "name" ) )
+            {
+                std::cout << "Direct access to 'name': " << *user.get<std::string>( "name" ) << "\n";
+            }
 
-			if ( user.contains( "age" ) )
-			{
-				std::cout << "Direct access to 'age': " << *user.get<int>( "age" ) << "\n";
-			}
+            if ( user.contains( "age" ) )
+            {
+                std::cout << "Direct access to 'age': " << *user.get<int>( "age" ) << "\n";
+            }
 
-			if ( user.contains( "active" ) )
-			{
-				std::cout << "Direct access to 'active': " << ( *user.get<bool>( "active" ) ? "true" : "false" ) << "\n";
-			}
-		}
+            if ( user.contains( "active" ) )
+            {
+                std::cout << "Direct access to 'active': " << ( *user.get<bool>( "active" ) ? "true" : "false" ) << "\n";
+            }
+        }
 
-		std::cout << "\n";
-	}
+        std::cout << "\n";
+    }
 
-	//=====================================================================
-	// 4. Nested object traversal
-	//=====================================================================
-	{
-		std::cout << "4. Nested object traversal\n";
-		std::cout << "--------------------------\n";
+    //=====================================================================
+    // 4. Nested object traversal
+    //=====================================================================
+    {
+        std::cout << "4. Nested object traversal\n";
+        std::cout << "--------------------------\n";
 
-		auto serverOpt = doc->get<Document::Object>( "/config/server" );
-		if ( serverOpt.has_value() )
-		{
-			std::cout << "Server configuration fields:\n";
+        auto serverOpt = doc->get<Document::Object>( "/config/server" );
+        if ( serverOpt.has_value() )
+        {
+            std::cout << "Server configuration fields:\n";
 
-			for ( const auto& [key, value] : serverOpt.value() )
-			{
-				if ( auto stringVal = value.get<std::string>( "" ) )
-				{
-					std::cout << "  " << key << ": \"" << *stringVal << "\"\n";
-				}
-				else if ( auto intVal = value.get<int>( "" ) )
-				{
-					std::cout << "  " << key << ": " << *intVal << "\n";
-				}
-				else if ( auto boolVal = value.get<bool>( "" ) )
-				{
-					std::cout << "  " << key << ": " << ( *boolVal ? "true" : "false" ) << "\n";
-				}
-			}
-		}
+            for ( const auto& [key, value] : serverOpt.value() )
+            {
+                if ( auto stringVal = value.get<std::string>( "" ) )
+                {
+                    std::cout << "  " << key << ": \"" << *stringVal << "\"\n";
+                }
+                else if ( auto intVal = value.get<int>( "" ) )
+                {
+                    std::cout << "  " << key << ": " << *intVal << "\n";
+                }
+                else if ( auto boolVal = value.get<bool>( "" ) )
+                {
+                    std::cout << "  " << key << ": " << ( *boolVal ? "true" : "false" ) << "\n";
+                }
+            }
+        }
 
-		std::cout << "\n";
-	}
+        std::cout << "\n";
+    }
 
-	//=====================================================================
-	// 5. Root object iteration
-	//=====================================================================
-	{
-		std::cout << "5. Root object iteration\n";
-		std::cout << "------------------------\n";
+    //=====================================================================
+    // 5. Root object iteration
+    //=====================================================================
+    {
+        std::cout << "5. Root object iteration\n";
+        std::cout << "------------------------\n";
 
-		auto rootOpt = doc->get<Document::Object>( "" );
-		if ( rootOpt.has_value() )
-		{
-			Document::Object& root = rootOpt.value();
-			std::cout << "Root object has " << root.size() << " top-level fields:\n";
+        auto rootOpt = doc->get<Document::Object>( "" );
+        if ( rootOpt.has_value() )
+        {
+            Document::Object& root = rootOpt.value();
+            std::cout << "Root object has " << root.size() << " top-level fields:\n";
 
-			for ( const auto& [key, value] : root )
-			{
-				std::cout << "  - " << key << "\n";
-			}
-		}
+            for ( const auto& [key, value] : root )
+            {
+                std::cout << "  - " << key << "\n";
+            }
+        }
 
-		std::cout << "\n";
-	}
+        std::cout << "\n";
+    }
 
-	//=====================================================================
-	// 6. Using iterators directly
-	//=====================================================================
-	{
-		std::cout << "6. Using iterators directly\n";
-		std::cout << "----------------------------\n";
+    //=====================================================================
+    // 6. Using iterators directly
+    //=====================================================================
+    {
+        std::cout << "6. Using iterators directly\n";
+        std::cout << "----------------------------\n";
 
-		auto prefsOpt = doc->get<Document::Object>( "preferences" );
-		if ( prefsOpt.has_value() )
-		{
-			Document::Object& prefs = prefsOpt.value();
+        auto prefsOpt = doc->get<Document::Object>( "preferences" );
+        if ( prefsOpt.has_value() )
+        {
+            Document::Object& prefs = prefsOpt.value();
 
-			std::cout << "Fields: ";
-			for ( auto it = prefs.begin(); it != prefs.end(); ++it )
-			{
-				auto [key, value] = *it;
-				std::cout << key << " ";
-			}
-			std::cout << "\n";
-		}
+            std::cout << "Fields: ";
+            for ( auto it = prefs.begin(); it != prefs.end(); ++it )
+            {
+                auto [key, value] = *it;
+                std::cout << key << " ";
+            }
+            std::cout << "\n";
+        }
 
-		std::cout << "\n";
-	}
+        std::cout << "\n";
+    }
 
-	return 0;
+    return 0;
 }

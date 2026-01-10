@@ -36,12 +36,12 @@
 
 int main()
 {
-	using namespace nfx::serialization::json;
+    using namespace nfx::serialization::json;
 
-	std::cout << "=== Array Iterator Sample ===\n\n";
+    std::cout << "=== Array Iterator Sample ===\n\n";
 
-	// Create test JSON document with arrays
-	std::string jsonStr = R"({
+    // Create test JSON document with arrays
+    std::string jsonStr = R"({
 		"users": [
 			{"name": "Alice", "age": 30, "active": true},
 			{"name": "Bob", "age": 25, "active": false},
@@ -51,128 +51,128 @@ int main()
 		"tags": ["important", "urgent", "review"]
 	})";
 
-	auto doc = Document::fromString( jsonStr );
-	if ( !doc.has_value() )
-	{
-		std::cerr << "Failed to parse JSON\n";
-		return 1;
-	}
+    auto doc = Document::fromString( jsonStr );
+    if ( !doc.has_value() )
+    {
+        std::cerr << "Failed to parse JSON\n";
+        return 1;
+    }
 
-	//=====================================================================
-	// 1. Range-for loop over array elements
-	//=====================================================================
-	{
-		std::cout << "1. Range-for loop over array elements\n";
-		std::cout << "--------------------------------------\n";
+    //=====================================================================
+    // 1. Range-for loop over array elements
+    //=====================================================================
+    {
+        std::cout << "1. Range-for loop over array elements\n";
+        std::cout << "--------------------------------------\n";
 
-		auto usersOpt = doc->get<Document::Array>( "users" );
-		if ( usersOpt.has_value() )
-		{
-			Document::Array& users = usersOpt.value();
-			std::cout << "Array size: " << users.size() << "\n";
+        auto usersOpt = doc->get<Document::Array>( "users" );
+        if ( usersOpt.has_value() )
+        {
+            Document::Array& users = usersOpt.value();
+            std::cout << "Array size: " << users.size() << "\n";
 
-			size_t index = 0;
-			for ( const auto& user : users )
-			{
-				auto name = user.get<std::string>( "name" );
-				auto age = user.get<int64_t>( "age" );
-				auto active = user.get<bool>( "active" );
+            size_t index = 0;
+            for ( const auto& user : users )
+            {
+                auto name = user.get<std::string>( "name" );
+                auto age = user.get<int64_t>( "age" );
+                auto active = user.get<bool>( "active" );
 
-				std::cout << "User " << index << ": "
-						  << ( name ? *name : "N/A" ) << ", "
-						  << "age " << ( age ? std::to_string( *age ) : "N/A" ) << ", "
-						  << ( active && *active ? "active" : "inactive" ) << "\n";
-				++index;
-			}
-		}
+                std::cout << "User " << index << ": "
+                          << ( name ? *name : "N/A" ) << ", "
+                          << "age " << ( age ? std::to_string( *age ) : "N/A" ) << ", "
+                          << ( active && *active ? "active" : "inactive" ) << "\n";
+                ++index;
+            }
+        }
 
-		std::cout << "\n";
-	}
+        std::cout << "\n";
+    }
 
-	//=====================================================================
-	// 2. Iterating over primitive arrays
-	//=====================================================================
-	{
-		std::cout << "2. Iterating over primitive arrays\n";
-		std::cout << "-----------------------------------\n";
+    //=====================================================================
+    // 2. Iterating over primitive arrays
+    //=====================================================================
+    {
+        std::cout << "2. Iterating over primitive arrays\n";
+        std::cout << "-----------------------------------\n";
 
-		auto scoresOpt = doc->get<Document::Array>( "/scores" );
-		if ( scoresOpt.has_value() )
-		{
-			Document::Array& scores = scoresOpt.value();
-			std::cout << "Scores array size: " << scores.size() << "\n";
+        auto scoresOpt = doc->get<Document::Array>( "/scores" );
+        if ( scoresOpt.has_value() )
+        {
+            Document::Array& scores = scoresOpt.value();
+            std::cout << "Scores array size: " << scores.size() << "\n";
 
-			size_t index = 0;
-			for ( const auto& scoreDoc : scores )
-			{
-				auto score = scoreDoc.get<int>( "" );
-				std::cout << "Score[" << index << "]: " << ( score ? std::to_string( *score ) : "N/A" ) << "\n";
-				++index;
-			}
-		}
+            size_t index = 0;
+            for ( const auto& scoreDoc : scores )
+            {
+                auto score = scoreDoc.get<int>( "" );
+                std::cout << "Score[" << index << "]: " << ( score ? std::to_string( *score ) : "N/A" ) << "\n";
+                ++index;
+            }
+        }
 
-		std::cout << "\n";
-	}
+        std::cout << "\n";
+    }
 
-	//=====================================================================
-	// 3. Index-based access with size()
-	//=====================================================================
-	{
-		std::cout << "3. Index-based access with size()\n";
-		std::cout << "----------------------------------\n";
+    //=====================================================================
+    // 3. Index-based access with size()
+    //=====================================================================
+    {
+        std::cout << "3. Index-based access with size()\n";
+        std::cout << "----------------------------------\n";
 
-		auto tagsOpt = doc->get<Document::Array>( "tags" );
-		if ( tagsOpt.has_value() )
-		{
-			Document::Array& tags = tagsOpt.value();
-			std::cout << "Tags array size: " << tags.size() << "\n";
+        auto tagsOpt = doc->get<Document::Array>( "tags" );
+        if ( tagsOpt.has_value() )
+        {
+            Document::Array& tags = tagsOpt.value();
+            std::cout << "Tags array size: " << tags.size() << "\n";
 
-			// Access specific indices
-			if ( auto tag = tags.get<std::string>( 1 ) )
-			{
-				std::cout << "Tag at index 1: " << *tag << "\n";
-			}
+            // Access specific indices
+            if ( auto tag = tags.get<std::string>( 1 ) )
+            {
+                std::cout << "Tag at index 1: " << *tag << "\n";
+            }
 
-			if ( auto tag = tags.get<std::string>( 2 ) )
-			{
-				std::cout << "Tag at index 2: " << *tag << "\n";
-			}
+            if ( auto tag = tags.get<std::string>( 2 ) )
+            {
+                std::cout << "Tag at index 2: " << *tag << "\n";
+            }
 
-			if ( auto tag = tags.get<std::string>( 0 ) )
-			{
-				std::cout << "First tag: " << *tag << "\n";
-			}
-		}
+            if ( auto tag = tags.get<std::string>( 0 ) )
+            {
+                std::cout << "First tag: " << *tag << "\n";
+            }
+        }
 
-		std::cout << "\n";
-	}
+        std::cout << "\n";
+    }
 
-	//=====================================================================
-	// 4. Using iterators directly
-	//=====================================================================
-	{
-		std::cout << "4. Using iterators directly\n";
-		std::cout << "----------------------------\n";
+    //=====================================================================
+    // 4. Using iterators directly
+    //=====================================================================
+    {
+        std::cout << "4. Using iterators directly\n";
+        std::cout << "----------------------------\n";
 
-		auto tagsOpt = doc->get<Document::Array>( "tags" );
-		if ( tagsOpt.has_value() )
-		{
-			Document::Array& tags = tagsOpt.value();
+        auto tagsOpt = doc->get<Document::Array>( "tags" );
+        if ( tagsOpt.has_value() )
+        {
+            Document::Array& tags = tagsOpt.value();
 
-			std::cout << "Forward iteration: ";
-			for ( auto it = tags.begin(); it != tags.end(); ++it )
-			{
-				auto tag = ( *it ).get<std::string>( "" );
-				if ( tag )
-				{
-					std::cout << *tag << " ";
-				}
-			}
-			std::cout << "\n";
-		}
+            std::cout << "Forward iteration: ";
+            for ( auto it = tags.begin(); it != tags.end(); ++it )
+            {
+                auto tag = ( *it ).get<std::string>( "" );
+                if ( tag )
+                {
+                    std::cout << *tag << " ";
+                }
+            }
+            std::cout << "\n";
+        }
 
-		std::cout << "\n";
-	}
+        std::cout << "\n";
+    }
 
-	return 0;
+    return 0;
 }

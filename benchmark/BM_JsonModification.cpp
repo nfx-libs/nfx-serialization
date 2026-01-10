@@ -33,135 +33,135 @@
 
 namespace nfx::serialization::json::benchmark
 {
-	//----------------------------------------------
-	// Set Primitive Value benchmarks
-	//----------------------------------------------
+    //----------------------------------------------
+    // Set Primitive Value benchmarks
+    //----------------------------------------------
 
-	static void BM_SetPrimitiveValue_String( ::benchmark::State& state )
-	{
-		for ( auto _ : state )
-		{
-			Document doc;
-			doc.set<std::string>( "name", "John Doe" );
-			::benchmark::DoNotOptimize( doc );
-		}
-	}
+    static void BM_SetPrimitiveValue_String( ::benchmark::State& state )
+    {
+        for ( auto _ : state )
+        {
+            Document doc;
+            doc.set<std::string>( "name", "John Doe" );
+            ::benchmark::DoNotOptimize( doc );
+        }
+    }
 
-	static void BM_SetPrimitiveValue_Int( ::benchmark::State& state )
-	{
-		for ( auto _ : state )
-		{
-			Document doc;
-			doc.set<int>( "age", 30 );
-			::benchmark::DoNotOptimize( doc );
-		}
-	}
+    static void BM_SetPrimitiveValue_Int( ::benchmark::State& state )
+    {
+        for ( auto _ : state )
+        {
+            Document doc;
+            doc.set<int>( "age", 30 );
+            ::benchmark::DoNotOptimize( doc );
+        }
+    }
 
-	static void BM_SetPrimitiveValue_Bool( ::benchmark::State& state )
-	{
-		for ( auto _ : state )
-		{
-			Document doc;
-			doc.set<bool>( "active", true );
-			::benchmark::DoNotOptimize( doc );
-		}
-	}
+    static void BM_SetPrimitiveValue_Bool( ::benchmark::State& state )
+    {
+        for ( auto _ : state )
+        {
+            Document doc;
+            doc.set<bool>( "active", true );
+            ::benchmark::DoNotOptimize( doc );
+        }
+    }
 
-	static void BM_SetPrimitiveValue_Double( ::benchmark::State& state )
-	{
-		for ( auto _ : state )
-		{
-			Document doc;
-			doc.set<double>( "balance", 1234.56 );
-			::benchmark::DoNotOptimize( doc );
-		}
-	}
+    static void BM_SetPrimitiveValue_Double( ::benchmark::State& state )
+    {
+        for ( auto _ : state )
+        {
+            Document doc;
+            doc.set<double>( "balance", 1234.56 );
+            ::benchmark::DoNotOptimize( doc );
+        }
+    }
 
-	//----------------------------------------------
-	// Set Nested Value benchmarks
-	//----------------------------------------------
+    //----------------------------------------------
+    // Set Nested Value benchmarks
+    //----------------------------------------------
 
-	static void BM_SetNestedValue_2Levels( ::benchmark::State& state )
-	{
-		for ( auto _ : state )
-		{
-			Document doc;
-			doc.set<std::string>( "address.city", "Springfield" );
-			::benchmark::DoNotOptimize( doc );
-		}
-	}
+    static void BM_SetNestedValue_2Levels( ::benchmark::State& state )
+    {
+        for ( auto _ : state )
+        {
+            Document doc;
+            doc.set<std::string>( "address.city", "Springfield" );
+            ::benchmark::DoNotOptimize( doc );
+        }
+    }
 
-	static void BM_SetNestedValue_3Levels( ::benchmark::State& state )
-	{
-		for ( auto _ : state )
-		{
-			Document doc;
-			doc.set<std::string>( "company.address.city", "Springfield" );
-			::benchmark::DoNotOptimize( doc );
-		}
-	}
+    static void BM_SetNestedValue_3Levels( ::benchmark::State& state )
+    {
+        for ( auto _ : state )
+        {
+            Document doc;
+            doc.set<std::string>( "company.address.city", "Springfield" );
+            ::benchmark::DoNotOptimize( doc );
+        }
+    }
 
-	static void BM_SetNestedValue_4Levels( ::benchmark::State& state )
-	{
-		for ( auto _ : state )
-		{
-			Document doc;
-			doc.set<std::string>( "company.department.manager.name", "Jane Smith" );
-			::benchmark::DoNotOptimize( doc );
-		}
-	}
+    static void BM_SetNestedValue_4Levels( ::benchmark::State& state )
+    {
+        for ( auto _ : state )
+        {
+            Document doc;
+            doc.set<std::string>( "company.department.manager.name", "Jane Smith" );
+            ::benchmark::DoNotOptimize( doc );
+        }
+    }
 
-	//----------------------------------------------
-	// Add Object Field benchmarks
-	//----------------------------------------------
+    //----------------------------------------------
+    // Add Object Field benchmarks
+    //----------------------------------------------
 
-	static void BM_AddObjectField_Sequential( ::benchmark::State& state )
-	{
-		for ( auto _ : state )
-		{
-			Document doc;
-			doc.set<std::string>( "field1", "value1" );
-			doc.set<std::string>( "field2", "value2" );
-			doc.set<std::string>( "field3", "value3" );
-			doc.set<std::string>( "field4", "value4" );
-			doc.set<std::string>( "field5", "value5" );
-			::benchmark::DoNotOptimize( doc );
-		}
-	}
+    static void BM_AddObjectField_Sequential( ::benchmark::State& state )
+    {
+        for ( auto _ : state )
+        {
+            Document doc;
+            doc.set<std::string>( "field1", "value1" );
+            doc.set<std::string>( "field2", "value2" );
+            doc.set<std::string>( "field3", "value3" );
+            doc.set<std::string>( "field4", "value4" );
+            doc.set<std::string>( "field5", "value5" );
+            ::benchmark::DoNotOptimize( doc );
+        }
+    }
 
-	//----------------------------------------------
-	// Add Array Element benchmarks
-	//----------------------------------------------
+    //----------------------------------------------
+    // Add Array Element benchmarks
+    //----------------------------------------------
 
-	static void BM_AddArrayElement_PushBack( ::benchmark::State& state )
-	{
-		for ( auto _ : state )
-		{
-			Document doc;
-			doc.set<Document::Array>( "" );
-			auto arr = doc.get<Document::Array>( "" ).value();
-			for ( int64_t i = 0; i < 10; ++i )
-			{
-				arr.append<int64_t>( i );
-			}
-			::benchmark::DoNotOptimize( doc );
-		}
-	}
+    static void BM_AddArrayElement_PushBack( ::benchmark::State& state )
+    {
+        for ( auto _ : state )
+        {
+            Document doc;
+            doc.set<Document::Array>( "" );
+            auto arr = doc.get<Document::Array>( "" ).value();
+            for ( int64_t i = 0; i < 10; ++i )
+            {
+                arr.append<int64_t>( i );
+            }
+            ::benchmark::DoNotOptimize( doc );
+        }
+    }
 
-	static void BM_AddArrayElement_LargeArray( ::benchmark::State& state )
-	{
-		for ( auto _ : state )
-		{
-			Document doc;
-			doc.set<Document::Array>( "" );
-			auto arr = doc.get<Document::Array>( "" ).value();
-			for ( int64_t i = 0; i < 100; ++i )
-			{
-				arr.append<int64_t>( i );
-			}
-			::benchmark::DoNotOptimize( doc );
-		}
-	}
+    static void BM_AddArrayElement_LargeArray( ::benchmark::State& state )
+    {
+        for ( auto _ : state )
+        {
+            Document doc;
+            doc.set<Document::Array>( "" );
+            auto arr = doc.get<Document::Array>( "" ).value();
+            for ( int64_t i = 0; i < 100; ++i )
+            {
+                arr.append<int64_t>( i );
+            }
+            ::benchmark::DoNotOptimize( doc );
+        }
+    }
 } // namespace nfx::serialization::json::benchmark
 
 //=====================================================================
