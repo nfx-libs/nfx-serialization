@@ -177,7 +177,7 @@ foreach(test_source ${test_sources})
         # Additional linking for extension tests
         #----------------------------------------------
 
-        if(${test_target_name} STREQUAL "TESTS_JsonExtensions")
+        if(${test_target_name} STREQUAL "Tests_JsonExtensions")
             target_link_libraries(${test_target_name}
                 PRIVATE
                     nfx-containers::nfx-containers

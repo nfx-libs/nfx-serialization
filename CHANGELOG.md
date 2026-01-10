@@ -4,6 +4,35 @@
 
 ### Added
 
+- NIL
+
+
+### Changed
+
+- NIL
+
+
+### Deprecated
+
+- NIL
+
+### Removed
+
+- NIL
+
+### Fixed
+
+- NIL
+
+
+### Security
+
+- NIL
+
+## [0.4.0] - 2026-01-10
+
+### Added
+
 - **Document API**: Added direct `Document::set<T>()`, `Document::get<T>()`, and `Document::is<T>()` support for custom types
   - nfx extension types via `SerializationTraits`: `Decimal`, `Int128`, `DateTime`, `DateTimeOffset`, `TimeSpan`, `FastHashMap`, `FastHashSet`, `PerfectHashMap`
   - STL types via `Serializer<T>`: `std::vector`, `std::map`, `std::set`, `std::list`, `std::deque`, `std::unique_ptr`, `std::shared_ptr`, `std::optional`
@@ -17,25 +46,12 @@
   - Replaced deprecated `toIso8601Extended()` with `toString(DateTime::Format::Iso8601Precise)`
   - DateTime serialization now outputs fractional seconds with exactly 7 digits (tick precision) instead of stripping trailing zeros
   - DateTimeOffset serialization now uses explicit offset format (±HH:MM) instead of 'Z' notation for UTC
-
-### Deprecated
-
-- NIL
-
-### Removed
-
-- NIL
-
-### Fixed
+- ### Fixed
 
 - **Serializer**: Fixed silent type conversion during deserialization
   - Now throws exceptions when primitive type deserialization fails (e.g., int to string)
   - Prevents `std::vector<int>` from being incorrectly deserialized as `std::vector<std::string>` with empty strings
   - Ensures `is<T>()` correctly rejects incompatible types
-
-### Security
-
-- NIL
 
 ## [0.3.0] - 2025-12-20
 
