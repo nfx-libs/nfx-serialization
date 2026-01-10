@@ -323,6 +323,122 @@ namespace nfx::serialization::json
 		 */
 		std::string lastError() const;
 
+		//-----------------------------
+		// SerializationTraits support
+		//-----------------------------
+
+		/**
+		 * @brief Set value using SerializationTraits (copy version)
+		 * @tparam T Type with SerializationTraits defined (e.g., Decimal, DateTime)
+		 * @param path JSON Pointer path where to set value
+		 * @param value Value to serialize using its SerializationTraits
+		 * @details This overload is selected when T has a SerializationTraits specialization
+		 *          but is not a JSON primitive or container. The value is serialized into a
+		 *          temporary Document and then inserted at the specified path.
+		 */
+		template <typename T>
+			requires( detail::has_serialization_traits_v<T> &&
+					  !JsonPrimitive<T> &&
+					  !is_json_container_v<T> )
+		void set( std::string_view path, const T& value )
+		{
+			Document temp;
+			SerializationTraits<T>::serialize( value, temp );
+			this->set<Document>( path, std::move( temp ) );
+		}
+
+		/**
+		 * @brief Set value using SerializationTraits (move version)
+		 * @tparam T Type with SerializationTraits defined (e.g., Decimal, DateTime)
+		 * @param path JSON Pointer path where to set value
+		 * @param value Value to serialize using its SerializationTraits
+		 * @details This overload is selected when T has a SerializationTraits specialization
+		 *          but is not a JSON primitive or container. The value is serialized into a
+		 *          temporary Document and then inserted at the specified path.
+		 */
+		template <typename T>
+			requires( detail::has_serialization_traits_v<T> &&
+					  !JsonPrimitive<T> &&
+					  !is_json_container_v<T> )
+		void set( std::string_view path, T&& value )
+		{
+			Document temp;
+			SerializationTraits<T>::serialize( value, temp );
+			this->set<Document>( path, std::move( temp ) );
+		}
+
+		/**
+		 * @brief Get value using SerializationTraits
+		 * @tparam T Type with SerializationTraits defined (e.g., Decimal, DateTime)
+		 * @param path JSON Pointer path to value
+		 * @return Optional containing deserialized value if exists
+		 */
+		template <typename T>
+			requires( detail::has_serialization_traits_v<T> &&
+					  !JsonPrimitive<T> &&
+					  !is_json_container_v<T> )
+		std::optional<T> get( std::string_view path ) const
+		{
+			auto docOpt = get<Document>( path );
+			if ( !docOpt.has_value() )
+			{
+				return std::nullopt;
+			}
+
+			T result;
+			SerializationTraits<T>::deserialize( result, docOpt.value() );
+			return result;
+		}
+
+		/**
+		 * @brief Get value using SerializationTraits into output parameter
+		 * @tparam T Type with SerializationTraits defined (e.g., Decimal, DateTime)
+		 * @param path JSON Pointer path to value
+		 * @param[out] value Output parameter to store deserialized value
+		 * @return true if value exists and was successfully deserialized
+		 */
+		template <typename T>
+			requires( detail::has_serialization_traits_v<T> &&
+					  !JsonPrimitive<T> &&
+					  !is_json_container_v<T> )
+		bool get( std::string_view path, T& value ) const
+		{
+			auto result = get<T>( path );
+			if ( result.has_value() )
+			{
+				value = std::move( result.value() );
+				return true;
+			}
+			return false;
+		}
+
+		/**
+		 * @brief Check if value at path can be deserialized as type T
+		 * @tparam T Type with SerializationTraits to check for
+		 * @param path JSON Pointer path to check
+		 * @return true if value exists and can be deserialized as T, false otherwise
+		 */
+		template <typename T>
+			requires( detail::has_serialization_traits_v<T> &&
+					  !JsonPrimitive<T> &&
+					  !is_json_container_v<T> )
+		bool is( std::string_view path ) const
+		{
+			auto docOpt = get<Document>( path );
+			if ( !docOpt.has_value() )
+				return false;
+			try
+			{
+				T temp;
+				SerializationTraits<T>::deserialize( temp, docOpt.value() );
+				return true;
+			}
+			catch ( ... )
+			{
+				return false;
+			}
+		}
+
 		//----------------------------------------------
 		// Document::Object class
 		//----------------------------------------------

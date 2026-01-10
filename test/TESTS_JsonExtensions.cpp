@@ -36,12 +36,10 @@
 #include <nfx/serialization/json/Document.h>
 #include <nfx/serialization/json/Serializer.h>
 
-// Extension headers
 #include <nfx/serialization/json/extensions/ContainersTraits.h>
 #include <nfx/serialization/json/extensions/DatatypesTraits.h>
 #include <nfx/serialization/json/extensions/DateTimeTraits.h>
 
-// External library headers
 #include <nfx/Containers.h>
 #include <nfx/DataTypes.h>
 #include <nfx/DateTime.h>
@@ -139,6 +137,36 @@ namespace nfx::serialization::json::test
 		}
 	}
 
+	TEST_F( FastHashMapExtensionTest, DirectDocumentSetGet )
+	{
+		Document doc;
+		nfx::containers::FastHashMap<std::string, int> scores;
+		scores.insertOrAssign( "Alice", 95 );
+		scores.insertOrAssign( "Bob", 87 );
+
+		doc.set<decltype( scores )>( "scores", scores );
+
+		auto retrieved = doc.get<decltype( scores )>( "scores" );
+		ASSERT_TRUE( retrieved.has_value() );
+		EXPECT_EQ( retrieved.value().size(), 2 );
+
+		const int* alice = retrieved.value().find( "Alice" );
+		ASSERT_NE( alice, nullptr );
+		EXPECT_EQ( *alice, 95 );
+	}
+
+	TEST_F( FastHashMapExtensionTest, DirectDocumentIsCheck )
+	{
+		Document doc;
+		nfx::containers::FastHashMap<std::string, int> data;
+		data.insertOrAssign( "key", 42 );
+
+		doc.set<decltype( data )>( "map", data );
+
+		EXPECT_TRUE( doc.is<decltype( data )>( "map" ) );
+		EXPECT_FALSE( doc.is<decltype( data )>( "missing" ) );
+	}
+
 	//=====================================================================
 	// nfx-containers: FastHashSet tests
 	//=====================================================================
@@ -217,6 +245,36 @@ namespace nfx::serialization::json::test
 		}
 	}
 
+	TEST_F( FastHashSetExtensionTest, DirectDocumentSetGet )
+	{
+		Document doc;
+		nfx::containers::FastHashSet<std::string> tags;
+		tags.insert( "cpp" );
+		tags.insert( "json" );
+		tags.insert( "serialization" );
+
+		doc.set<decltype( tags )>( "tags", tags );
+
+		auto retrieved = doc.get<decltype( tags )>( "tags" );
+		ASSERT_TRUE( retrieved.has_value() );
+		EXPECT_EQ( retrieved.value().size(), 3 );
+		EXPECT_TRUE( retrieved.value().contains( "cpp" ) );
+	}
+
+	TEST_F( FastHashSetExtensionTest, DirectDocumentIsCheck )
+	{
+		Document doc;
+		nfx::containers::FastHashSet<int> numbers;
+		numbers.insert( 1 );
+		numbers.insert( 2 );
+		numbers.insert( 3 );
+
+		doc.set<decltype( numbers )>( "numbers", numbers );
+
+		EXPECT_TRUE( doc.is<decltype( numbers )>( "numbers" ) );
+		EXPECT_FALSE( doc.is<decltype( numbers )>( "notHere" ) );
+	}
+
 	//=====================================================================
 	// nfx-containers: PerfectHashMap tests
 	//=====================================================================
@@ -262,6 +320,35 @@ namespace nfx::serialization::json::test
 			ASSERT_NE( restoredPtr, nullptr );
 			EXPECT_DOUBLE_EQ( *restoredPtr, it->second );
 		}
+	}
+
+	TEST_F( PerfectHashMapExtensionTest, DirectDocumentSetGet )
+	{
+		Document doc;
+		std::vector<std::pair<std::string, int>> data = { { "alpha", 1 }, { "beta", 2 }, { "gamma", 3 } };
+		nfx::containers::PerfectHashMap<std::string, int> map( std::move( data ) );
+
+		doc.set<decltype( map )>( "perfectMap", map );
+
+		auto retrieved = doc.get<decltype( map )>( "perfectMap" );
+		ASSERT_TRUE( retrieved.has_value() );
+		EXPECT_EQ( retrieved.value().count(), 3 );
+
+		const int* alpha = retrieved.value().find( "alpha" );
+		ASSERT_NE( alpha, nullptr );
+		EXPECT_EQ( *alpha, 1 );
+	}
+
+	TEST_F( PerfectHashMapExtensionTest, DirectDocumentIsCheck )
+	{
+		Document doc;
+		std::vector<std::pair<int, std::string>> data = { { 1, "one" }, { 2, "two" } };
+		nfx::containers::PerfectHashMap<int, std::string> map( std::move( data ) );
+
+		doc.set<decltype( map )>( "lookup", map );
+
+		EXPECT_TRUE( doc.is<decltype( map )>( "lookup" ) );
+		EXPECT_FALSE( doc.is<decltype( map )>( "nowhere" ) );
 	}
 
 	//=====================================================================
@@ -336,6 +423,29 @@ namespace nfx::serialization::json::test
 		EXPECT_EQ( restored, original );
 	}
 
+	TEST_F( Int128ExtensionTest, DirectDocumentSetGet )
+	{
+		Document doc;
+		nfx::datatypes::Int128 value( static_cast<std::int64_t>( 1234567890 ) );
+
+		doc.set<nfx::datatypes::Int128>( "int128Value", value );
+
+		auto retrieved = doc.get<nfx::datatypes::Int128>( "int128Value" );
+		ASSERT_TRUE( retrieved.has_value() );
+		EXPECT_EQ( retrieved.value(), value );
+	}
+
+	TEST_F( Int128ExtensionTest, DirectDocumentIsCheck )
+	{
+		Document doc;
+		nfx::datatypes::Int128 value( static_cast<std::int64_t>( 9876543210 ) );
+
+		doc.set<nfx::datatypes::Int128>( "largeNumber", value );
+
+		EXPECT_TRUE( doc.is<nfx::datatypes::Int128>( "largeNumber" ) );
+		EXPECT_FALSE( doc.is<nfx::datatypes::Int128>( "nonExistent" ) );
+	}
+
 	//=====================================================================
 	// nfx-datatypes: Decimal tests
 	//=====================================================================
@@ -393,6 +503,40 @@ namespace nfx::serialization::json::test
 		auto restored = Serializer<nfx::datatypes::Decimal>::fromString( json );
 
 		EXPECT_EQ( restored, original );
+	}
+
+	TEST_F( DecimalExtensionTest, DirectDocumentSetGet )
+	{
+		Document doc;
+		nfx::datatypes::Decimal value( 123.456 );
+
+		doc.set<nfx::datatypes::Decimal>( "decimalValue", value );
+
+		auto retrieved = doc.get<nfx::datatypes::Decimal>( "decimalValue" );
+		ASSERT_TRUE( retrieved.has_value() );
+		EXPECT_EQ( retrieved.value(), value );
+	}
+
+	TEST_F( DecimalExtensionTest, DirectDocumentSetGetMove )
+	{
+		Document doc;
+
+		doc.set<nfx::datatypes::Decimal>( "price", nfx::datatypes::Decimal( 99.99 ) );
+
+		auto retrieved = doc.get<nfx::datatypes::Decimal>( "price" );
+		ASSERT_TRUE( retrieved.has_value() );
+		EXPECT_EQ( retrieved.value(), nfx::datatypes::Decimal( 99.99 ) );
+	}
+
+	TEST_F( DecimalExtensionTest, DirectDocumentIsCheck )
+	{
+		Document doc;
+		nfx::datatypes::Decimal value( "123.456789" );
+
+		doc.set<nfx::datatypes::Decimal>( "amount", value );
+
+		EXPECT_TRUE( doc.is<nfx::datatypes::Decimal>( "amount" ) );
+		EXPECT_FALSE( doc.is<nfx::datatypes::Decimal>( "missing" ) );
 	}
 
 	//=====================================================================
@@ -466,6 +610,29 @@ namespace nfx::serialization::json::test
 		EXPECT_EQ( restored.ticks(), original.ticks() );
 	}
 
+	TEST_F( TimeSpanExtensionTest, DirectDocumentSetGet )
+	{
+		Document doc;
+		nfx::time::TimeSpan duration = nfx::time::TimeSpan::fromHours( 3 ) + nfx::time::TimeSpan::fromMinutes( 45 );
+
+		doc.set<nfx::time::TimeSpan>( "duration", duration );
+
+		auto retrieved = doc.get<nfx::time::TimeSpan>( "duration" );
+		ASSERT_TRUE( retrieved.has_value() );
+		EXPECT_EQ( retrieved.value().ticks(), duration.ticks() );
+	}
+
+	TEST_F( TimeSpanExtensionTest, DirectDocumentIsCheck )
+	{
+		Document doc;
+		nfx::time::TimeSpan value = nfx::time::TimeSpan::fromSeconds( 30 );
+
+		doc.set<nfx::time::TimeSpan>( "elapsed", value );
+
+		EXPECT_TRUE( doc.is<nfx::time::TimeSpan>( "elapsed" ) );
+		EXPECT_FALSE( doc.is<nfx::time::TimeSpan>( "notThere" ) );
+	}
+
 	//=====================================================================
 	// nfx-datetime: DateTime tests
 	//=====================================================================
@@ -536,6 +703,31 @@ namespace nfx::serialization::json::test
 		EXPECT_FALSE( json.empty() );
 	}
 
+	TEST_F( DateTimeExtensionTest, DirectDocumentSetGet )
+	{
+		Document doc;
+		nfx::time::DateTime value( 2025, 12, 25, 10, 30, 0 );
+
+		doc.set<nfx::time::DateTime>( "timestamp", value );
+
+		auto retrieved = doc.get<nfx::time::DateTime>( "timestamp" );
+		ASSERT_TRUE( retrieved.has_value() );
+		EXPECT_EQ( retrieved.value().year(), value.year() );
+		EXPECT_EQ( retrieved.value().month(), value.month() );
+		EXPECT_EQ( retrieved.value().day(), value.day() );
+	}
+
+	TEST_F( DateTimeExtensionTest, DirectDocumentIsCheck )
+	{
+		Document doc;
+		nfx::time::DateTime value( 2025, 1, 1, 0, 0, 0 );
+
+		doc.set<nfx::time::DateTime>( "newYear", value );
+
+		EXPECT_TRUE( doc.is<nfx::time::DateTime>( "newYear" ) );
+		EXPECT_FALSE( doc.is<nfx::time::DateTime>( "notPresent" ) );
+	}
+
 	//=====================================================================
 	// nfx-datetime: DateTimeOffset tests
 	//=====================================================================
@@ -596,6 +788,32 @@ namespace nfx::serialization::json::test
 		std::string json = Serializer<nfx::time::DateTimeOffset>::toString( utcNow );
 
 		EXPECT_FALSE( json.empty() );
+	}
+
+	TEST_F( DateTimeOffsetExtensionTest, DirectDocumentSetGet )
+	{
+		Document doc;
+		nfx::time::DateTime dt( 2025, 6, 15, 14, 30, 0 );
+		nfx::time::TimeSpan offset = nfx::time::TimeSpan::fromHours( 2 );
+		nfx::time::DateTimeOffset value( dt, offset );
+
+		doc.set<nfx::time::DateTimeOffset>( "timestampWithZone", value );
+
+		auto retrieved = doc.get<nfx::time::DateTimeOffset>( "timestampWithZone" );
+		ASSERT_TRUE( retrieved.has_value() );
+		EXPECT_EQ( retrieved.value().utcDateTime().year(), value.utcDateTime().year() );
+		EXPECT_EQ( retrieved.value().utcDateTime().month(), value.utcDateTime().month() );
+	}
+
+	TEST_F( DateTimeOffsetExtensionTest, DirectDocumentIsCheck )
+	{
+		Document doc;
+		nfx::time::DateTimeOffset value = nfx::time::DateTimeOffset::now();
+
+		doc.set<nfx::time::DateTimeOffset>( "currentTime", value );
+
+		EXPECT_TRUE( doc.is<nfx::time::DateTimeOffset>( "currentTime" ) );
+		EXPECT_FALSE( doc.is<nfx::time::DateTimeOffset>( "absent" ) );
 	}
 
 	//=====================================================================

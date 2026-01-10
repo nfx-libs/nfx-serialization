@@ -41,10 +41,17 @@
 namespace nfx::serialization::json
 {
 	//=====================================================================
-	// Type traits for JSON nested classes
+	// Forward declarations
 	//=====================================================================
 
 	class Document;
+
+	template <typename T>
+	struct SerializationTraits;
+
+	//=====================================================================
+	// Type traits for JSON nested classes
+	//=====================================================================
 
 	/**
 	 * @brief Type trait to identify JSON container types (Object, Array)
@@ -71,6 +78,39 @@ namespace nfx::serialization::json
 	inline constexpr bool is_json_container_v = is_json_container<std::decay_t<T>>::value;
 
 	//=====================================================================
+	// Type trait to detect SerializationTraits specializations
+	//=====================================================================
+
+	namespace detail
+	{
+		/**
+		 * @brief Detect if a type has a custom SerializationTraits specialization
+		 * @details Uses SFINAE to detect if SerializationTraits<T>::serialize is available
+		 *          and is not the default implementation (which requires member methods).
+		 *          This allows conditional support for extension types only when their
+		 *          trait headers are included.
+		 */
+		template <typename T, typename = void>
+		struct has_serialization_traits : std::false_type
+		{
+		};
+
+		template <typename T>
+		struct has_serialization_traits<T,
+			std::void_t<decltype( SerializationTraits<std::decay_t<T>>::serialize(
+				std::declval<const std::decay_t<T>&>(),
+				std::declval<Document&>() ) )>> : std::true_type
+		{
+		};
+
+		/**
+		 * @brief Helper variable template for has_serialization_traits
+		 */
+		template <typename T>
+		inline constexpr bool has_serialization_traits_v = has_serialization_traits<T>::value;
+	} // namespace detail
+
+	//=====================================================================
 	// C++20 Concepts for JSON value types
 	//=====================================================================
 
@@ -89,7 +129,8 @@ namespace nfx::serialization::json
 	/**
 	 * @brief Concept for all JSON-compatible value types
 	 * @details Matches primitives plus Document, Document::Object, and Document::Array.
-	 *          Uses is_json_container trait to recognize nested classes.
+	 *          Does NOT include types with SerializationTraits - those are handled separately
+	 *          via dedicated template overloads to avoid ambiguity.
 	 */
 	template <typename T>
 	concept JsonValue =

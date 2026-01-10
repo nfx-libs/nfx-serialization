@@ -4,7 +4,15 @@
 
 ### Added
 
-- NIL
+- **Document API**: Added direct `Document::set<T>()`, `Document::get<T>()`, and `Document::is<T>()` support for extension types
+  - Inline template implementations with requires clauses for types with `SerializationTraits` specializations
+  - Full support for nfx-datatypes (`Decimal`, `Int128`)
+  - Full support for nfx-containers (`FastHashMap`, `FastHashSet`, `PerfectHashMap`)
+  - Full support for nfx-datetime (`DateTime`, `DateTimeOffset`, `TimeSpan`)
+  - SFINAE-based `has_serialization_traits` trait for compile-time detection of extension types
+- **Concepts**: Updated `JsonValue` concept to exclude types with `SerializationTraits` specializations
+  - Prevents ambiguity between native JSON types and extension types
+  - Allows separate template overload resolution for extension types
 
 ### Changed
 
