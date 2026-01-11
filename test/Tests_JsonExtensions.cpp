@@ -771,6 +771,30 @@ namespace nfx::serialization::json::test
         EXPECT_EQ( retrieved.value(), nfx::datatypes::Decimal( "-999999.999999" ) );
     }
 
+    TEST_F( DecimalExtensionTest, DirectDocumentSetWithDouble )
+    {
+        Document doc;
+
+        // Test with explicit type parameter and double
+        doc.set<nfx::datatypes::Decimal>( "offset", 2.5 );
+
+        auto retrieved = doc.get<nfx::datatypes::Decimal>( "offset" );
+        ASSERT_TRUE( retrieved.has_value() );
+        EXPECT_EQ( retrieved.value(), nfx::datatypes::Decimal( 2.5 ) );
+    }
+
+    TEST_F( DecimalExtensionTest, DirectDocumentSetWithInt )
+    {
+        Document doc;
+
+        // Test with integer value
+        doc.set<nfx::datatypes::Decimal>( "count", 42 );
+
+        auto retrieved = doc.get<nfx::datatypes::Decimal>( "count" );
+        ASSERT_TRUE( retrieved.has_value() );
+        EXPECT_EQ( retrieved.value(), nfx::datatypes::Decimal( 42 ) );
+    }
+
     //=====================================================================
     // nfx-datetime: TimeSpan tests
     //=====================================================================

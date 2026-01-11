@@ -4,9 +4,10 @@
 
 ### Added
 
-- **Document API**: Added `set<T>(path, const char*)` overload for types with explicit constructors
+- **Document API**: Added `set<T>(path, const char*)` and `set<T, U>(path, U)` overloads for types with explicit constructors
   - Enables direct setting of types like `Decimal` from string literals: `doc.set<Decimal>("path", "123.456")`
-  - Works with any type constructible from `const char*` that has an explicit constructor
+  - Enables direct setting from arithmetic types: `doc.set<Decimal>("path", 2.5)` or `doc.set<Decimal>("path", 42)`
+  - Works with any type constructible from `const char*` or arithmetic types (int, float, double, etc.)
   - Uses C++20 constraints to avoid conflicts with existing JSON value types
 - **ContainersTraits**: Added JSON serialization support for `nfx::containers::SmallVector`
 - **ContainersTraits**: Added JSON serialization support for `std::pair<TFirst, TSecond>`

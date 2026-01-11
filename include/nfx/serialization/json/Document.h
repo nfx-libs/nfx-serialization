@@ -282,6 +282,21 @@ namespace nfx::serialization::json
             set( path, T( value ) );
         }
 
+        /**
+         * @brief Set value from arithmetic type for types with explicit constructors
+         * @tparam T Type constructible from arithmetic type (e.g., Decimal from double)
+         * @tparam U Arithmetic type (int, double, float, etc.)
+         * @param path JSON Pointer path where to set value
+         * @param value Arithmetic value to construct value from
+         * @note This overload enables setting types with explicit constructors from numeric literals
+         */
+        template <typename T, typename U>
+            requires std::is_arithmetic_v<U> && std::is_constructible_v<T, U> && (!JsonValue<T>)
+        void set( std::string_view path, U value )
+        {
+            set( path, T( value ) );
+        }
+
         //-----------------------------
         // Type-only creation
         //-----------------------------
