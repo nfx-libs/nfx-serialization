@@ -5,8 +5,9 @@
 ### Added
 
 - **ContainersTraits**: Added JSON serialization support for `nfx::containers::SmallVector`
-
-
+- **ContainersTraits**: Added JSON serialization support for `std::pair<TFirst, TSecond>`
+  - Serializes as JSON object with `"first"` and `"second"` fields
+  - Enables serialization of containers like `std::vector<std::pair<K, V>>`
 
 ### Changed
 
@@ -15,7 +16,6 @@
   - Significantly improves iterator performance by eliminating redundant deep copies when dereferencing `Object::Iterator` and `Array::Iterator`
   - Multiple Document instances can share the same underlying JSON data (similar to STL container semantics)
   - Note: Document follows STL container thread-safety model - concurrent modifications require external synchronization
-
 
 ### Deprecated
 

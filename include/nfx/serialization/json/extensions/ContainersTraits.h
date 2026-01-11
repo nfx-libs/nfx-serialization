@@ -43,6 +43,70 @@
 #include "nfx/serialization/json/SerializationTraits.h"
 #include "nfx/serialization/json/Serializer.h"
 
+#include <utility> // for std::pair
+
+//=====================================================================
+// std::pair support
+//=====================================================================
+
+namespace nfx::serialization::json
+{
+    /**
+     * @brief Specialization for std::pair
+     * @details Serializes std::pair as an object with "first" and "second" fields
+     */
+    template <typename TFirst, typename TSecond>
+    struct SerializationTraits<std::pair<TFirst, TSecond>>
+    {
+        /**
+         * @brief Serialize std::pair to JSON document
+         * @param obj The pair object to serialize
+         * @param doc The document to serialize into
+         */
+        static void serialize( const std::pair<TFirst, TSecond>& obj, Document& doc )
+        {
+            // Create object to hold the pair
+            doc.set<Document::Object>( "" );
+
+            // Serialize first
+            Document firstDoc;
+            Serializer<TFirst> firstSerializer;
+            firstDoc = firstSerializer.serialize( obj.first );
+            doc.set( "first", std::move( firstDoc ) );
+
+            // Serialize second
+            Document secondDoc;
+            Serializer<TSecond> secondSerializer;
+            secondDoc = secondSerializer.serialize( obj.second );
+            doc.set( "second", std::move( secondDoc ) );
+        }
+
+        /**
+         * @brief Deserialize std::pair from JSON document
+         * @param doc The document to deserialize from
+         * @param obj The pair object to deserialize into
+         */
+        static void deserialize( const Document& doc, std::pair<TFirst, TSecond>& obj )
+        {
+            // Deserialize first
+            auto firstDoc = doc.get<Document>( "first" );
+            if ( firstDoc.has_value() )
+            {
+                Serializer<TFirst> firstSerializer;
+                obj.first = firstSerializer.deserialize( firstDoc.value() );
+            }
+
+            // Deserialize second
+            auto secondDoc = doc.get<Document>( "second" );
+            if ( secondDoc.has_value() )
+            {
+                Serializer<TSecond> secondSerializer;
+                obj.second = secondSerializer.deserialize( secondDoc.value() );
+            }
+        }
+    };
+} // namespace nfx::serialization::json
+
 //=====================================================================
 // PerfectHashMap support - enabled only if header is available
 //=====================================================================
