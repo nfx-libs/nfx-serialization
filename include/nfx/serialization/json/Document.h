@@ -268,6 +268,20 @@ namespace nfx::serialization::json
         template <JsonValue T>
         void set( std::string_view path, T&& value );
 
+        /**
+         * @brief Set value from C-string for types with explicit constructors
+         * @tparam T Type constructible from const char* (e.g., Decimal, custom types)
+         * @param path JSON Pointer path where to set value
+         * @param value C-string to construct value from
+         * @note This overload enables setting types with explicit constructors from string literals
+         */
+        template <typename T>
+            requires std::is_constructible_v<T, const char*> && (!JsonValue<T>)
+        void set( std::string_view path, const char* value )
+        {
+            set( path, T( value ) );
+        }
+
         //-----------------------------
         // Type-only creation
         //-----------------------------

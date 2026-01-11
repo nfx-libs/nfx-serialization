@@ -523,7 +523,7 @@ namespace nfx::serialization::json::test
     {
         Document doc;
         nfx::containers::SmallVector<nfx::containers::SmallVector<int, 4>, 4> nested;
-        
+
         nfx::containers::SmallVector<int, 4> row1;
         row1.push_back( 1 );
         row1.push_back( 2 );
@@ -732,6 +732,43 @@ namespace nfx::serialization::json::test
 
         EXPECT_TRUE( doc.is<nfx::datatypes::Decimal>( "amount" ) );
         EXPECT_FALSE( doc.is<nfx::datatypes::Decimal>( "missing" ) );
+    }
+
+    TEST_F( DecimalExtensionTest, DirectDocumentSetWithCString )
+    {
+        Document doc;
+
+        // Test with explicit type parameter and const char*
+        doc.set<nfx::datatypes::Decimal>( "value1", "123456789.12345678913456789" );
+
+        auto retrieved = doc.get<nfx::datatypes::Decimal>( "value1" );
+        ASSERT_TRUE( retrieved.has_value() );
+        EXPECT_EQ( retrieved.value(), nfx::datatypes::Decimal( "123456789.12345678913456789" ) );
+    }
+
+    TEST_F( DecimalExtensionTest, DirectDocumentSetWithCStringHighPrecision )
+    {
+        Document doc;
+
+        // Test with very high precision decimal
+        const char* highPrecision = "0.123456789123456789123456789";
+        doc.set<nfx::datatypes::Decimal>( "precision", highPrecision );
+
+        auto retrieved = doc.get<nfx::datatypes::Decimal>( "precision" );
+        ASSERT_TRUE( retrieved.has_value() );
+        EXPECT_EQ( retrieved.value(), nfx::datatypes::Decimal( highPrecision ) );
+    }
+
+    TEST_F( DecimalExtensionTest, DirectDocumentSetWithCStringNegative )
+    {
+        Document doc;
+
+        // Test with negative value
+        doc.set<nfx::datatypes::Decimal>( "negative", "-999999.999999" );
+
+        auto retrieved = doc.get<nfx::datatypes::Decimal>( "negative" );
+        ASSERT_TRUE( retrieved.has_value() );
+        EXPECT_EQ( retrieved.value(), nfx::datatypes::Decimal( "-999999.999999" ) );
     }
 
     //=====================================================================
