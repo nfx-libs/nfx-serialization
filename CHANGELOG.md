@@ -4,6 +4,33 @@
 
 ### Added
 
+- NIL
+
+### Changed
+
+- NIL
+
+### Deprecated
+
+- NIL
+
+### Removed
+
+- NIL
+
+### Fixed
+
+- NIL
+
+
+### Security
+
+- NIL
+
+## [0.5.0] - 2026-01-12
+
+### Added
+
 - **Document API**: Added `set<T>(path, const char*)` and `set<T, U>(path, U)` overloads for types with explicit constructors
   - Enables direct setting of types like `Decimal` from string literals: `doc.set<Decimal>("path", "123.456")`
   - Enables direct setting from arithmetic types: `doc.set<Decimal>("path", 2.5)` or `doc.set<Decimal>("path", 42)`
@@ -22,22 +49,6 @@
   - Multiple Document instances can share the same underlying JSON data (similar to STL container semantics)
   - Note: Document follows STL container thread-safety model - concurrent modifications require external synchronization
 
-### Deprecated
-
-- NIL
-
-### Removed
-
-- NIL
-
-### Fixed
-
-- NIL
-
-
-### Security
-
-- NIL
 
 ## [0.4.0] - 2026-01-10
 
