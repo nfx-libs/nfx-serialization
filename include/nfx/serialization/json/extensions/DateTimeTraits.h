@@ -39,7 +39,7 @@
 
 #pragma once
 
-#include "nfx/serialization/json/Document.h"
+#include "nfx/serialization/json/SerializableDocument.h"
 #include "nfx/serialization/json/SerializationTraits.h"
 
 //=====================================================================
@@ -75,10 +75,10 @@ namespace nfx::serialization::json
          */
         static void deserialize( nfx::time::TimeSpan& obj, const Document& doc )
         {
-            if ( doc.is<int>( "" ) )
+            if( doc.is<int>( "" ) )
             {
                 auto ticksVal = doc.get<int64_t>( "" );
-                if ( ticksVal.has_value() )
+                if( ticksVal.has_value() )
                 {
                     obj = nfx::time::TimeSpan( ticksVal.value() );
                 }
@@ -127,12 +127,12 @@ namespace nfx::serialization::json
          */
         static void deserialize( nfx::time::DateTime& obj, const Document& doc )
         {
-            if ( doc.is<std::string>( "" ) )
+            if( doc.is<std::string>( "" ) )
             {
                 auto val = doc.get<std::string>( "" );
-                if ( val.has_value() && !val.value().empty() )
+                if( val.has_value() && !val.value().empty() )
                 {
-                    if ( !nfx::time::DateTime::fromString( val.value(), obj ) )
+                    if( !nfx::time::DateTime::fromString( val.value(), obj ) )
                     {
                         throw std::runtime_error{ "Invalid DateTime format: expected ISO 8601 string" };
                     }
@@ -178,12 +178,12 @@ namespace nfx::serialization::json
          */
         static void deserialize( nfx::time::DateTimeOffset& obj, const Document& doc )
         {
-            if ( doc.is<std::string>( "" ) )
+            if( doc.is<std::string>( "" ) )
             {
                 auto val = doc.get<std::string>( "" );
-                if ( val.has_value() && !val.value().empty() )
+                if( val.has_value() && !val.value().empty() )
                 {
-                    if ( !nfx::time::DateTimeOffset::fromString( val.value(), obj ) )
+                    if( !nfx::time::DateTimeOffset::fromString( val.value(), obj ) )
                     {
                         throw std::runtime_error{ "Invalid DateTimeOffset format: expected ISO 8601 string" };
                     }

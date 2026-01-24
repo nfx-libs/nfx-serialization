@@ -2,16 +2,14 @@
 # nfx-serialization - CMake Package Configuration
 #==============================================================================
 # This file provides CMake targets for the nfx-serialization library.
-# 
+#
 # Usage:
 #   find_package(nfx-serialization REQUIRED)
-#   target_link_libraries(your_target PRIVATE nfx-serialization::nfx-serialization) # Shared library
-#   # OR
-#   target_link_libraries(your_target PRIVATE nfx-serialization::static)            # Static library
+#   target_link_libraries(your_target PRIVATE nfx-serialization::nfx-serialization)
 #
 # Available targets:
-#   nfx-serialization::nfx-serialization - Shared library
-#   nfx-serialization::static            - Static library
+#   nfx-serialization::nfx-serialization - Header-only interface library
+#   nfx-serialization::static            - Alias for compatibility (header-only)
 #==============================================================================
 
 @PACKAGE_INIT@
@@ -28,7 +26,7 @@ set_and_check(NFX_SERIALIZATION_LIB_DIR "@PACKAGE_CMAKE_INSTALL_LIBDIR@")
 
 # Required dependencies
 include(CMakeFindDependencyMacro)
-find_dependency(nlohmann_json @NFX_SERIALIZATION_NLOHMANN_JSON_MIN_VERSION@)
+find_dependency(nfx-json @NFX_DEPS_NFX_JSON_VERSION@)
 
 # Include the targets file
 include("${CMAKE_CURRENT_LIST_DIR}/nfx-serialization-targets.cmake")

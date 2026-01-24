@@ -42,10 +42,11 @@ body:
       description: How would you like to use this feature? (code example)
       render: cpp
       placeholder: |
-        #include <nfx/serialization/json/Document.h>
+        #include <nfx/json/Document.h>
         #include <nfx/serialization/json/Serializer.h>
 
         int main() {
+            using namespace nfx::json;
             using namespace nfx::serialization::json;
             
             // Example usage of proposed feature

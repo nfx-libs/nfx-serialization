@@ -25,15 +25,17 @@
 /**
  * @file Serializer.h
  * @brief Templated JSON serializer with compile-time type mapping
- * @details Provides comprehensive object serialization to/from JSON with automatic
+ * @details Provides object serialization to/from JSON with automatic
  *          type detection, trait-based customization, and extensible serialization strategies.
  *          Supports POD types, containers, custom objects, and nested structures.
  */
 
 #pragma once
 
-#include "Document.h"
 #include "SerializationTraits.h"
+#include "SerializableDocument.h"
+
+#include <nfx/json/Document.h>
 
 namespace nfx::serialization::json
 {
@@ -154,10 +156,10 @@ namespace nfx::serialization::json
         /**
          * @brief Serialize object to JSON document
          * @param obj The object to serialize
-         * @return Document containing the serialized JSON
+         * @return SerializableDocument containing the serialized JSON
          * @throws std::runtime_error if serialization fails
          */
-        inline Document serialize( const T& obj ) const;
+        inline SerializableDocument serialize( const T& obj ) const;
 
         /**
          * @brief Deserialize object from JSON document
@@ -165,7 +167,7 @@ namespace nfx::serialization::json
          * @return Deserialized object
          * @throws std::runtime_error if deserialization fails
          */
-        inline T deserialize( const Document& doc ) const;
+        inline T deserialize( const SerializableDocument& doc ) const;
 
     private:
         //----------------------------------------------
@@ -176,19 +178,19 @@ namespace nfx::serialization::json
          * @brief Unified templated serialization method
          * @tparam U The type to serialize (deduced from parameter)
          * @param obj Object to serialize
-         * @param doc Document to serialize into
+         * @param doc SerializableDocument to serialize into
          */
         template <typename U>
-        inline void serializeValue( const U& obj, Document& doc ) const;
+        inline void serializeValue( const U& obj, SerializableDocument& doc ) const;
 
         /**
          * @brief Unified templated deserialization method
          * @tparam U The type to deserialize (deduced from parameter)
-         * @param doc Document to deserialize from
+         * @param doc SerializableDocument to deserialize from
          * @param obj Object to deserialize into
          */
         template <typename U>
-        inline void deserializeValue( const Document& doc, U& obj ) const;
+        inline void deserializeValue( const SerializableDocument& doc, U& obj ) const;
 
         //----------------------------------------------
         // Member variables

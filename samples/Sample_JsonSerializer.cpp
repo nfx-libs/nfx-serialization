@@ -24,10 +24,12 @@
 
 /**
  * @file Sample_JsonSerializer.cpp
- * @brief Comprehensive sample demonstrating JSON Serializer functionality
+ * @brief Sample demonstrating JSON Serializer functionality
  * @details Real-world examples showcasing all serializer features including primitive types,
  *          STL containers, custom objects, and serialization options.
  */
+
+#include <nfx/Serialization.h>
 
 #include <array>
 #include <iostream>
@@ -44,10 +46,7 @@
 #include <iomanip>
 #include <sstream>
 
-#include <nfx/serialization/json/Document.h>
-#include <nfx/serialization/json/Serializer.h>
-
-// NO NFX extension headers - this sample is completely standalone!
+using namespace nfx::json;
 
 using namespace nfx::serialization::json;
 
@@ -65,28 +64,39 @@ struct DateTime
     int minute;
     int second;
 
-    DateTime() : year( 2024 ), month( 1 ), day( 1 ), hour( 0 ), minute( 0 ), second( 0 ) {}
+    DateTime()
+        : year( 2024 ),
+          month( 1 ),
+          day( 1 ),
+          hour( 0 ),
+          minute( 0 ),
+          second( 0 )
+    {
+    }
 
     DateTime( int y, int m, int d, int h = 0, int min = 0, int s = 0 )
-        : year( y ), month( m ), day( d ), hour( h ), minute( min ), second( s ) {}
+        : year( y ),
+          month( m ),
+          day( d ),
+          hour( h ),
+          minute( min ),
+          second( s )
+    {
+    }
 
     std::string toIso8601() const
     {
         std::ostringstream oss;
-        oss << std::setfill( '0' )
-            << std::setw( 4 ) << year << "-"
-            << std::setw( 2 ) << month << "-"
-            << std::setw( 2 ) << day << "T"
-            << std::setw( 2 ) << hour << ":"
-            << std::setw( 2 ) << minute << ":"
-            << std::setw( 2 ) << second << "Z";
+        oss << std::setfill( '0' ) << std::setw( 4 ) << year << "-" << std::setw( 2 ) << month << "-" << std::setw( 2 )
+            << day << "T" << std::setw( 2 ) << hour << ":" << std::setw( 2 ) << minute << ":" << std::setw( 2 )
+            << second << "Z";
         return oss.str();
     }
 
-    static bool tryParse( const std::string& str, DateTime& dt )
+    static bool fromString( const std::string& str, DateTime& dt )
     {
         // Simple ISO8601 parser: YYYY-MM-DDTHH:MM:SSZ
-        if ( str.length() < 19 )
+        if( str.length() < 19 )
             return false;
         try
         {
@@ -98,7 +108,7 @@ struct DateTime
             dt.second = std::stoi( str.substr( 17, 2 ) );
             return true;
         }
-        catch ( ... )
+        catch( ... )
         {
             return false;
         }
@@ -106,8 +116,8 @@ struct DateTime
 
     bool operator==( const DateTime& other ) const
     {
-        return year == other.year && month == other.month && day == other.day &&
-               hour == other.hour && minute == other.minute && second == other.second;
+        return year == other.year && month == other.month && day == other.day && hour == other.hour &&
+               minute == other.minute && second == other.second;
     }
 };
 
@@ -122,8 +132,7 @@ struct Person
     // Equality operator for comparison
     bool operator==( const Person& other ) const
     {
-        return name == other.name && age == other.age &&
-               isActive == other.isActive && email == other.email &&
+        return name == other.name && age == other.age && isActive == other.isActive && email == other.email &&
                hobbies == other.hobbies;
     }
 
@@ -135,87 +144,82 @@ struct Person
         doc.set<int64_t>( "/age", age );
         doc.set<bool>( "/isActive", isActive );
 
-        if ( email.has_value() )
+        if( email.has_value() )
         {
             doc.set<std::string>( "/email", *email );
         }
         // Note: includeNullFields not available without serializer parameter
 
         // Serialize hobbies array
-        if ( !hobbies.empty() )
+        if( !hobbies.empty() )
         {
-            Document hobbiesArray;
-            hobbiesArray.set<Document::Array>( "" );
-            auto hobbiesArrayRef = hobbiesArray.get<Document::Array>( "" ).value();
-            for ( const auto& hobby : hobbies )
+            doc.set<Array>( "/hobbies" );
+            for( const auto& hobby : hobbies )
             {
-                hobbiesArrayRef.append( hobby );
+                auto hobbiesArrayRef = doc.get<Array>( "/hobbies" );
+                if( hobbiesArrayRef.has_value() )
+                {
+                    hobbiesArrayRef->push_back( Document( hobby ) );
+                    doc.set<Array>( "/hobbies", hobbiesArrayRef.value() );
+                }
             }
-            doc.set<Document>( "/hobbies", hobbiesArray );
         }
 
         return doc;
     }
 
-    // Custom serialization method - with serializer (for options access)
-    Document serialize( Serializer<Person>& serializer ) const
+    // Serialization with dependency injection
+    void serialize( Serializer<Person>& serializer, Document& doc ) const
     {
-        Document doc;
         doc.set<std::string>( "/name", name );
         doc.set<int64_t>( "/age", age );
         doc.set<bool>( "/isActive", isActive );
 
-        if ( email.has_value() )
+        if( email.has_value() )
         {
             doc.set<std::string>( "/email", *email );
         }
-        else if ( serializer.options().includeNullFields )
+        else if( serializer.options().includeNullFields )
         {
             doc.set<std::string>( "/email", "" );
         }
 
         // Serialize hobbies array
-        if ( !hobbies.empty() )
+        if( !hobbies.empty() )
         {
-            Document hobbiesArray;
-            hobbiesArray.set<Document::Array>( "" );
-            auto hobbiesArrayRef = hobbiesArray.get<Document::Array>( "" ).value();
-            for ( const auto& hobby : hobbies )
+            doc.set<Array>( "/hobbies" );
+            for( const auto& hobby : hobbies )
             {
-                hobbiesArrayRef.append( hobby );
+                auto hobbiesArrayRef = doc.get<Array>( "/hobbies" );
+                if( hobbiesArrayRef.has_value() )
+                {
+                    hobbiesArrayRef->push_back( Document( hobby ) );
+                    doc.set<Array>( "/hobbies", hobbiesArrayRef.value() );
+                }
             }
-            doc.set<Document>( "/hobbies", hobbiesArray );
         }
-
-        return doc;
-    }
-
-    // Alternative serialization method - void with document parameter (different API style)
-    void serialize( Serializer<Person>& serializer, Document& doc ) const
-    {
-        doc = serialize( serializer ); // Delegate to the Document-returning version
     }
 
     // Custom deserialization method
     void deserialize( const Serializer<Person>& serializer, const Document& doc )
     {
-        if ( auto nameVal = doc.get<std::string>( "/name" ) )
+        if( auto nameVal = doc.get<std::string>( "/name" ) )
         {
             name = *nameVal;
         }
-        if ( auto ageVal = doc.get<int64_t>( "/age" ) )
+        if( auto ageVal = doc.get<int64_t>( "/age" ) )
         {
             age = static_cast<int>( *ageVal );
         }
-        if ( auto activeVal = doc.get<bool>( "/isActive" ) )
+        if( auto activeVal = doc.get<bool>( "/isActive" ) )
         {
             isActive = *activeVal;
         }
 
         // Handle optional email
-        if ( auto emailVal = doc.get<std::string>( "/email" ) )
+        if( auto emailVal = doc.get<std::string>( "/email" ) )
         {
-            if ( !emailVal->empty() )
+            if( !emailVal->empty() )
             {
                 email = *emailVal;
             }
@@ -231,16 +235,16 @@ struct Person
 
         // Deserialize hobbies array manually since we have custom deserialization
         hobbies.clear();
-        if ( auto hobbiesDoc = doc.get<Document>( "/hobbies" ) )
+        if( auto hobbiesDoc = doc.get<Document>( "/hobbies" ) )
         {
-            if ( hobbiesDoc->is<Document::Array>( "" ) )
+            if( hobbiesDoc->is<Array>( "" ) )
             {
-                auto arrOpt = hobbiesDoc->get<Document::Array>( "" );
-                if ( arrOpt.has_value() )
+                auto arrOpt = hobbiesDoc->get<Array>( "" );
+                if( arrOpt.has_value() )
                 {
-                    for ( const auto& hobbyDoc : arrOpt.value() )
+                    for( const auto& hobbyDoc : arrOpt.value() )
                     {
-                        if ( auto hobbyStr = hobbyDoc.get<std::string>( "" ) )
+                        if( auto hobbyStr = hobbyDoc.get<std::string>( "" ) )
                         {
                             hobbies.push_back( *hobbyStr );
                         }
@@ -248,9 +252,9 @@ struct Person
                 }
             }
         } // Validation if enabled
-        if ( serializer.options().validateOnDeserialize )
+        if( serializer.options().validateOnDeserialize )
         {
-            if ( age < 0 || age > 150 )
+            if( age < 0 || age > 150 )
             {
                 throw std::runtime_error{ "Invalid age: must be between 0 and 150" };
             }
@@ -267,8 +271,8 @@ struct Company
 
     bool operator==( const Company& other ) const
     {
-        return name == other.name && employees == other.employees &&
-               departments == other.departments && founded == other.founded;
+        return name == other.name && employees == other.employees && departments == other.departments &&
+               founded == other.founded;
     }
 
     // Custom serialization method - no parameters (simple case)
@@ -282,29 +286,28 @@ struct Company
         doc.set<std::string>( "/founded", foundedStr );
 
         // Serialize employees array using default serialization
-        if ( !employees.empty() )
+        if( !employees.empty() )
         {
-            Document employeesArray;
-            employeesArray.set<Document::Array>( "" );
-            auto employeesArrayWrapper = employeesArray.get<Document::Array>( "" );
-            for ( const auto& employee : employees )
+            doc.set<Array>( "/employees" );
+            for( const auto& employee : employees )
             {
                 // Use the no-parameter serialize method for simplicity
                 Document employeeDoc = employee.serialize();
-                if ( employeesArrayWrapper.has_value() )
+                auto employeesArrayWrapper = doc.get<Array>( "/employees" );
+                if( employeesArrayWrapper.has_value() )
                 {
-                    employeesArrayWrapper->append<Document>( employeeDoc );
+                    employeesArrayWrapper->push_back( employeeDoc );
+                    doc.set<Array>( "/employees", employeesArrayWrapper.value() );
                 }
             }
-            doc.set<Document>( "/employees", employeesArray );
         }
 
         // Serialize departments map
-        if ( !departments.empty() )
+        if( !departments.empty() )
         {
             Document departmentsObj;
 
-            for ( const auto& [deptName, count] : departments )
+            for( const auto& [deptName, count] : departments )
             {
                 std::string fieldPath = "/" + deptName;
                 departmentsObj.set<int64_t>( fieldPath, count );
@@ -326,31 +329,30 @@ struct Company
         doc.set<std::string>( "/founded", foundedStr );
 
         // Serialize employees array
-        if ( !employees.empty() )
+        if( !employees.empty() )
         {
-            Document employeesArray;
-            employeesArray.set<Document::Array>( "" );
-            auto employeesArrayWrapper = employeesArray.get<Document::Array>( "" );
-            for ( const auto& employee : employees )
+            doc.set<Array>( "/employees" );
+            for( const auto& employee : employees )
             {
                 // Create Person serializer with same options as Company serializer
                 auto personOptions = Serializer<Person>::Options::createFrom<Company>( companySerializer.options() );
                 Serializer<Person> personSerializer( personOptions );
                 Document employeeDoc = personSerializer.serialize( employee );
-                if ( employeesArrayWrapper.has_value() )
+                auto employeesArrayWrapper = doc.get<Array>( "/employees" );
+                if( employeesArrayWrapper.has_value() )
                 {
-                    employeesArrayWrapper->append<Document>( employeeDoc );
+                    employeesArrayWrapper->push_back( employeeDoc );
+                    doc.set<Array>( "/employees", employeesArrayWrapper.value() );
                 }
             }
-            doc.set<Document>( "/employees", employeesArray );
         }
 
         // Serialize departments map
-        if ( !departments.empty() )
+        if( !departments.empty() )
         {
             Document departmentsObj;
 
-            for ( const auto& [deptName, count] : departments )
+            for( const auto& [deptName, count] : departments )
             {
                 std::string fieldPath = "/" + deptName;
                 departmentsObj.set<int64_t>( fieldPath, count );
@@ -370,15 +372,15 @@ struct Company
     // Custom deserialization method
     void deserialize( const Serializer<Company>& serializer, const Document& doc )
     {
-        if ( auto nameVal = doc.get<std::string>( "/name" ) )
+        if( auto nameVal = doc.get<std::string>( "/name" ) )
         {
             name = *nameVal;
         }
 
         // Deserialize founded date
-        if ( auto foundedVal = doc.get<std::string>( "/founded" ) )
+        if( auto foundedVal = doc.get<std::string>( "/founded" ) )
         {
-            if ( !DateTime::tryParse( *foundedVal, founded ) )
+            if( !DateTime::fromString( *foundedVal, founded ) )
             {
                 throw std::runtime_error{ "Invalid DateTime format in Company::founded" };
             }
@@ -386,14 +388,14 @@ struct Company
 
         // Deserialize employees array
         employees.clear();
-        if ( auto employeesArray = doc.get<Document>( "/employees" ) )
+        if( auto employeesArray = doc.get<Document>( "/employees" ) )
         {
-            if ( employeesArray->is<Document::Array>( "" ) )
+            if( employeesArray->is<Array>( "" ) )
             {
-                auto arrOpt = employeesArray->get<Document::Array>( "" );
-                if ( arrOpt.has_value() )
+                auto arrOpt = employeesArray->get<Array>( "" );
+                if( arrOpt.has_value() )
                 {
-                    for ( const auto& employeeDoc : arrOpt.value() )
+                    for( const auto& employeeDoc : arrOpt.value() )
                     {
                         // Create Person serializer with same options as Company serializer
                         Serializer<Person>::Options personOptions;
@@ -411,16 +413,16 @@ struct Company
 
         // Deserialize departments map
         departments.clear();
-        if ( auto departmentsObj = doc.get<Document>( "/departments" ) )
+        if( auto departmentsObj = doc.get<Document>( "/departments" ) )
         {
-            if ( departmentsObj->is<Document::Object>( "" ) )
+            if( departmentsObj->is<Object>( "" ) )
             {
-                auto objOpt = departmentsObj->get<Document::Object>( "" );
-                if ( objOpt.has_value() )
+                auto objOpt = departmentsObj->get<Object>( "" );
+                if( objOpt.has_value() )
                 {
-                    for ( const auto& [deptName, valueDoc] : objOpt.value() )
+                    for( const auto& [deptName, valueDoc] : objOpt.value() )
                     {
-                        if ( auto countVal = valueDoc.get<int64_t>( "" ) )
+                        if( auto countVal = valueDoc.get<int64_t>( "" ) )
                         {
                             departments[deptName] = static_cast<int>( *countVal );
                         }
@@ -501,8 +503,9 @@ void demonstrateContainers()
     std::cout << "Deque<int>: " << json << std::endl;
 
     // Unordered map
-    std::unordered_map<std::string, std::string> config{
-        { "theme", "dark" }, { "language", "en" }, { "timezone", "UTC" } };
+    std::unordered_map<std::string, std::string> config{ { "theme", "dark" },
+                                                         { "language", "en" },
+                                                         { "timezone", "UTC" } };
     json = Serializer<std::unordered_map<std::string, std::string>>::toString( config );
     std::cout << "UnorderedMap<string,string>: " << json << std::endl;
 
@@ -615,8 +618,7 @@ void demonstrateComplexNesting()
     Serializer<Company>::Options options;
     options.prettyPrint = true;
     std::string json = Serializer<Company>::toString( company, options );
-    std::cout << "Complete Company Structure:" << std::endl
-              << json << std::endl;
+    std::cout << "Complete Company Structure:" << std::endl << json << std::endl;
 
     // Test roundtrip
     Company deserializedCompany = Serializer<Company>::fromString( json );
@@ -644,7 +646,7 @@ void demonstrateValidation()
         Person person = Serializer<Person>::fromString( invalidJson, validationOptions );
         std::cout << "Validation failed - should not reach here!" << std::endl;
     }
-    catch ( const std::exception& e )
+    catch( const std::exception& e )
     {
         std::cout << "Validation caught error (as expected): " << e.what() << std::endl;
     }
@@ -658,7 +660,7 @@ void demonstrateValidation()
         Person person = Serializer<Person>::fromString( invalidJson, noValidationOptions );
         std::cout << "Without validation - deserialized person with age: " << person.age << std::endl;
     }
-    catch ( const std::exception& e )
+    catch( const std::exception& e )
     {
         std::cout << "Unexpected error: " << e.what() << std::endl;
     }
@@ -697,8 +699,7 @@ void demonstrateSerializerClass()
 
     std::map<std::string, int> mapData{ { "first", 1 }, { "second", 2 }, { "third", 3 } };
     std::string prettyJson = Serializer<std::map<std::string, int>>::toString( mapData, options );
-    std::cout << "Pretty printed map:" << std::endl
-              << prettyJson << std::endl;
+    std::cout << "Pretty printed map:" << std::endl << prettyJson << std::endl;
 
     std::cout << std::endl;
 }
@@ -709,7 +710,7 @@ void demonstrateSerializerClass()
 
 int main()
 {
-    std::cout << "=== NFX JSON Serializer - Comprehensive Feature Demonstration ===\n\n";
+    std::cout << "=== NFX JSON Serializer - Feature Demonstration ===\n\n";
 
     try
     {
@@ -758,10 +759,9 @@ int main()
             json = Serializer<std::map<std::string, int>>::toString( scores );
             std::cout << "Map: " << json << "\n";
 
-            std::unordered_map<std::string, std::string> config{
-                { "host", "localhost" },
-                { "port", "8080" },
-                { "protocol", "https" } };
+            std::unordered_map<std::string, std::string> config{ { "host", "localhost" },
+                                                                 { "port", "8080" },
+                                                                 { "protocol", "https" } };
             json = Serializer<std::unordered_map<std::string, std::string>>::toString( config );
             std::cout << "Unordered Map: " << json << "\n";
         }
@@ -808,9 +808,11 @@ int main()
             person.email = "alice@example.com";
             person.hobbies = { "reading", "coding", "hiking" };
 
-            std::string json{ Serializer<Person>::toString( person ) };
-            std::cout << "Person object:\n"
-                      << json << "\n\n";
+            Serializer<Person>::Options options;
+            options.prettyPrint = true;
+
+            std::string json{ Serializer<Person>::toString( person, options ) };
+            std::cout << "Person object:\n" << json << "\n\n";
 
             Person deserialized{ Serializer<Person>::fromString( json ) };
             std::cout << "Deserialized: " << deserialized.name << ", age " << deserialized.age << "\n";
@@ -843,13 +845,15 @@ int main()
             company.employees = { emp1, emp2 };
             company.departments = { { "Engineering", 10 }, { "Sales", 5 }, { "HR", 3 } };
 
-            std::string json{ Serializer<Company>::toString( company ) };
-            std::cout << "Company object:\n"
-                      << json << "\n\n";
+            Serializer<Company>::Options options;
+            options.prettyPrint = true;
+
+            std::string json{ Serializer<Company>::toString( company, options ) };
+            std::cout << "Company object:\n" << json << "\n\n";
 
             Company deserialized{ Serializer<Company>::fromString( json ) };
-            std::cout << "Deserialized company: " << deserialized.name
-                      << " with " << deserialized.employees.size() << " employees\n";
+            std::cout << "Deserialized company: " << deserialized.name << " with " << deserialized.employees.size()
+                      << " employees\n";
         }
 
         std::cout << "\n";
@@ -877,7 +881,7 @@ int main()
                 Person deserialized{ Serializer<Person>::fromString( json, opts ) };
                 std::cout << "Validation failed to catch error\n";
             }
-            catch ( const std::exception& e )
+            catch( const std::exception& e )
             {
                 std::cout << "Validation caught error: " << e.what() << "\n";
             }
@@ -903,17 +907,16 @@ int main()
             person.hobbies = { "photography", "traveling" };
 
             std::string json{ Serializer<Person>::toString( person, opts ) };
-            std::cout << "Pretty printed Person:\n"
-                      << json << "\n\n";
+            std::cout << "Pretty printed Person:\n" << json << "\n\n";
 
             Person deserialized{ Serializer<Person>::fromString( json ) };
-            std::cout << "Deserialized: " << deserialized.name << ", active: "
-                      << ( deserialized.isActive ? "yes" : "no" ) << "\n";
+            std::cout << "Deserialized: " << deserialized.name
+                      << ", active: " << ( deserialized.isActive ? "yes" : "no" ) << "\n";
         }
 
         std::cout << "\n";
     }
-    catch ( const std::exception& e )
+    catch( const std::exception& e )
     {
         std::cerr << "Error during demonstration: " << e.what() << "\n";
         return 1;

@@ -40,11 +40,13 @@
 
 #pragma once
 
+#include <nfx/json/Document.h>
+
 #include <stdexcept>
 #include <string>
 #include <vector>
 
-#include "nfx/serialization/json/Document.h"
+using namespace nfx::json;
 
 namespace nfx::serialization::json
 {
@@ -92,27 +94,28 @@ namespace nfx::serialization::json
         static void serialize( const T& obj, Document& doc )
         {
             // Look for serialize method with no parameters
-            if constexpr ( detail::has_serialize_method_no_params<T>::value )
+            if constexpr( detail::has_serialize_method_no_params<T>::value )
             {
                 doc = obj.serialize();
             }
             // Look for serialize method returning Document with serializer parameter
-            else if constexpr ( detail::has_serialize_method_returning_document<T>::value )
+            else if constexpr( detail::has_serialize_method_returning_document<T>::value )
             {
                 Serializer<T> serializer;
                 doc = obj.serialize( serializer );
             }
             // Look for traditional serialize method with serializer and document parameters
-            else if constexpr ( detail::has_serialize_method<T>::value )
+            else if constexpr( detail::has_serialize_method<T>::value )
             {
                 Serializer<T> serializer;
                 obj.serialize( serializer, doc );
             }
             else
             {
-                static_assert( detail::has_serialize_method<T>::value ||
-                                   detail::has_serialize_method_returning_document<T>::value ||
-                                   detail::has_serialize_method_no_params<T>::value,
+                static_assert(
+                    detail::has_serialize_method<T>::value ||
+                        detail::has_serialize_method_returning_document<T>::value ||
+                        detail::has_serialize_method_no_params<T>::value,
                     "Type must either specialize SerializationTraits or have a serialize() member method" );
             }
         }
@@ -125,14 +128,15 @@ namespace nfx::serialization::json
         static void deserialize( T& obj, const Document& doc )
         {
             // Look for member deserialize method
-            if constexpr ( detail::has_deserialize_method<T>::value )
+            if constexpr( detail::has_deserialize_method<T>::value )
             {
                 Serializer<T> serializer;
                 obj.deserialize( serializer, doc );
             }
             else
             {
-                static_assert( detail::has_deserialize_method<T>::value,
+                static_assert(
+                    detail::has_deserialize_method<T>::value,
                     "Type must either specialize SerializationTraits or have a deserialize() member method" );
             }
         }

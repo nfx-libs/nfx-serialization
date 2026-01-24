@@ -24,7 +24,7 @@ body:
       description: Steps to reproduce the behavior
       placeholder: |
         1. Include nfx-serialization headers...
-        2. Create Document/Serializer instance...
+        2. Create Serializer instance or use Document from nfx-json...
         3. Call method X with parameters Y...
         4. See error...
     validations:
@@ -55,10 +55,11 @@ body:
       description: Minimal code to reproduce the issue
       render: cpp
       placeholder: |
-        #include <nfx/serialization/json/Document.h>
+        #include <nfx/json/Document.h>
         #include <nfx/serialization/json/Serializer.h>
 
         int main() {
+            using namespace nfx::json;
             using namespace nfx::serialization::json;
             
             auto doc = Document::fromString(R"({"name": "test", "value": 42})");

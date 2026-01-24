@@ -14,8 +14,17 @@ endif()
 # Install headers
 #----------------------------------------------
 
+# Install nfx-serialization headers
 install(
     DIRECTORY "${NFX_SERIALIZATION_INCLUDE_DIR}/"
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    COMPONENT Development
+    FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.inl"
+)
+
+# Install nfx-json headers (bundled dependency)
+install(
+    DIRECTORY "${nfx-json_SOURCE_DIR}/include/"
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     COMPONENT Development
     FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.inl"
@@ -25,70 +34,31 @@ install(
 # Install library targets
 #----------------------------------------------
 
-set(install_targets "")
+# Header-only interface library
+set(install_targets ${PROJECT_NAME})
 
-if(NFX_SERIALIZATION_BUILD_SHARED AND TARGET ${PROJECT_NAME})
-    list(APPEND install_targets ${PROJECT_NAME})
-endif()
-
-if(NFX_SERIALIZATION_BUILD_STATIC AND TARGET ${PROJECT_NAME}-static)
-    list(APPEND install_targets ${PROJECT_NAME}-static)
-endif()
-
-if(install_targets)
-    install(
-        TARGETS ${install_targets}
-        EXPORT nfx-serialization-targets
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            COMPONENT Development
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            COMPONENT Runtime
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-            COMPONENT Runtime
-        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-    )
-    
-    # Install PDB files for debug builds on Windows
-    if(MSVC AND NFX_SERIALIZATION_BUILD_SHARED AND TARGET ${PROJECT_NAME})
-        install(
-            FILES $<TARGET_PDB_FILE:${PROJECT_NAME}>
-            DESTINATION ${CMAKE_INSTALL_BINDIR}
-            CONFIGURATIONS Debug RelWithDebInfo
-            COMPONENT Development
-            OPTIONAL
-        )
-    endif()
-endif()
+install(
+    TARGETS ${install_targets}
+    EXPORT nfx-serialization-targets
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
 
 #----------------------------------------------
-# Install CMake config files
+# Install CMake export files
 #----------------------------------------------
 
-if(install_targets)
-    install(
-        EXPORT nfx-serialization-targets
-        FILE nfx-serialization-targets.cmake
-        NAMESPACE nfx-serialization::
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/nfx-serialization
-        COMPONENT Development
-    )
-
-    # Install separate target files for each configuration (multi-config generators)
-    if(CMAKE_CONFIGURATION_TYPES)
-        foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
-            install(
-                EXPORT nfx-serialization-targets
-                FILE nfx-serialization-targets-${CONFIG}.cmake
-                NAMESPACE nfx-serialization::
-                DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/nfx-serialization
-                CONFIGURATIONS ${CONFIG}
-                COMPONENT Development
-            )
-        endforeach()
-    endif()
-endif()
+install(
+    EXPORT nfx-serialization-targets
+    FILE nfx-serialization-targets.cmake
+    NAMESPACE nfx-serialization::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/nfx-serialization
+    COMPONENT Development
+)
 
 include(CMakePackageConfigHelpers)
+
+# Set dependency version for config file substitution
+set(NFX_DEPS_NFX_JSON_VERSION "1.0.0")
 
 write_basic_package_version_file(
     "${CMAKE_CURRENT_BINARY_DIR}/nfx-serialization-config-version.cmake"
@@ -141,7 +111,7 @@ if(NFX_SERIALIZATION_BUILD_DOCUMENTATION)
         OPTIONAL
         COMPONENT Documentation
     )
-    
+
     if(WIN32)
         # Install Windows .cmd batch file
         install(

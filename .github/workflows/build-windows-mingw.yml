@@ -73,8 +73,6 @@ jobs:
                 -G "Ninja" \
                 -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
                 -DNFX_SERIALIZATION_WITH_JSON=ON \
-                -DNFX_SERIALIZATION_BUILD_STATIC=ON \
-                -DNFX_SERIALIZATION_BUILD_SHARED=OFF \
                 -DNFX_SERIALIZATION_BUILD_TESTS=ON \
                 -DNFX_SERIALIZATION_BUILD_EXTENSION_TESTS=ON \
                 -DNFX_SERIALIZATION_BUILD_SAMPLES=OFF \

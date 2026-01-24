@@ -58,28 +58,24 @@ enable_testing()
 #----------------------------------------------
 
 # --- JSON serialization support ---
-option(NFX_SERIALIZATION_WITH_JSON             "Enable JSON serialization support"  OFF)
-
-# --- Library build types ---
-option(NFX_SERIALIZATION_BUILD_STATIC          "Build static library"               OFF)
-option(NFX_SERIALIZATION_BUILD_SHARED          "Build shared library"               OFF)
+option(NFX_SERIALIZATION_WITH_JSON             "Enable JSON serialization support"  ON)
 
 # --- Build components ---
-option(NFX_SERIALIZATION_BUILD_TESTS           "Build tests"                        OFF)
-option(NFX_SERIALIZATION_BUILD_EXTENSION_TESTS "Build extension tests"              OFF)
-option(NFX_SERIALIZATION_BUILD_SAMPLES         "Build samples"                      OFF)
-option(NFX_SERIALIZATION_BUILD_BENCHMARKS      "Build benchmarks"                   OFF)
-option(NFX_SERIALIZATION_BUILD_DOCUMENTATION   "Build Doxygen documentation"        OFF)
+option(NFX_SERIALIZATION_BUILD_TESTS           "Build tests"                        ON)
+option(NFX_SERIALIZATION_BUILD_EXTENSION_TESTS "Build extension tests"              ON)
+option(NFX_SERIALIZATION_BUILD_SAMPLES         "Build samples"                      ON)
+option(NFX_SERIALIZATION_BUILD_BENCHMARKS      "Build benchmarks"                   ON)
+option(NFX_SERIALIZATION_BUILD_DOCUMENTATION   "Build Doxygen documentation"        ON)
 
 # --- Installation ---
-option(NFX_SERIALIZATION_INSTALL_PROJECT       "Install project"                    OFF)
+option(NFX_SERIALIZATION_INSTALL_PROJECT       "Install project"                    ON)
 
 # --- Packaging ---
-option(NFX_SERIALIZATION_PACKAGE_SOURCE        "Enable source package generation"   OFF)
-option(NFX_SERIALIZATION_PACKAGE_ARCHIVE       "Enable TGZ/ZIP package generation"  OFF)
-option(NFX_SERIALIZATION_PACKAGE_DEB           "Enable DEB package generation"      OFF)
-option(NFX_SERIALIZATION_PACKAGE_RPM           "Enable RPM package generation"      OFF)
-option(NFX_SERIALIZATION_PACKAGE_WIX           "Enable WiX Windows installer (MSI)" OFF)
+option(NFX_SERIALIZATION_PACKAGE_SOURCE        "Enable source package generation"   ON)
+option(NFX_SERIALIZATION_PACKAGE_ARCHIVE       "Enable TGZ/ZIP package generation"  ON)
+option(NFX_SERIALIZATION_PACKAGE_DEB           "Enable DEB package generation"      ON)
+option(NFX_SERIALIZATION_PACKAGE_RPM           "Enable RPM package generation"      ON)
+option(NFX_SERIALIZATION_PACKAGE_WIX           "Enable WiX Windows installer (MSI)" ON)
 
 #----------------------------------------------
 # CMake modules configuration
@@ -93,7 +89,6 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 include(nfxSerializationBuildConfig)
 include(nfxSerializationDependencies)
-include(nfxSerializationSources)
 include(nfxSerializationTargets)
 
 #----------------------------------------------

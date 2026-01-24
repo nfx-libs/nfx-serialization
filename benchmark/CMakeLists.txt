@@ -58,13 +58,6 @@ set(benchmark_sources "")
 
 if(NFX_SERIALIZATION_WITH_JSON)
     list(APPEND benchmark_sources
-        BM_JsonAccess.cpp
-        BM_JsonIteration.cpp
-        BM_JsonModification.cpp
-        BM_JsonObjectSerialization.cpp
-        BM_JsonParsing.cpp
-        BM_JsonSchemaGeneration.cpp
-        BM_JsonSchemaValidation.cpp
         BM_JsonSerialization.cpp
     )
 endif()
@@ -84,8 +77,8 @@ foreach(benchmark_source ${benchmark_sources})
 
         target_link_libraries(${benchmark_target_name}
             PRIVATE
-                nfx-serialization::static
                 benchmark::benchmark
+                nfx-serialization::nfx-serialization
         )
 
         #----------------------------------------------
@@ -115,16 +108,3 @@ foreach(benchmark_source ${benchmark_sources})
         )
     endif()
 endforeach()
-
-#----------------------------------------------
-# Copy testdata to output directory
-#----------------------------------------------
-
-if(EXISTS "${NFX_SERIALIZATION_TESTDATA_DIR}")
-    add_custom_target(copy_testdata_benchmarks ALL
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${NFX_SERIALIZATION_TESTDATA_DIR}"
-            "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/benchmarks/testdata"
-        COMMENT "Copying testdata to benchmarks output directory"
-    )
-endif()

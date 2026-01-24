@@ -29,7 +29,9 @@
 
 #include <benchmark/benchmark.h>
 
-#include <nfx/serialization/json/Document.h>
+#include <nfx/Serialization.h>
+
+using namespace nfx::json;
 
 namespace nfx::serialization::json::benchmark
 {
@@ -79,8 +81,10 @@ namespace nfx::serialization::json::benchmark
     {
         Document doc = createSmallDocument();
 
-        for ( auto _ : state )
+        for( auto _ : state )
         {
+            (void)_;
+
             std::string json = doc.toString();
             ::benchmark::DoNotOptimize( json );
         }
@@ -90,8 +94,10 @@ namespace nfx::serialization::json::benchmark
     {
         Document doc = createLargeDocument();
 
-        for ( auto _ : state )
+        for( auto _ : state )
         {
+            (void)_;
+
             std::string json = doc.toString();
             ::benchmark::DoNotOptimize( json );
         }
@@ -101,20 +107,22 @@ namespace nfx::serialization::json::benchmark
     {
         Document doc = createLargeDocument();
 
-        for ( auto _ : state )
+        for( auto _ : state )
         {
+            (void)_;
+
             std::string json = doc.toString( 2 ); // 2-space indent
             ::benchmark::DoNotOptimize( json );
         }
     }
+
+    //=====================================================================
+    // Benchmark Registration
+    //=====================================================================
+
+    BENCHMARK( BM_SerializeSmallObject );
+    BENCHMARK( BM_SerializeLargeObject );
+    BENCHMARK( BM_SerializePrettyPrint );
 } // namespace nfx::serialization::json::benchmark
-
-//=====================================================================
-// Benchmark Registration
-//=====================================================================
-
-BENCHMARK( nfx::serialization::json::benchmark::BM_SerializeSmallObject );
-BENCHMARK( nfx::serialization::json::benchmark::BM_SerializeLargeObject );
-BENCHMARK( nfx::serialization::json::benchmark::BM_SerializePrettyPrint );
 
 BENCHMARK_MAIN();

@@ -18,13 +18,6 @@ set(sample_sources "")
 
 if(NFX_SERIALIZATION_WITH_JSON)
     list(APPEND sample_sources
-        Sample_JsonArrayIterator.cpp
-        Sample_JsonDocument.cpp
-        Sample_JsonObjectFieldIterator.cpp
-        Sample_JsonPathView.cpp
-        Sample_JsonPointer.cpp
-        Sample_JsonSchemaGenerator.cpp
-        Sample_JsonSchemaValidator.cpp
         Sample_JsonSerializer.cpp
     )
 endif()
@@ -45,7 +38,7 @@ foreach(sample_source ${sample_sources})
 
         target_link_libraries(${sample_target_name}
             PRIVATE
-                nfx-serialization::static
+                nfx-serialization::nfx-serialization
         )
 
         #----------------------------------------------
@@ -75,16 +68,3 @@ foreach(sample_source ${sample_sources})
         )
     endif()
 endforeach()
-
-#----------------------------------------------
-# Copy testdata to output directory
-#----------------------------------------------
-
-if(EXISTS "${NFX_SERIALIZATION_TESTDATA_DIR}")
-    add_custom_target(copy_testdata_samples ALL
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${NFX_SERIALIZATION_TESTDATA_DIR}"
-            "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/samples/testdata"
-        COMMENT "Copying testdata to samples output directory"
-    )
-endif()

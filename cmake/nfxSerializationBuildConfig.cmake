@@ -16,20 +16,6 @@ if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
     message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there.")
 endif()
 
-# --- Ensure at least one library type is built ---
-if(NOT NFX_SERIALIZATION_BUILD_STATIC AND NOT NFX_SERIALIZATION_BUILD_SHARED)
-    message(WARNING "Neither NFX_SERIALIZATION_BUILD_STATIC nor NFX_SERIALIZATION_BUILD_SHARED is enabled.")
-    
-    if(DEFINED CACHE{NFX_SERIALIZATION_BUILD_STATIC} AND DEFINED CACHE{NFX_SERIALIZATION_BUILD_SHARED})
-        message(STATUS "Both library types were explicitly disabled.")
-        message(STATUS "Applying fallback: Enabling static library build")
-        set(NFX_SERIALIZATION_BUILD_STATIC ON CACHE BOOL "Build static library (fallback)" FORCE)
-    else()
-        message(STATUS "Defaulting to static library build")
-        set(NFX_SERIALIZATION_BUILD_STATIC ON)
-    endif()
-endif()
-
 # --- Extension tests require main tests to be enabled ---
 if(NFX_SERIALIZATION_BUILD_EXTENSION_TESTS AND NOT NFX_SERIALIZATION_BUILD_TESTS)
     message(WARNING "NFX_SERIALIZATION_BUILD_EXTENSION_TESTS requires NFX_SERIALIZATION_BUILD_TESTS, disabling extension tests")

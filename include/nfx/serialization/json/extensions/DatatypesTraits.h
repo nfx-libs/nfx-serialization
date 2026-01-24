@@ -39,7 +39,7 @@
 
 #pragma once
 
-#include "nfx/serialization/json/Document.h"
+#include "nfx/serialization/json/SerializableDocument.h"
 #include "nfx/serialization/json/SerializationTraits.h"
 
 //=====================================================================
@@ -49,6 +49,15 @@
 #if __has_include( "nfx/datatypes/Int128.h" )
 
 #    include "nfx/datatypes/Int128.h"
+
+// Register Int128 as nfx extension type
+namespace nfx::serialization::json::detail
+{
+    template <>
+    struct is_nfx_extension_type<nfx::datatypes::Int128> : std::true_type
+    {
+    };
+} // namespace nfx::serialization::json::detail
 
 namespace nfx::serialization::json
 {
@@ -81,12 +90,12 @@ namespace nfx::serialization::json
          */
         static void deserialize( nfx::datatypes::Int128& obj, const Document& doc )
         {
-            if ( doc.is<std::string>( "" ) )
+            if( doc.is<std::string>( "" ) )
             {
                 auto val = doc.get<std::string>( "" );
-                if ( val.has_value() && !val.value().empty() )
+                if( val.has_value() && !val.value().empty() )
                 {
-                    if ( !nfx::datatypes::Int128::fromString( val.value(), obj ) )
+                    if( !nfx::datatypes::Int128::fromString( val.value(), obj ) )
                     {
                         throw std::runtime_error{ "Invalid Int128 format: unable to parse string representation" };
                     }
@@ -105,6 +114,15 @@ namespace nfx::serialization::json
 #if __has_include( "nfx/datatypes/Decimal.h" )
 
 #    include "nfx/datatypes/Decimal.h"
+
+// Register Decimal as nfx extension type
+namespace nfx::serialization::json::detail
+{
+    template <>
+    struct is_nfx_extension_type<nfx::datatypes::Decimal> : std::true_type
+    {
+    };
+} // namespace nfx::serialization::json::detail
 
 namespace nfx::serialization::json
 {
@@ -136,12 +154,12 @@ namespace nfx::serialization::json
          */
         static void deserialize( nfx::datatypes::Decimal& obj, const Document& doc )
         {
-            if ( doc.is<std::string>( "" ) )
+            if( doc.is<std::string>( "" ) )
             {
                 auto val = doc.get<std::string>( "" );
-                if ( val.has_value() && !val.value().empty() )
+                if( val.has_value() && !val.value().empty() )
                 {
-                    if ( !nfx::datatypes::Decimal::fromString( val.value(), obj ) )
+                    if( !nfx::datatypes::Decimal::fromString( val.value(), obj ) )
                     {
                         throw std::runtime_error{ "Invalid Decimal format: unable to parse string representation" };
                     }

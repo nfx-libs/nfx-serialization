@@ -24,18 +24,14 @@
 
 /**
  * @file Concepts.h
- * @brief C++20 concepts for JSON serialization type constraints
- * @details Defines JsonPrimitive concept and type traits infrastructure for
- *          type-safe template constraints in the Document API.
- *
- * @note JsonValue, JsonContainer, and JsonCheckable concepts are defined at
- *       the end of Document.h after Document::Object and Document::Array are
- *       fully defined, since nested class forward declarations don't work with concepts.
+ * @brief Type traits for JSON serialization
+ * @details Defines type traits to detect SerializationTraits specializations
+ *          and identify nfx extension types for proper template overload resolution.
  */
 
 #pragma once
 
-#include <concepts>
+#include <nfx/json/Document.h>
 #include <type_traits>
 
 namespace nfx::serialization::json
@@ -44,38 +40,25 @@ namespace nfx::serialization::json
     // Forward declarations
     //=====================================================================
 
-    class Document;
+    class SerializableDocument; // Extended Document with serialization support
+
+    //=====================================================================
+    // Import types from nfx::json
+    //=====================================================================
+
+    using nfx::json::Array;
+    using nfx::json::Object;
+    using nfx::json::Type;
+
+    // Import type trait from nfx::json
+    using nfx::json::is_json_container_v;
+
+    //=====================================================================
+    // Forward declarations
+    //=====================================================================
 
     template <typename T>
     struct SerializationTraits;
-
-    //=====================================================================
-    // Type traits for JSON nested classes
-    //=====================================================================
-
-    /**
-     * @brief Type trait to identify JSON container types (Object, Array)
-     * @details Primary template returns false. Specialized in Document.h for
-     *          Document::Object and Document::Array.
-     */
-    template <typename T>
-    struct is_json_container : std::false_type
-    {
-    };
-
-    /**
-     * @brief Specialization for Document
-     */
-    template <>
-    struct is_json_container<Document> : std::true_type
-    {
-    };
-
-    /**
-     * @brief Helper variable template
-     */
-    template <typename T>
-    inline constexpr bool is_json_container_v = is_json_container<std::decay_t<T>>::value;
 
     //=====================================================================
     // Type trait to detect SerializationTraits specializations
@@ -83,6 +66,8 @@ namespace nfx::serialization::json
 
     namespace detail
     {
+        using nfx::json::Document;
+
         /**
          * @brief Detect if a type has a custom SerializationTraits specialization
          * @details Uses SFINAE to detect if SerializationTraits<T>::serialize is available
@@ -96,10 +81,10 @@ namespace nfx::serialization::json
         };
 
         template <typename T>
-        struct has_serialization_traits<T,
+        struct has_serialization_traits<
+            T,
             std::void_t<decltype( SerializationTraits<std::decay_t<T>>::serialize(
-                std::declval<const std::decay_t<T>&>(),
-                std::declval<Document&>() ) )>> : std::true_type
+                std::declval<const std::decay_t<T>&>(), std::declval<Document&>() ) )>> : std::true_type
         {
         };
 
@@ -120,83 +105,13 @@ namespace nfx::serialization::json
          *          - nfx types → SerializationTraits templates
          *          - STL types → Serializer templates
          */
+        /**
+         * @brief Base template - defaults to false
+         * @details Specialize this in extension headers (DatatypesTraits.h, etc.)
+         *          AFTER including the actual type definitions
+         */
         template <typename T>
         struct is_nfx_extension_type : std::false_type
-        {
-        };
-
-        namespace nfx
-        {
-            namespace datatypes
-            {
-                class Int128;
-                class Decimal;
-            } // namespace datatypes
-        } // namespace nfx
-
-        namespace nfx
-        {
-            namespace time
-            {
-                class TimeSpan;
-                class DateTime;
-                class DateTimeOffset;
-            } // namespace time
-        } // namespace nfx
-
-        namespace nfx
-        {
-            namespace containers
-            {
-                template <typename, typename, typename, auto, typename, typename>
-                class PerfectHashMap;
-                template <typename, typename, typename, auto, typename, typename>
-                class FastHashMap;
-                template <typename, typename, auto, typename, typename>
-                class FastHashSet;
-            } // namespace containers
-        } // namespace nfx
-
-        // Specializations for nfx::datatypes types
-        template <>
-        struct is_nfx_extension_type<nfx::datatypes::Int128> : std::true_type
-        {
-        };
-
-        template <>
-        struct is_nfx_extension_type<nfx::datatypes::Decimal> : std::true_type
-        {
-        };
-
-        // Specializations for nfx::time types
-        template <>
-        struct is_nfx_extension_type<nfx::time::TimeSpan> : std::true_type
-        {
-        };
-
-        template <>
-        struct is_nfx_extension_type<nfx::time::DateTime> : std::true_type
-        {
-        };
-
-        template <>
-        struct is_nfx_extension_type<nfx::time::DateTimeOffset> : std::true_type
-        {
-        };
-
-        // Specializations for nfx::containers types
-        template <typename K, typename V, typename H, auto S, typename Hr, typename E>
-        struct is_nfx_extension_type<nfx::containers::PerfectHashMap<K, V, H, S, Hr, E>> : std::true_type
-        {
-        };
-
-        template <typename K, typename V, typename H, auto S, typename Hr, typename E>
-        struct is_nfx_extension_type<nfx::containers::FastHashMap<K, V, H, S, Hr, E>> : std::true_type
-        {
-        };
-
-        template <typename K, typename H, auto S, typename Hr, typename E>
-        struct is_nfx_extension_type<nfx::containers::FastHashSet<K, H, S, Hr, E>> : std::true_type
         {
         };
 
@@ -208,45 +123,35 @@ namespace nfx::serialization::json
     } // namespace detail
 
     //=====================================================================
-    // C++20 Concepts for JSON value types
+    // Concepts for template overload resolution
     //=====================================================================
 
     /**
-     * @brief Concept for JSON-compatible primitive types
-     * @details Matches strings, characters, booleans, integers, and floating-point types
+     * @brief Concept for STL types that use Serializer<T>
+     * @details Matches types that are NOT:
+     *          - nfx extension types (use SerializationTraits)
+     *          - Primitives (delegated to base Document)
+     *          - JSON containers (delegated to base Document)
+     *          - SerializableDocument itself (avoid recursion)
+     *          - Document derivatives (avoid confusion)
      */
     template <typename T>
-    concept JsonPrimitive =
-        std::is_same_v<std::decay_t<T>, std::string> ||
-        std::is_same_v<std::decay_t<T>, char> ||
-        std::is_same_v<std::decay_t<T>, bool> ||
-        (std::is_integral_v<std::decay_t<T>> && !std::is_same_v<std::decay_t<T>, bool> && !std::is_same_v<std::decay_t<T>, char>) ||
-        std::is_floating_point_v<std::decay_t<T>>;
+    concept StlSerializable =
+        !detail::is_nfx_extension_type_v<T> && !nfx::json::Primitive<T> && !is_json_container_v<T> &&
+        !std::is_same_v<std::remove_cvref_t<T>, SerializableDocument> &&
+        !std::is_base_of_v<nfx::json::Document, std::remove_cvref_t<T>>;
 
     /**
-     * @brief Concept for all JSON-compatible value types
-     * @details Matches primitives plus Document, Document::Object, and Document::Array.
-     *          Does NOT include types with SerializationTraits - those are handled separately
-     *          via dedicated template overloads to avoid ambiguity.
+     * @brief Concept for nfx extension types that use SerializationTraits<T>
+     * @details Matches types that ARE nfx extensions but NOT:
+     *          - Primitives (delegated to base Document)
+     *          - JSON containers (delegated to base Document)
+     *          - SerializableDocument itself (avoid recursion)
+     *          - Document derivatives (avoid confusion)
      */
     template <typename T>
-    concept JsonValue =
-        JsonPrimitive<T> ||
-        is_json_container_v<T>;
-
-    /**
-     * @brief Concept for JSON container types only
-     * @details Matches Document, Document::Object, and Document::Array
-     */
-    template <typename T>
-    concept JsonContainer = is_json_container_v<T>;
-
-    /**
-     * @brief Concept for types that can be checked with is<T>()
-     * @details Same as JsonValue but excludes Document itself
-     */
-    template <typename T>
-    concept JsonCheckable =
-        JsonPrimitive<T> ||
-        ( is_json_container_v<T> && !std::is_same_v<std::decay_t<T>, Document> );
+    concept NfxSerializable =
+        detail::is_nfx_extension_type_v<T> && !nfx::json::Primitive<T> && !is_json_container_v<T> &&
+        !std::is_same_v<std::remove_cvref_t<T>, SerializableDocument> &&
+        !std::is_base_of_v<nfx::json::Document, std::remove_cvref_t<T>>;
 } // namespace nfx::serialization::json

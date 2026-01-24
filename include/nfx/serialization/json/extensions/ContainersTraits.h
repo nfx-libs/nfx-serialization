@@ -39,7 +39,7 @@
 
 #pragma once
 
-#include "nfx/serialization/json/Document.h"
+#include "nfx/serialization/json/SerializableDocument.h"
 #include "nfx/serialization/json/SerializationTraits.h"
 #include "nfx/serialization/json/Serializer.h"
 
@@ -63,22 +63,24 @@ namespace nfx::serialization::json
          * @param obj The pair object to serialize
          * @param doc The document to serialize into
          */
-        static void serialize( const std::pair<TFirst, TSecond>& obj, Document& doc )
+        static void serialize( const std::pair<TFirst, TSecond>& obj, SerializableDocument& doc )
         {
             // Create object to hold the pair
-            doc.set<Document::Object>( "" );
+            doc.document().set<nfx::json::Object>( "" );
 
             // Serialize first
             Document firstDoc;
             Serializer<TFirst> firstSerializer;
             firstDoc = firstSerializer.serialize( obj.first );
-            doc.set( "first", std::move( firstDoc ) );
+            doc.document().set<nfx::json::Document>(
+                "first", std::move( static_cast<nfx::json::Document&>( firstDoc ) ) );
 
             // Serialize second
             Document secondDoc;
             Serializer<TSecond> secondSerializer;
             secondDoc = secondSerializer.serialize( obj.second );
-            doc.set( "second", std::move( secondDoc ) );
+            doc.document().set<nfx::json::Document>(
+                "second", std::move( static_cast<nfx::json::Document&>( secondDoc ) ) );
         }
 
         /**
@@ -86,19 +88,19 @@ namespace nfx::serialization::json
          * @param doc The document to deserialize from
          * @param obj The pair object to deserialize into
          */
-        static void deserialize( const Document& doc, std::pair<TFirst, TSecond>& obj )
+        static void deserialize( const SerializableDocument& doc, std::pair<TFirst, TSecond>& obj )
         {
             // Deserialize first
-            auto firstDoc = doc.get<Document>( "first" );
-            if ( firstDoc.has_value() )
+            auto firstDoc = doc.document().get<nfx::json::Document>( "first" );
+            if( firstDoc.has_value() )
             {
                 Serializer<TFirst> firstSerializer;
                 obj.first = firstSerializer.deserialize( firstDoc.value() );
             }
 
             // Deserialize second
-            auto secondDoc = doc.get<Document>( "second" );
-            if ( secondDoc.has_value() )
+            auto secondDoc = doc.document().get<nfx::json::Document>( "second" );
+            if( secondDoc.has_value() )
             {
                 Serializer<TSecond> secondSerializer;
                 obj.second = secondSerializer.deserialize( secondDoc.value() );
@@ -129,27 +131,27 @@ namespace nfx::serialization::json
          * @param doc The document to serialize into
          * @details Uses array format to avoid JSON Pointer issues with empty/special character keys
          */
-        static void serialize( const nfx::containers::PerfectHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>& obj, Document& doc )
+        static void serialize(
+            const nfx::containers::PerfectHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>& obj,
+            SerializableDocument& doc )
         {
             // Create array to hold key-value pairs
-            doc.set<Document::Array>( "" );
-            auto arrayRef = doc.get<Document::Array>( "" );
+            doc.document().set<nfx::json::Array>( "" );
 
-            if ( !arrayRef.has_value() )
-            {
-                return;
-            }
-
+            size_t index = 0;
             // Use PerfectHashMap's iterator to traverse all key-value pairs
-            for ( auto it = obj.begin(); it != obj.end(); ++it )
+            for( auto it = obj.begin(); it != obj.end(); ++it, ++index )
             {
                 const auto& pair = *it;
                 const TKey& key = pair.first;
                 const TValue& value = pair.second;
 
-                // Create object for this key-value pair
-                Document pairDoc;
-                pairDoc.set<Document::Object>( "" );
+                // Build JSON Pointer path for this array index
+                char arrayPath[32];
+                std::snprintf( arrayPath, sizeof( arrayPath ), "/%zu", index );
+
+                // Initialize this array element as an object
+                doc.document().set<nfx::json::Object>( arrayPath );
 
                 // Serialize the key
                 Document keyDoc;
@@ -161,63 +163,66 @@ namespace nfx::serialization::json
                 Serializer<TValue> valueSerializer;
                 valueDoc = valueSerializer.serialize( value );
 
+                // Build paths for key and value fields
+                std::string keyPath = std::string( arrayPath ) + "/key";
+                std::string valuePath = std::string( arrayPath ) + "/value";
+
                 // Add key and value to pair object
-                if ( keyDoc.is<std::string>( "" ) )
+                if( keyDoc.is<std::string>( "" ) )
                 {
                     auto str = keyDoc.get<std::string>( "" );
-                    pairDoc.set<std::string>( "/key", str.value() );
+                    doc.set<std::string>( keyPath, str.value() );
                 }
-                else if ( keyDoc.is<int>( "" ) )
+                else if( keyDoc.is<int>( "" ) )
                 {
                     auto val = keyDoc.get<int64_t>( "" );
-                    pairDoc.set<int64_t>( "/key", val.value() );
+                    doc.set<int64_t>( keyPath, val.value() );
                 }
-                else if ( keyDoc.is<double>( "" ) )
+                else if( keyDoc.is<double>( "" ) )
                 {
                     auto val = keyDoc.get<double>( "" );
-                    pairDoc.set<double>( "/key", val.value() );
+                    doc.set<double>( keyPath, val.value() );
                 }
-                else if ( keyDoc.is<bool>( "" ) )
+                else if( keyDoc.is<bool>( "" ) )
                 {
                     auto val = keyDoc.get<bool>( "" );
-                    pairDoc.set<bool>( "/key", val.value() );
+                    doc.set<bool>( keyPath, val.value() );
                 }
-                else if ( keyDoc.is<Document::Array>( "" ) || keyDoc.is<Document::Object>( "" ) )
+                else if( keyDoc.is<Array>( "" ) || keyDoc.is<Object>( "" ) )
                 {
-                    pairDoc.set<Document>( "/key", keyDoc );
+                    doc.document().set<nfx::json::Document>(
+                        keyPath, std::move( static_cast<nfx::json::Document&>( keyDoc ) ) );
                 }
 
-                if ( valueDoc.is<std::string>( "" ) )
+                if( valueDoc.is<std::string>( "" ) )
                 {
                     auto str = valueDoc.get<std::string>( "" );
-                    pairDoc.set<std::string>( "/value", str.value() );
+                    doc.set<std::string>( valuePath, str.value() );
                 }
-                else if ( valueDoc.is<int>( "" ) )
+                else if( valueDoc.is<int>( "" ) )
                 {
                     auto val = valueDoc.get<int64_t>( "" );
-                    pairDoc.set<int64_t>( "/value", val.value() );
+                    doc.set<int64_t>( valuePath, val.value() );
                 }
-                else if ( valueDoc.is<double>( "" ) )
+                else if( valueDoc.is<double>( "" ) )
                 {
                     auto val = valueDoc.get<double>( "" );
-                    pairDoc.set<double>( "/value", val.value() );
+                    doc.set<double>( valuePath, val.value() );
                 }
-                else if ( valueDoc.is<bool>( "" ) )
+                else if( valueDoc.is<bool>( "" ) )
                 {
                     auto val = valueDoc.get<bool>( "" );
-                    pairDoc.set<bool>( "/value", val.value() );
+                    doc.set<bool>( valuePath, val.value() );
                 }
-                else if ( valueDoc.isNull( "" ) )
+                else if( valueDoc.isNull( "" ) )
                 {
-                    pairDoc.setNull( "/value" );
+                    doc.setNull( valuePath );
                 }
-                else if ( valueDoc.is<Document::Array>( "" ) || valueDoc.is<Document::Object>( "" ) )
+                else if( valueDoc.is<Array>( "" ) || valueDoc.is<Object>( "" ) )
                 {
-                    pairDoc.set<Document>( "/value", valueDoc );
+                    doc.document().set<nfx::json::Document>(
+                        valuePath, std::move( static_cast<nfx::json::Document&>( valueDoc ) ) );
                 }
-
-                // Add pair to array
-                arrayRef->append<Document>( pairDoc );
             }
         }
 
@@ -227,9 +232,11 @@ namespace nfx::serialization::json
          * @param doc The document to deserialize from
          * @details Expects array format with key-value pair objects
          */
-        static void deserialize( nfx::containers::PerfectHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>& obj, const Document& doc )
+        static void deserialize(
+            nfx::containers::PerfectHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>& obj,
+            const SerializableDocument& doc )
         {
-            if ( !doc.is<Document::Array>( "" ) )
+            if( !doc.is<Array>( "" ) )
             {
                 throw std::runtime_error{ "Cannot deserialize non-array JSON value into PerfectHashMap" };
             }
@@ -238,30 +245,105 @@ namespace nfx::serialization::json
             std::vector<std::pair<TKey, TValue>> items;
 
             // Get array and iterate using STL iterator
-            auto arrayOpt = doc.get<Document::Array>( "" );
-            if ( arrayOpt.has_value() )
+            auto arrayOpt = doc.get<Array>( "" );
+            if( arrayOpt.has_value() )
             {
-                for ( const auto& pairDoc : arrayOpt.value() )
+                for( const auto& pairDoc : arrayOpt.value() )
                 {
-                    // Extract key
+                    // Extract key - try different types
                     TKey key{};
-                    if ( pairDoc.contains( "/key" ) )
+                    bool keyFound = false;
+
+                    if( pairDoc.contains( "key" ) )
                     {
-                        Document keyDoc = pairDoc.get<Document>( "/key" ).value_or( Document{} );
-                        Serializer<TKey> keySerializer;
-                        key = keySerializer.deserialize( keyDoc );
+                        // Try to deserialize key based on its actual JSON type
+                        if constexpr( std::is_same_v<TKey, std::string> )
+                        {
+                            auto keyOpt = pairDoc.get<std::string>( "key" );
+                            if( keyOpt )
+                            {
+                                key = *keyOpt;
+                                keyFound = true;
+                            }
+                        }
+                        else if constexpr( std::is_integral_v<TKey> && !std::is_same_v<TKey, bool> )
+                        {
+                            auto keyOpt = pairDoc.get<int64_t>( "key" );
+                            if( keyOpt )
+                            {
+                                key = static_cast<TKey>( *keyOpt );
+                                keyFound = true;
+                            }
+                        }
+                        else if constexpr( std::is_floating_point_v<TKey> )
+                        {
+                            auto keyOpt = pairDoc.get<double>( "key" );
+                            if( keyOpt )
+                            {
+                                key = static_cast<TKey>( *keyOpt );
+                                keyFound = true;
+                            }
+                        }
+                        else if constexpr( std::is_same_v<TKey, bool> )
+                        {
+                            auto keyOpt = pairDoc.get<bool>( "key" );
+                            if( keyOpt )
+                            {
+                                key = *keyOpt;
+                                keyFound = true;
+                            }
+                        }
                     }
 
-                    // Extract value
+                    // Extract value - try different types
                     TValue value{};
-                    if ( pairDoc.contains( "/value" ) )
+                    bool valueFound = false;
+
+                    if( pairDoc.contains( "value" ) )
                     {
-                        Document valueDoc = pairDoc.get<Document>( "/value" ).value_or( Document{} );
-                        Serializer<TValue> valueSerializer;
-                        value = valueSerializer.deserialize( valueDoc );
+                        // Try to deserialize value based on its actual JSON type
+                        if constexpr( std::is_same_v<TValue, std::string> )
+                        {
+                            auto valOpt = pairDoc.get<std::string>( "value" );
+                            if( valOpt )
+                            {
+                                value = *valOpt;
+                                valueFound = true;
+                            }
+                        }
+                        else if constexpr( std::is_integral_v<TValue> && !std::is_same_v<TValue, bool> )
+                        {
+                            auto valOpt = pairDoc.get<int64_t>( "value" );
+                            if( valOpt )
+                            {
+                                value = static_cast<TValue>( *valOpt );
+                                valueFound = true;
+                            }
+                        }
+                        else if constexpr( std::is_floating_point_v<TValue> )
+                        {
+                            auto valOpt = pairDoc.get<double>( "value" );
+                            if( valOpt )
+                            {
+                                value = static_cast<TValue>( *valOpt );
+                                valueFound = true;
+                            }
+                        }
+                        else if constexpr( std::is_same_v<TValue, bool> )
+                        {
+                            auto valOpt = pairDoc.get<bool>( "value" );
+                            if( valOpt )
+                            {
+                                value = *valOpt;
+                                valueFound = true;
+                            }
+                        }
                     }
 
-                    items.emplace_back( std::move( key ), std::move( value ) );
+                    if( keyFound && valueFound )
+                    {
+                        items.emplace_back( std::move( key ), std::move( value ) );
+                    }
                 }
             }
 
@@ -294,27 +376,27 @@ namespace nfx::serialization::json
          * @param doc The document to serialize into
          * @details Uses array format to avoid JSON Pointer issues with empty/special character keys
          */
-        static void serialize( const nfx::containers::FastHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>& obj, Document& doc )
+        static void serialize(
+            const nfx::containers::FastHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>& obj,
+            SerializableDocument& doc )
         {
             // Create array to hold key-value pairs
-            doc.set<Document::Array>( "" );
-            auto arrayRef = doc.get<Document::Array>( "" );
+            doc.document().set<nfx::json::Array>( "" );
 
-            if ( !arrayRef.has_value() )
-            {
-                return;
-            }
-
+            size_t index = 0;
             // Use FastHashMap's iterator to traverse all key-value pairs
-            for ( auto it = obj.begin(); it != obj.end(); ++it )
+            for( auto it = obj.begin(); it != obj.end(); ++it, ++index )
             {
                 const auto& pair = *it;
                 const TKey& key = pair.first;
                 const TValue& value = pair.second;
 
-                // Create object for this key-value pair
-                Document pairDoc;
-                pairDoc.set<Document::Object>( "" );
+                // Build JSON Pointer path for this array index
+                char arrayPath[32];
+                std::snprintf( arrayPath, sizeof( arrayPath ), "/%zu", index );
+
+                // Initialize this array element as an object
+                doc.document().set<nfx::json::Object>( arrayPath );
 
                 // Serialize the key
                 Document keyDoc;
@@ -326,64 +408,67 @@ namespace nfx::serialization::json
                 Serializer<TValue> valueSerializer;
                 valueDoc = valueSerializer.serialize( value );
 
+                // Build paths for key and value fields
+                std::string keyPath = std::string( arrayPath ) + "/key";
+                std::string valuePath = std::string( arrayPath ) + "/value";
+
                 // Add key to pair object
-                if ( keyDoc.is<std::string>( "" ) )
+                if( keyDoc.is<std::string>( "" ) )
                 {
                     auto str = keyDoc.get<std::string>( "" );
-                    pairDoc.set<std::string>( "/key", str.value() );
+                    doc.set<std::string>( keyPath, str.value() );
                 }
-                else if ( keyDoc.is<int>( "" ) )
+                else if( keyDoc.is<int>( "" ) )
                 {
                     auto val = keyDoc.get<int64_t>( "" );
-                    pairDoc.set<int64_t>( "/key", val.value() );
+                    doc.set<int64_t>( keyPath, val.value() );
                 }
-                else if ( keyDoc.is<double>( "" ) )
+                else if( keyDoc.is<double>( "" ) )
                 {
                     auto val = keyDoc.get<double>( "" );
-                    pairDoc.set<double>( "/key", val.value() );
+                    doc.set<double>( keyPath, val.value() );
                 }
-                else if ( keyDoc.is<bool>( "" ) )
+                else if( keyDoc.is<bool>( "" ) )
                 {
                     auto val = keyDoc.get<bool>( "" );
-                    pairDoc.set<bool>( "/key", val.value() );
+                    doc.set<bool>( keyPath, val.value() );
                 }
-                else if ( keyDoc.is<Document::Array>( "" ) || keyDoc.is<Document::Object>( "" ) )
+                else if( keyDoc.is<Array>( "" ) || keyDoc.is<Object>( "" ) )
                 {
-                    pairDoc.set<Document>( "/key", keyDoc );
+                    doc.document().set<nfx::json::Document>(
+                        keyPath, std::move( static_cast<nfx::json::Document&>( keyDoc ) ) );
                 }
 
                 // Add value to pair object
-                if ( valueDoc.is<std::string>( "" ) )
+                if( valueDoc.is<std::string>( "" ) )
                 {
                     auto str = valueDoc.get<std::string>( "" );
-                    pairDoc.set<std::string>( "/value", str.value() );
+                    doc.set<std::string>( valuePath, str.value() );
                 }
-                else if ( valueDoc.is<int>( "" ) )
+                else if( valueDoc.is<int>( "" ) )
                 {
                     auto val = valueDoc.get<int64_t>( "" );
-                    pairDoc.set<int64_t>( "/value", val.value() );
+                    doc.set<int64_t>( valuePath, val.value() );
                 }
-                else if ( valueDoc.is<double>( "" ) )
+                else if( valueDoc.is<double>( "" ) )
                 {
                     auto val = valueDoc.get<double>( "" );
-                    pairDoc.set<double>( "/value", val.value() );
+                    doc.set<double>( valuePath, val.value() );
                 }
-                else if ( valueDoc.is<bool>( "" ) )
+                else if( valueDoc.is<bool>( "" ) )
                 {
                     auto val = valueDoc.get<bool>( "" );
-                    pairDoc.set<bool>( "/value", val.value() );
+                    doc.set<bool>( valuePath, val.value() );
                 }
-                else if ( valueDoc.isNull( "" ) )
+                else if( valueDoc.isNull( "" ) )
                 {
-                    pairDoc.setNull( "/value" );
+                    doc.setNull( valuePath );
                 }
-                else if ( valueDoc.is<Document::Array>( "" ) || valueDoc.is<Document::Object>( "" ) )
+                else if( valueDoc.is<Array>( "" ) || valueDoc.is<Object>( "" ) )
                 {
-                    pairDoc.set<Document>( "/value", valueDoc );
+                    doc.document().set<nfx::json::Document>(
+                        valuePath, std::move( static_cast<nfx::json::Document&>( valueDoc ) ) );
                 }
-
-                // Add pair to array
-                arrayRef->append<Document>( pairDoc );
             }
         }
 
@@ -393,23 +478,25 @@ namespace nfx::serialization::json
          * @param doc The document to deserialize from
          * @details Supports both array format and object format for compatibility
          */
-        static void deserialize( nfx::containers::FastHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>& obj, const Document& doc )
+        static void deserialize(
+            nfx::containers::FastHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>& obj,
+            const SerializableDocument& doc )
         {
             // Clear existing content
             obj.clear();
 
             // Check if it's an object format (standard JSON map representation)
-            if ( doc.is<Document::Object>( "" ) )
+            if( doc.is<Object>( "" ) )
             {
                 // Use Object iterator for object format
-                auto objectOpt = doc.get<Document::Object>( "" );
-                if ( objectOpt.has_value() )
+                auto objectOpt = doc.get<Object>( "" );
+                if( objectOpt.has_value() )
                 {
-                    for ( const auto& [keyStr, valueDoc] : objectOpt.value() )
+                    for( const auto& [keyStr, valueDoc] : objectOpt.value() )
                     {
                         // Deserialize key (typically string, but support other types)
                         TKey key{};
-                        if constexpr ( std::is_same_v<TKey, std::string> )
+                        if constexpr( std::is_same_v<TKey, std::string> )
                         {
                             key = keyStr;
                         }
@@ -430,33 +517,108 @@ namespace nfx::serialization::json
                 }
             }
             // Check if it's an array format (for backward compatibility)
-            else if ( doc.is<Document::Array>( "" ) )
+            else if( doc.is<Array>( "" ) )
             {
                 // Get array and iterate using STL iterator
-                auto arrayOpt = doc.get<Document::Array>( "" );
-                if ( arrayOpt.has_value() )
+                auto arrayOpt = doc.get<Array>( "" );
+                if( arrayOpt.has_value() )
                 {
-                    for ( const auto& pairDoc : arrayOpt.value() )
+                    for( const auto& pairDoc : arrayOpt.value() )
                     {
-                        // Extract key
+                        // Extract key - try different types
                         TKey key{};
-                        if ( pairDoc.contains( "/key" ) )
+                        bool keyFound = false;
+
+                        if( pairDoc.contains( "key" ) )
                         {
-                            Document keyDoc = pairDoc.get<Document>( "/key" ).value_or( Document{} );
-                            Serializer<TKey> keySerializer;
-                            key = keySerializer.deserialize( keyDoc );
+                            // Try to deserialize key based on its actual JSON type
+                            if constexpr( std::is_same_v<TKey, std::string> )
+                            {
+                                auto keyOpt = pairDoc.get<std::string>( "key" );
+                                if( keyOpt )
+                                {
+                                    key = *keyOpt;
+                                    keyFound = true;
+                                }
+                            }
+                            else if constexpr( std::is_integral_v<TKey> && !std::is_same_v<TKey, bool> )
+                            {
+                                auto keyOpt = pairDoc.get<int64_t>( "key" );
+                                if( keyOpt )
+                                {
+                                    key = static_cast<TKey>( *keyOpt );
+                                    keyFound = true;
+                                }
+                            }
+                            else if constexpr( std::is_floating_point_v<TKey> )
+                            {
+                                auto keyOpt = pairDoc.get<double>( "key" );
+                                if( keyOpt )
+                                {
+                                    key = static_cast<TKey>( *keyOpt );
+                                    keyFound = true;
+                                }
+                            }
+                            else if constexpr( std::is_same_v<TKey, bool> )
+                            {
+                                auto keyOpt = pairDoc.get<bool>( "key" );
+                                if( keyOpt )
+                                {
+                                    key = *keyOpt;
+                                    keyFound = true;
+                                }
+                            }
                         }
 
-                        // Extract value
+                        // Extract value - try different types
                         TValue value{};
-                        if ( pairDoc.contains( "/value" ) )
+                        bool valueFound = false;
+
+                        if( pairDoc.contains( "value" ) )
                         {
-                            Document valueDoc = pairDoc.get<Document>( "/value" ).value_or( Document{} );
-                            Serializer<TValue> valueSerializer;
-                            value = valueSerializer.deserialize( valueDoc );
+                            // Try to deserialize value based on its actual JSON type
+                            if constexpr( std::is_same_v<TValue, std::string> )
+                            {
+                                auto valOpt = pairDoc.get<std::string>( "value" );
+                                if( valOpt )
+                                {
+                                    value = *valOpt;
+                                    valueFound = true;
+                                }
+                            }
+                            else if constexpr( std::is_integral_v<TValue> && !std::is_same_v<TValue, bool> )
+                            {
+                                auto valOpt = pairDoc.get<int64_t>( "value" );
+                                if( valOpt )
+                                {
+                                    value = static_cast<TValue>( *valOpt );
+                                    valueFound = true;
+                                }
+                            }
+                            else if constexpr( std::is_floating_point_v<TValue> )
+                            {
+                                auto valOpt = pairDoc.get<double>( "value" );
+                                if( valOpt )
+                                {
+                                    value = static_cast<TValue>( *valOpt );
+                                    valueFound = true;
+                                }
+                            }
+                            else if constexpr( std::is_same_v<TValue, bool> )
+                            {
+                                auto valOpt = pairDoc.get<bool>( "value" );
+                                if( valOpt )
+                                {
+                                    value = *valOpt;
+                                    valueFound = true;
+                                }
+                            }
                         }
 
-                        obj.insertOrAssign( std::move( key ), std::move( value ) );
+                        if( keyFound && valueFound )
+                        {
+                            obj.insertOrAssign( std::move( key ), std::move( value ) );
+                        }
                     }
                 }
             }
@@ -491,50 +653,53 @@ namespace nfx::serialization::json
          * @param obj The FastHashSet object to serialize
          * @param doc The document to serialize into
          */
-        static void serialize( const nfx::containers::FastHashSet<TKey, HashType, Seed, Hasher, KeyEqual>& obj, Document& doc )
+        static void serialize(
+            const nfx::containers::FastHashSet<TKey, HashType, Seed, Hasher, KeyEqual>& obj, SerializableDocument& doc )
         {
             // Create array document
-            doc.set<Document::Array>( "" );
-            auto arrayRef = doc.get<Document::Array>( "" );
+            doc.document().set<nfx::json::Array>( "" );
 
-            if ( arrayRef.has_value() )
+            size_t index = 0;
+            // Use FastHashSet's iterator to traverse all elements
+            for( auto it = obj.begin(); it != obj.end(); ++it, ++index )
             {
-                // Use FastHashSet's iterator to traverse all elements
-                for ( auto it = obj.begin(); it != obj.end(); ++it )
+                const TKey& key = *it;
+
+                // Serialize the key using a temporary serializer
+                Document keyDoc;
+                Serializer<TKey> keySerializer;
+                keyDoc = keySerializer.serialize( key );
+
+                // Build JSON Pointer path for this index
+                char arrayPath[32];
+                std::snprintf( arrayPath, sizeof( arrayPath ), "/%zu", index );
+
+                // Add to array based on type
+                if( keyDoc.is<std::string>( "" ) )
                 {
-                    const TKey& key = *it;
-
-                    // Serialize the key using a temporary serializer
-                    Document keyDoc;
-                    Serializer<TKey> keySerializer;
-                    keyDoc = keySerializer.serialize( key );
-
-                    // Add to array based on type
-                    if ( keyDoc.is<std::string>( "" ) )
-                    {
-                        auto str = keyDoc.get<std::string>( "" );
-                        arrayRef->append<std::string>( str.value() );
-                    }
-                    else if ( keyDoc.is<int>( "" ) )
-                    {
-                        auto val = keyDoc.get<int64_t>( "" );
-                        arrayRef->append<int64_t>( val.value() );
-                    }
-                    else if ( keyDoc.is<double>( "" ) )
-                    {
-                        auto val = keyDoc.get<double>( "" );
-                        arrayRef->append<double>( val.value() );
-                    }
-                    else if ( keyDoc.is<bool>( "" ) )
-                    {
-                        auto val = keyDoc.get<bool>( "" );
-                        arrayRef->append<bool>( val.value() );
-                    }
-                    else if ( keyDoc.is<Document::Object>( "" ) || keyDoc.is<Document::Array>( "" ) )
-                    {
-                        // Handle nested objects and arrays
-                        arrayRef->append<Document>( keyDoc );
-                    }
+                    auto str = keyDoc.get<std::string>( "" );
+                    doc.set<std::string>( arrayPath, str.value() );
+                }
+                else if( keyDoc.is<int>( "" ) )
+                {
+                    auto val = keyDoc.get<int64_t>( "" );
+                    doc.set<int64_t>( arrayPath, val.value() );
+                }
+                else if( keyDoc.is<double>( "" ) )
+                {
+                    auto val = keyDoc.get<double>( "" );
+                    doc.set<double>( arrayPath, val.value() );
+                }
+                else if( keyDoc.is<bool>( "" ) )
+                {
+                    auto val = keyDoc.get<bool>( "" );
+                    doc.set<bool>( arrayPath, val.value() );
+                }
+                else if( keyDoc.is<Object>( "" ) || keyDoc.is<Array>( "" ) )
+                {
+                    // Handle nested objects and arrays
+                    doc.document().set<nfx::json::Document>(
+                        arrayPath, std::move( static_cast<nfx::json::Document&>( keyDoc ) ) );
                 }
             }
         }
@@ -544,9 +709,10 @@ namespace nfx::serialization::json
          * @param obj The FastHashSet object to deserialize into
          * @param doc The document to deserialize from
          */
-        static void deserialize( nfx::containers::FastHashSet<TKey, HashType, Seed, Hasher, KeyEqual>& obj, const Document& doc )
+        static void deserialize(
+            nfx::containers::FastHashSet<TKey, HashType, Seed, Hasher, KeyEqual>& obj, const SerializableDocument& doc )
         {
-            if ( !doc.is<Document::Array>( "" ) )
+            if( !doc.is<Array>( "" ) )
             {
                 throw std::runtime_error{ "Cannot deserialize non-array JSON value into FastHashSet" };
             }
@@ -555,10 +721,10 @@ namespace nfx::serialization::json
             obj.clear();
 
             // Get array and iterate using STL iterator
-            auto arrayOpt = doc.get<Document::Array>( "" );
-            if ( arrayOpt.has_value() )
+            auto arrayOpt = doc.get<Array>( "" );
+            if( arrayOpt.has_value() )
             {
-                for ( const auto& elementDoc : arrayOpt.value() )
+                for( const auto& elementDoc : arrayOpt.value() )
                 {
                     // Deserialize the key using a temporary serializer
                     TKey key{};
@@ -595,55 +761,56 @@ namespace nfx::serialization::json
          * @param obj The SmallVector object to serialize
          * @param doc The document to serialize into
          */
-        static void serialize( const nfx::containers::SmallVector<T, N>& obj, Document& doc )
+        static void serialize( const nfx::containers::SmallVector<T, N>& obj, SerializableDocument& doc )
         {
             // Create array document
-            doc.set<Document::Array>( "" );
-            auto arrayRef = doc.get<Document::Array>( "" );
+            doc.document().set<nfx::json::Array>( "" );
 
-            if ( arrayRef.has_value() )
+            size_t index = 0;
+            // Use SmallVector's iterator to traverse all elements
+            for( auto it = obj.begin(); it != obj.end(); ++it, ++index )
             {
-                // Use SmallVector's iterator to traverse all elements
-                for ( auto it = obj.begin(); it != obj.end(); ++it )
+                const T& element = *it;
+
+                // Serialize the element using a temporary serializer
+                Document elementDoc;
+                Serializer<T> elementSerializer;
+                elementDoc = elementSerializer.serialize( element );
+
+                // Build JSON Pointer path for this index
+                char arrayPath[32];
+                std::snprintf( arrayPath, sizeof( arrayPath ), "/%zu", index );
+
+                // Add to array based on type
+                if( elementDoc.is<std::string>( "" ) )
                 {
-                    const T& element = *it;
-
-                    // Serialize the element using a temporary serializer
-                    Document elementDoc;
-                    Serializer<T> elementSerializer;
-                    elementDoc = elementSerializer.serialize( element );
-
-                    // Add to array based on type
-                    if ( elementDoc.is<std::string>( "" ) )
-                    {
-                        auto str = elementDoc.get<std::string>( "" );
-                        arrayRef->append<std::string>( str.value() );
-                    }
-                    else if ( elementDoc.is<int>( "" ) )
-                    {
-                        auto val = elementDoc.get<int64_t>( "" );
-                        arrayRef->append<int64_t>( val.value() );
-                    }
-                    else if ( elementDoc.is<double>( "" ) )
-                    {
-                        auto val = elementDoc.get<double>( "" );
-                        arrayRef->append<double>( val.value() );
-                    }
-                    else if ( elementDoc.is<bool>( "" ) )
-                    {
-                        auto val = elementDoc.get<bool>( "" );
-                        arrayRef->append<bool>( val.value() );
-                    }
-                    else if ( elementDoc.isNull( "" ) )
-                    {
-                        // Append null document
-                        arrayRef->append<Document>( elementDoc );
-                    }
-                    else if ( elementDoc.is<Document::Object>( "" ) || elementDoc.is<Document::Array>( "" ) )
-                    {
-                        // Handle nested objects and arrays
-                        arrayRef->append<Document>( elementDoc );
-                    }
+                    auto str = elementDoc.get<std::string>( "" );
+                    doc.set<std::string>( arrayPath, str.value() );
+                }
+                else if( elementDoc.is<int>( "" ) )
+                {
+                    auto val = elementDoc.get<int64_t>( "" );
+                    doc.set<int64_t>( arrayPath, val.value() );
+                }
+                else if( elementDoc.is<double>( "" ) )
+                {
+                    auto val = elementDoc.get<double>( "" );
+                    doc.set<double>( arrayPath, val.value() );
+                }
+                else if( elementDoc.is<bool>( "" ) )
+                {
+                    auto val = elementDoc.get<bool>( "" );
+                    doc.set<bool>( arrayPath, val.value() );
+                }
+                else if( elementDoc.isNull( "" ) )
+                {
+                    doc.setNull( arrayPath );
+                }
+                else if( elementDoc.is<Object>( "" ) || elementDoc.is<Array>( "" ) )
+                {
+                    // Handle nested objects and arrays
+                    doc.document().set<nfx::json::Document>(
+                        arrayPath, std::move( static_cast<nfx::json::Document&>( elementDoc ) ) );
                 }
             }
         }
@@ -653,9 +820,9 @@ namespace nfx::serialization::json
          * @param obj The SmallVector object to deserialize into
          * @param doc The document to deserialize from
          */
-        static void deserialize( nfx::containers::SmallVector<T, N>& obj, const Document& doc )
+        static void deserialize( nfx::containers::SmallVector<T, N>& obj, const SerializableDocument& doc )
         {
-            if ( !doc.is<Document::Array>( "" ) )
+            if( !doc.is<Array>( "" ) )
             {
                 throw std::runtime_error{ "Cannot deserialize non-array JSON value into SmallVector" };
             }
@@ -664,10 +831,10 @@ namespace nfx::serialization::json
             obj.clear();
 
             // Get array and iterate using STL iterator
-            auto arrayOpt = doc.get<Document::Array>( "" );
-            if ( arrayOpt.has_value() )
+            auto arrayOpt = doc.get<Array>( "" );
+            if( arrayOpt.has_value() )
             {
-                for ( const auto& elementDoc : arrayOpt.value() )
+                for( const auto& elementDoc : arrayOpt.value() )
                 {
                     // Deserialize the element using a temporary serializer
                     T element{};

@@ -24,7 +24,7 @@
 
 /**
  * @file Tests_JsonSerializer.cpp
- * @brief Comprehensive tests for JSON Serializer functionality
+ * @brief Unit tests for JSON Serializer functionality
  * @details Tests covering all type specializations including primitive types,
  *          containers, smart pointers, optional types, nfx datatypes, and custom structs.
  *          Demonstrates how to specialize SerializationTraits for user-defined types.
@@ -32,6 +32,8 @@
  */
 
 #include <gtest/gtest.h>
+
+#include <nfx/Serialization.h>
 
 #include <array>
 #include <deque>
@@ -45,8 +47,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include <nfx/serialization/json/Document.h>
-#include <nfx/serialization/json/Serializer.h>
+using namespace nfx::json;
 
 namespace nfx::serialization::json::test
 {
@@ -72,27 +73,60 @@ namespace nfx::serialization::json::test
 
         std::unordered_map<K, V> data;
 
-        bool operator==( const CustomHashMap& other ) const { return data == other.data; }
+        bool operator==( const CustomHashMap& other ) const
+        {
+            return data == other.data;
+        }
 
-        void insert( const K& key, const V& value ) { data[key] = value; }
+        void insert( const K& key, const V& value )
+        {
+            data[key] = value;
+        }
 
-        void insert( const value_type& pair ) { data.insert( pair ); }
+        void insert( const value_type& pair )
+        {
+            data.insert( pair );
+        }
 
-        V& operator[]( const K& key ) { return data[key]; }
+        V& operator[]( const K& key )
+        {
+            return data[key];
+        }
 
-        const V& operator[]( const K& key ) const { return data.at( key ); }
+        const V& operator[]( const K& key ) const
+        {
+            return data.at( key );
+        }
 
-        auto begin() const { return data.begin(); }
+        auto begin() const
+        {
+            return data.begin();
+        }
 
-        auto end() const { return data.end(); }
+        auto end() const
+        {
+            return data.end();
+        }
 
-        auto begin() { return data.begin(); }
+        auto begin()
+        {
+            return data.begin();
+        }
 
-        auto end() { return data.end(); }
+        auto end()
+        {
+            return data.end();
+        }
 
-        size_t size() const { return data.size(); }
+        size_t size() const
+        {
+            return data.size();
+        }
 
-        bool empty() const { return data.empty(); }
+        bool empty() const
+        {
+            return data.empty();
+        }
     };
 
     //----------------------------------------------
@@ -110,21 +144,45 @@ namespace nfx::serialization::json::test
 
         std::unordered_set<T> data;
 
-        bool operator==( const CustomSet& other ) const { return data == other.data; }
+        bool operator==( const CustomSet& other ) const
+        {
+            return data == other.data;
+        }
 
-        void insert( const T& value ) { data.insert( value ); }
+        void insert( const T& value )
+        {
+            data.insert( value );
+        }
 
-        auto begin() const { return data.begin(); }
+        auto begin() const
+        {
+            return data.begin();
+        }
 
-        auto end() const { return data.end(); }
+        auto end() const
+        {
+            return data.end();
+        }
 
-        auto begin() { return data.begin(); }
+        auto begin()
+        {
+            return data.begin();
+        }
 
-        auto end() { return data.end(); }
+        auto end()
+        {
+            return data.end();
+        }
 
-        size_t size() const { return data.size(); }
+        size_t size() const
+        {
+            return data.size();
+        }
 
-        bool empty() const { return data.empty(); }
+        bool empty() const
+        {
+            return data.empty();
+        }
     };
 
     //----------------------------------------------
@@ -152,11 +210,11 @@ namespace nfx::serialization::json::test
             doc.set<std::string>( "/name", name );
             doc.set<int64_t>( "/age", age );
 
-            if ( email.has_value() )
+            if( email.has_value() )
             {
                 doc.set<std::string>( "/email", *email );
             }
-            else if ( serializer.options().includeNullFields )
+            else if( serializer.options().includeNullFields )
             {
                 // Include null email field if requested
                 doc.set<std::string>( "/email", "" );
@@ -171,17 +229,17 @@ namespace nfx::serialization::json::test
         // Custom deserialization method
         void deserialize( const Serializer<Person>& serializer, const Document& doc )
         {
-            if ( auto nameVal = doc.get<std::string>( "/name" ) )
+            if( auto nameVal = doc.get<std::string>( "/name" ) )
             {
                 name = *nameVal;
             }
 
-            if ( auto ageVal = doc.get<int64_t>( "/age" ) )
+            if( auto ageVal = doc.get<int64_t>( "/age" ) )
             {
                 age = static_cast<int>( *ageVal );
             }
 
-            if ( auto emailVal = doc.get<std::string>( "/email" ) )
+            if( auto emailVal = doc.get<std::string>( "/email" ) )
             {
                 email = *emailVal;
             }
@@ -190,15 +248,15 @@ namespace nfx::serialization::json::test
                 email = std::nullopt;
             }
 
-            if ( auto hobbiesDocOpt = doc.get<Document>( "/hobbies" ) )
+            if( auto hobbiesDocOpt = doc.get<Document>( "/hobbies" ) )
             {
                 Serializer<std::vector<std::string>> hobbiesSerializer;
                 hobbies = hobbiesSerializer.deserialize( *hobbiesDocOpt );
             }
 
-            if ( serializer.options().validateOnDeserialize )
+            if( serializer.options().validateOnDeserialize )
             {
-                if ( age < 0 || age > 150 )
+                if( age < 0 || age > 150 )
                 {
                     throw std::runtime_error{ "Invalid age value" };
                 }
@@ -222,8 +280,8 @@ namespace nfx::serialization::json::test
 
         bool operator==( const Product& other ) const
         {
-            return id == other.id && name == other.name &&
-                   std::abs( price - other.price ) < 0.0001 && quantity == other.quantity;
+            return id == other.id && name == other.name && std::abs( price - other.price ) < 0.0001 &&
+                   quantity == other.quantity;
         }
 
         // Custom serialization method (returns Document)
@@ -240,13 +298,13 @@ namespace nfx::serialization::json::test
         // Custom deserialization method
         void deserialize( const Serializer<Product>&, const Document& doc )
         {
-            if ( auto idVal = doc.get<std::string>( "/id" ) )
+            if( auto idVal = doc.get<std::string>( "/id" ) )
                 id = *idVal;
-            if ( auto nameVal = doc.get<std::string>( "/name" ) )
+            if( auto nameVal = doc.get<std::string>( "/name" ) )
                 name = *nameVal;
-            if ( auto priceVal = doc.get<double>( "/price" ) )
+            if( auto priceVal = doc.get<double>( "/price" ) )
                 price = *priceVal;
-            if ( auto quantityVal = doc.get<int64_t>( "/quantity" ) )
+            if( auto quantityVal = doc.get<int64_t>( "/quantity" ) )
                 quantity = static_cast<int>( *quantityVal );
         }
     };
@@ -524,27 +582,25 @@ namespace nfx::serialization::json::test
     {
         // Vector of maps
         {
-            std::vector<std::map<std::string, int>> vectorOfMaps{
-                { { "a", 1 }, { "b", 2 } },
-                { { "x", 10 }, { "y", 20 } },
-                {} };
+            std::vector<std::map<std::string, int>> vectorOfMaps{ { { "a", 1 }, { "b", 2 } },
+                                                                  { { "x", 10 }, { "y", 20 } },
+                                                                  {} };
             testRoundTrip( vectorOfMaps );
         }
 
         // Map of vectors
         {
-            std::map<std::string, std::vector<int>> mapOfVectors{
-                { "numbers", { 1, 2, 3 } },
-                { "primes", { 2, 3, 5, 7 } },
-                { "empty", {} } };
+            std::map<std::string, std::vector<int>> mapOfVectors{ { "numbers", { 1, 2, 3 } },
+                                                                  { "primes", { 2, 3, 5, 7 } },
+                                                                  { "empty", {} } };
             testRoundTrip( mapOfVectors );
         }
 
         // Map of maps
         {
             std::map<std::string, std::map<std::string, int>> mapOfMaps{
-                { "group1", { { "item1", 1 }, { "item2", 2 } } },
-                { "group2", { { "itemA", 10 }, { "itemB", 20 } } } };
+                { "group1", { { "item1", 1 }, { "item2", 2 } } }, { "group2", { { "itemA", 10 }, { "itemB", 20 } } }
+            };
             testRoundTrip( mapOfMaps );
         }
     }
@@ -699,7 +755,7 @@ namespace nfx::serialization::json::test
         // Large vector
         {
             std::vector<int> largeVector;
-            for ( int i = 0; i < 1000; ++i )
+            for( int i = 0; i < 1000; ++i )
             {
                 largeVector.push_back( i );
             }
@@ -709,7 +765,7 @@ namespace nfx::serialization::json::test
         // Large map
         {
             std::map<std::string, int> largeMap;
-            for ( int i = 0; i < 500; ++i )
+            for( int i = 0; i < 500; ++i )
             {
                 std::string key = "key_" + std::to_string( i );
                 largeMap[key] = i * i;
@@ -720,7 +776,7 @@ namespace nfx::serialization::json::test
         // Large custom container
         {
             CustomHashMap<std::string, int> largeCustomMap;
-            for ( int i = 0; i < 250; ++i )
+            for( int i = 0; i < 250; ++i )
             {
                 std::string key = "custom_key_" + std::to_string( i );
                 largeCustomMap.insert( key, i * 2 );

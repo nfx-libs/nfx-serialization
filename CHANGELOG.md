@@ -8,7 +8,11 @@
 
 ### Changed
 
-- NIL
+- **Architecture**: Transitioned to focused C++ serialization library built on nfx-json
+  - nfx-serialization is now header-only (INTERFACE library)
+  - Core dependency: nfx-json 1.0.0 (provides Document, SchemaValidator, SchemaGenerator)
+  - Removed dependency on nfx-stringutils
+  - CMake target: `nfx-serialization::nfx-serialization` (header-only interface)
 
 ### Deprecated
 
@@ -16,7 +20,14 @@
 
 ### Removed
 
-- NIL
+- **Breaking**: Extracted JSON core functionality to separate `nfx-json` library
+  - Removed `Document`, `Object`, `Array`, `PathView` classes (now in nfx-json)
+  - Removed `SchemaValidator` and `SchemaGenerator` classes (now in nfx-json)
+  - Removed JSON parsing, manipulation, and validation APIs
+  - nfx-serialization now focuses solely on C++ type ↔ JSON serialization
+  - nfx-json 1.0.0 is now a required dependency
+  - Users must now include `<nfx/json/Document.h>` instead of `<nfx/serialization/json/Document.h>`
+  - Namespace changed: `nfx::serialization::json::Document` → `nfx::json::Document`
 
 ### Fixed
 

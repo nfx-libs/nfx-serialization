@@ -24,7 +24,7 @@
 
 /**
  * @file Tests_JsonExtensions.cpp
- * @brief Comprehensive tests for extension traits (nfx-containers, nfx-datatypes, nfx-datetime)
+ * @brief Unit tests for extension traits (nfx-containers, nfx-datatypes, nfx-datetime)
  * @details Tests covering serialization and deserialization of external nfx library types:
  *          - nfx-containers: PerfectHashMap, FastHashMap, FastHashSet
  *          - nfx-datatypes: Int128, Decimal
@@ -37,12 +37,13 @@
 #include <nfx/serialization/json/extensions/DatatypesTraits.h>
 #include <nfx/serialization/json/extensions/DateTimeTraits.h>
 
-#include <nfx/serialization/json/Document.h>
-#include <nfx/serialization/json/Serializer.h>
+#include <nfx/Serialization.h>
 
 #include <nfx/Containers.h>
 #include <nfx/DataTypes.h>
 #include <nfx/DateTime.h>
+
+using namespace nfx::serialization::json;
 
 namespace nfx::serialization::json::test
 {
@@ -53,9 +54,13 @@ namespace nfx::serialization::json::test
     class FastHashMapExtensionTest : public ::testing::Test
     {
     protected:
-        void SetUp() override {}
+        void SetUp() override
+        {
+        }
 
-        void TearDown() override {}
+        void TearDown() override
+        {
+        }
     };
 
     TEST_F( FastHashMapExtensionTest, SerializeEmptyMap )
@@ -129,7 +134,7 @@ namespace nfx::serialization::json::test
 
         EXPECT_EQ( restored.size(), original.size() );
 
-        for ( const auto& [key, value] : original )
+        for( const auto& [key, value] : original )
         {
             const double* ptr = restored.find( key );
             ASSERT_NE( ptr, nullptr );
@@ -139,7 +144,7 @@ namespace nfx::serialization::json::test
 
     TEST_F( FastHashMapExtensionTest, DirectDocumentSetGet )
     {
-        Document doc;
+        SerializableDocument doc;
         nfx::containers::FastHashMap<std::string, int> scores;
         scores.insertOrAssign( "Alice", 95 );
         scores.insertOrAssign( "Bob", 87 );
@@ -157,7 +162,7 @@ namespace nfx::serialization::json::test
 
     TEST_F( FastHashMapExtensionTest, DirectDocumentIsCheck )
     {
-        Document doc;
+        SerializableDocument doc;
         nfx::containers::FastHashMap<std::string, int> data;
         data.insertOrAssign( "key", 42 );
 
@@ -174,9 +179,13 @@ namespace nfx::serialization::json::test
     class FastHashSetExtensionTest : public ::testing::Test
     {
     protected:
-        void SetUp() override {}
+        void SetUp() override
+        {
+        }
 
-        void TearDown() override {}
+        void TearDown() override
+        {
+        }
     };
 
     TEST_F( FastHashSetExtensionTest, SerializeEmptySet )
@@ -239,7 +248,7 @@ namespace nfx::serialization::json::test
 
         EXPECT_EQ( restored.size(), original.size() );
 
-        for ( const auto& value : original )
+        for( const auto& value : original )
         {
             EXPECT_TRUE( restored.contains( value ) );
         }
@@ -247,7 +256,7 @@ namespace nfx::serialization::json::test
 
     TEST_F( FastHashSetExtensionTest, DirectDocumentSetGet )
     {
-        Document doc;
+        SerializableDocument doc;
         nfx::containers::FastHashSet<std::string> tags;
         tags.insert( "cpp" );
         tags.insert( "json" );
@@ -263,7 +272,7 @@ namespace nfx::serialization::json::test
 
     TEST_F( FastHashSetExtensionTest, DirectDocumentIsCheck )
     {
-        Document doc;
+        SerializableDocument doc;
         nfx::containers::FastHashSet<int> numbers;
         numbers.insert( 1 );
         numbers.insert( 2 );
@@ -282,9 +291,13 @@ namespace nfx::serialization::json::test
     class PerfectHashMapExtensionTest : public ::testing::Test
     {
     protected:
-        void SetUp() override {}
+        void SetUp() override
+        {
+        }
 
-        void TearDown() override {}
+        void TearDown() override
+        {
+        }
     };
 
     TEST_F( PerfectHashMapExtensionTest, SerializeSimpleMap )
@@ -300,7 +313,7 @@ namespace nfx::serialization::json::test
         // Verify it's valid JSON array format
         auto docOpt = Document::fromString( json );
         ASSERT_TRUE( docOpt.has_value() );
-        EXPECT_TRUE( docOpt->is<Document::Array>( "" ) );
+        EXPECT_TRUE( docOpt->is<Array>( "" ) );
     }
 
     TEST_F( PerfectHashMapExtensionTest, RoundTripPreservesData )
@@ -314,7 +327,7 @@ namespace nfx::serialization::json::test
         EXPECT_EQ( restored.size(), original.size() );
 
         // Verify all original values are in restored (find returns pointer)
-        for ( auto it = original.begin(); it != original.end(); ++it )
+        for( auto it = original.begin(); it != original.end(); ++it )
         {
             const double* restoredPtr = restored.find( it->first );
             ASSERT_NE( restoredPtr, nullptr );
@@ -324,7 +337,7 @@ namespace nfx::serialization::json::test
 
     TEST_F( PerfectHashMapExtensionTest, DirectDocumentSetGet )
     {
-        Document doc;
+        SerializableDocument doc;
         std::vector<std::pair<std::string, int>> data = { { "alpha", 1 }, { "beta", 2 }, { "gamma", 3 } };
         nfx::containers::PerfectHashMap<std::string, int> map( std::move( data ) );
 
@@ -341,7 +354,7 @@ namespace nfx::serialization::json::test
 
     TEST_F( PerfectHashMapExtensionTest, DirectDocumentIsCheck )
     {
-        Document doc;
+        SerializableDocument doc;
         std::vector<std::pair<int, std::string>> data = { { 1, "one" }, { 2, "two" } };
         nfx::containers::PerfectHashMap<int, std::string> map( std::move( data ) );
 
@@ -358,9 +371,13 @@ namespace nfx::serialization::json::test
     class SmallVectorExtensionTest : public ::testing::Test
     {
     protected:
-        void SetUp() override {}
+        void SetUp() override
+        {
+        }
 
-        void TearDown() override {}
+        void TearDown() override
+        {
+        }
     };
 
     TEST_F( SmallVectorExtensionTest, SerializeEmptyVector )
@@ -443,7 +460,7 @@ namespace nfx::serialization::json::test
 
         EXPECT_EQ( restored.size(), original.size() );
 
-        for ( size_t i = 0; i < original.size(); ++i )
+        for( size_t i = 0; i < original.size(); ++i )
         {
             EXPECT_EQ( restored[i], original[i] );
         }
@@ -453,7 +470,7 @@ namespace nfx::serialization::json::test
     {
         // Test with size within stack capacity (N=8)
         nfx::containers::SmallVector<int, 8> vec;
-        for ( int i = 0; i < 5; ++i )
+        for( int i = 0; i < 5; ++i )
         {
             vec.push_back( i * 10 );
         }
@@ -462,7 +479,7 @@ namespace nfx::serialization::json::test
         auto restored = Serializer<decltype( vec )>::fromString( json );
 
         EXPECT_EQ( restored.size(), 5 );
-        for ( int i = 0; i < 5; ++i )
+        for( int i = 0; i < 5; ++i )
         {
             EXPECT_EQ( restored[i], i * 10 );
         }
@@ -472,7 +489,7 @@ namespace nfx::serialization::json::test
     {
         // Test with size exceeding stack capacity (N=8)
         nfx::containers::SmallVector<int, 8> vec;
-        for ( int i = 0; i < 20; ++i )
+        for( int i = 0; i < 20; ++i )
         {
             vec.push_back( i );
         }
@@ -481,7 +498,7 @@ namespace nfx::serialization::json::test
         auto restored = Serializer<decltype( vec )>::fromString( json );
 
         EXPECT_EQ( restored.size(), 20 );
-        for ( int i = 0; i < 20; ++i )
+        for( int i = 0; i < 20; ++i )
         {
             EXPECT_EQ( restored[i], i );
         }
@@ -489,7 +506,7 @@ namespace nfx::serialization::json::test
 
     TEST_F( SmallVectorExtensionTest, DirectDocumentSetGet )
     {
-        Document doc;
+        SerializableDocument doc;
         nfx::containers::SmallVector<std::string, 4> tags;
         tags.push_back( "cpp" );
         tags.push_back( "json" );
@@ -507,7 +524,7 @@ namespace nfx::serialization::json::test
 
     TEST_F( SmallVectorExtensionTest, DirectDocumentIsCheck )
     {
-        Document doc;
+        SerializableDocument doc;
         nfx::containers::SmallVector<int, 8> numbers;
         numbers.push_back( 1 );
         numbers.push_back( 2 );
@@ -521,7 +538,7 @@ namespace nfx::serialization::json::test
 
     TEST_F( SmallVectorExtensionTest, NestedSmallVectors )
     {
-        Document doc;
+        SerializableDocument doc;
         nfx::containers::SmallVector<nfx::containers::SmallVector<int, 4>, 4> nested;
 
         nfx::containers::SmallVector<int, 4> row1;
@@ -553,9 +570,13 @@ namespace nfx::serialization::json::test
     class Int128ExtensionTest : public ::testing::Test
     {
     protected:
-        void SetUp() override {}
+        void SetUp() override
+        {
+        }
 
-        void TearDown() override {}
+        void TearDown() override
+        {
+        }
     };
 
     TEST_F( Int128ExtensionTest, SerializeZero )
@@ -589,7 +610,8 @@ namespace nfx::serialization::json::test
     {
         // Create a large 128-bit value
         nfx::datatypes::Int128 value;
-        [[maybe_unused]] auto result = nfx::datatypes::Int128::fromString( "170141183460469231731687303715884105727", value ); // Max signed 128-bit
+        [[maybe_unused]] auto result = nfx::datatypes::Int128::fromString(
+            "170141183460469231731687303715884105727", value ); // Max signed 128-bit
 
         std::string json = Serializer<nfx::datatypes::Int128>::toString( value );
 
@@ -620,7 +642,7 @@ namespace nfx::serialization::json::test
 
     TEST_F( Int128ExtensionTest, DirectDocumentSetGet )
     {
-        Document doc;
+        SerializableDocument doc;
         nfx::datatypes::Int128 value( static_cast<std::int64_t>( 1234567890 ) );
 
         doc.set<nfx::datatypes::Int128>( "int128Value", value );
@@ -632,7 +654,7 @@ namespace nfx::serialization::json::test
 
     TEST_F( Int128ExtensionTest, DirectDocumentIsCheck )
     {
-        Document doc;
+        SerializableDocument doc;
         nfx::datatypes::Int128 value( static_cast<std::int64_t>( 9876543210 ) );
 
         doc.set<nfx::datatypes::Int128>( "largeNumber", value );
@@ -648,9 +670,13 @@ namespace nfx::serialization::json::test
     class DecimalExtensionTest : public ::testing::Test
     {
     protected:
-        void SetUp() override {}
+        void SetUp() override
+        {
+        }
 
-        void TearDown() override {}
+        void TearDown() override
+        {
+        }
     };
 
     TEST_F( DecimalExtensionTest, SerializeZero )
@@ -702,7 +728,7 @@ namespace nfx::serialization::json::test
 
     TEST_F( DecimalExtensionTest, DirectDocumentSetGet )
     {
-        Document doc;
+        SerializableDocument doc;
         nfx::datatypes::Decimal value( 123.456 );
 
         doc.set<nfx::datatypes::Decimal>( "decimalValue", value );
@@ -714,7 +740,7 @@ namespace nfx::serialization::json::test
 
     TEST_F( DecimalExtensionTest, DirectDocumentSetGetMove )
     {
-        Document doc;
+        SerializableDocument doc;
 
         doc.set<nfx::datatypes::Decimal>( "price", nfx::datatypes::Decimal( 99.99 ) );
 
@@ -725,7 +751,7 @@ namespace nfx::serialization::json::test
 
     TEST_F( DecimalExtensionTest, DirectDocumentIsCheck )
     {
-        Document doc;
+        SerializableDocument doc;
         nfx::datatypes::Decimal value( "123.456789" );
 
         doc.set<nfx::datatypes::Decimal>( "amount", value );
@@ -736,7 +762,7 @@ namespace nfx::serialization::json::test
 
     TEST_F( DecimalExtensionTest, DirectDocumentSetWithCString )
     {
-        Document doc;
+        SerializableDocument doc;
 
         // Test with explicit type parameter and const char*
         doc.set<nfx::datatypes::Decimal>( "value1", "123456789.12345678913456789" );
@@ -748,7 +774,7 @@ namespace nfx::serialization::json::test
 
     TEST_F( DecimalExtensionTest, DirectDocumentSetWithCStringHighPrecision )
     {
-        Document doc;
+        SerializableDocument doc;
 
         // Test with very high precision decimal
         const char* highPrecision = "0.123456789123456789123456789";
@@ -761,7 +787,7 @@ namespace nfx::serialization::json::test
 
     TEST_F( DecimalExtensionTest, DirectDocumentSetWithCStringNegative )
     {
-        Document doc;
+        SerializableDocument doc;
 
         // Test with negative value
         doc.set<nfx::datatypes::Decimal>( "negative", "-999999.999999" );
@@ -773,7 +799,7 @@ namespace nfx::serialization::json::test
 
     TEST_F( DecimalExtensionTest, DirectDocumentSetWithDouble )
     {
-        Document doc;
+        SerializableDocument doc;
 
         // Test with explicit type parameter and double
         doc.set<nfx::datatypes::Decimal>( "offset", 2.5 );
@@ -785,7 +811,7 @@ namespace nfx::serialization::json::test
 
     TEST_F( DecimalExtensionTest, DirectDocumentSetWithInt )
     {
-        Document doc;
+        SerializableDocument doc;
 
         // Test with integer value
         doc.set<nfx::datatypes::Decimal>( "count", 42 );
@@ -802,9 +828,13 @@ namespace nfx::serialization::json::test
     class TimeSpanExtensionTest : public ::testing::Test
     {
     protected:
-        void SetUp() override {}
+        void SetUp() override
+        {
+        }
 
-        void TearDown() override {}
+        void TearDown() override
+        {
+        }
     };
 
     TEST_F( TimeSpanExtensionTest, SerializeZero )
@@ -868,7 +898,7 @@ namespace nfx::serialization::json::test
 
     TEST_F( TimeSpanExtensionTest, DirectDocumentSetGet )
     {
-        Document doc;
+        SerializableDocument doc;
         nfx::time::TimeSpan duration = nfx::time::TimeSpan::fromHours( 3 ) + nfx::time::TimeSpan::fromMinutes( 45 );
 
         doc.set<nfx::time::TimeSpan>( "duration", duration );
@@ -880,7 +910,7 @@ namespace nfx::serialization::json::test
 
     TEST_F( TimeSpanExtensionTest, DirectDocumentIsCheck )
     {
-        Document doc;
+        SerializableDocument doc;
         nfx::time::TimeSpan value = nfx::time::TimeSpan::fromSeconds( 30 );
 
         doc.set<nfx::time::TimeSpan>( "elapsed", value );
@@ -896,9 +926,13 @@ namespace nfx::serialization::json::test
     class DateTimeExtensionTest : public ::testing::Test
     {
     protected:
-        void SetUp() override {}
+        void SetUp() override
+        {
+        }
 
-        void TearDown() override {}
+        void TearDown() override
+        {
+        }
     };
 
     TEST_F( DateTimeExtensionTest, SerializeNow )
@@ -961,7 +995,7 @@ namespace nfx::serialization::json::test
 
     TEST_F( DateTimeExtensionTest, DirectDocumentSetGet )
     {
-        Document doc;
+        SerializableDocument doc;
         nfx::time::DateTime value( 2025, 12, 25, 10, 30, 0 );
 
         doc.set<nfx::time::DateTime>( "timestamp", value );
@@ -975,7 +1009,7 @@ namespace nfx::serialization::json::test
 
     TEST_F( DateTimeExtensionTest, DirectDocumentIsCheck )
     {
-        Document doc;
+        SerializableDocument doc;
         nfx::time::DateTime value( 2025, 1, 1, 0, 0, 0 );
 
         doc.set<nfx::time::DateTime>( "newYear", value );
@@ -991,9 +1025,13 @@ namespace nfx::serialization::json::test
     class DateTimeOffsetExtensionTest : public ::testing::Test
     {
     protected:
-        void SetUp() override {}
+        void SetUp() override
+        {
+        }
 
-        void TearDown() override {}
+        void TearDown() override
+        {
+        }
     };
 
     TEST_F( DateTimeOffsetExtensionTest, SerializeNow )
@@ -1018,8 +1056,9 @@ namespace nfx::serialization::json::test
 
         EXPECT_FALSE( json.empty() );
         // Should contain offset indicator
-        EXPECT_TRUE( json.find( "+" ) != std::string::npos || json.find( "-" ) != std::string::npos ||
-                     json.find( "Z" ) != std::string::npos );
+        EXPECT_TRUE(
+            json.find( "+" ) != std::string::npos || json.find( "-" ) != std::string::npos ||
+            json.find( "Z" ) != std::string::npos );
     }
 
     TEST_F( DateTimeOffsetExtensionTest, RoundTripPreservesValue )
@@ -1048,7 +1087,7 @@ namespace nfx::serialization::json::test
 
     TEST_F( DateTimeOffsetExtensionTest, DirectDocumentSetGet )
     {
-        Document doc;
+        SerializableDocument doc;
         nfx::time::DateTime dt( 2025, 6, 15, 14, 30, 0 );
         nfx::time::TimeSpan offset = nfx::time::TimeSpan::fromHours( 2 );
         nfx::time::DateTimeOffset value( dt, offset );
@@ -1063,7 +1102,7 @@ namespace nfx::serialization::json::test
 
     TEST_F( DateTimeOffsetExtensionTest, DirectDocumentIsCheck )
     {
-        Document doc;
+        SerializableDocument doc;
         nfx::time::DateTimeOffset value = nfx::time::DateTimeOffset::now();
 
         doc.set<nfx::time::DateTimeOffset>( "currentTime", value );
@@ -1079,9 +1118,13 @@ namespace nfx::serialization::json::test
     class ExtensionsReadmeSampleTest : public ::testing::Test
     {
     protected:
-        void SetUp() override {}
+        void SetUp() override
+        {
+        }
 
-        void TearDown() override {}
+        void TearDown() override
+        {
+        }
     };
 
     TEST_F( ExtensionsReadmeSampleTest, FastHashMapSerialization )
@@ -1121,7 +1164,7 @@ namespace nfx::serialization::json::test
 
     TEST( DirectDocument_StlTypes, VectorIntSetGet )
     {
-        Document doc;
+        SerializableDocument doc;
         std::vector<int> vec = { 1, 2, 3, 4, 5 };
 
         // Set via Document API
@@ -1135,7 +1178,7 @@ namespace nfx::serialization::json::test
 
     TEST( DirectDocument_StlTypes, VectorIntIsCheck )
     {
-        Document doc;
+        SerializableDocument doc;
         std::vector<int> vec = { 10, 20, 30 };
 
         doc.set( "/numbers", vec );
@@ -1147,7 +1190,7 @@ namespace nfx::serialization::json::test
 
     TEST( DirectDocument_StlTypes, VectorStringSetGet )
     {
-        Document doc;
+        SerializableDocument doc;
         std::vector<std::string> vec = { "hello", "world", "test" };
 
         doc.set( "/strings", vec );
@@ -1159,7 +1202,7 @@ namespace nfx::serialization::json::test
 
     TEST( DirectDocument_StlTypes, OptionalIntSetGet )
     {
-        Document doc;
+        SerializableDocument doc;
 
         // Test with value
         std::optional<int> opt = 42;
@@ -1181,7 +1224,7 @@ namespace nfx::serialization::json::test
 
     TEST( DirectDocument_StlTypes, OptionalStringIsCheck )
     {
-        Document doc;
+        SerializableDocument doc;
         std::optional<std::string> opt = "test";
 
         doc.set( "/opt", opt );
@@ -1192,7 +1235,7 @@ namespace nfx::serialization::json::test
 
     TEST( DirectDocument_StlTypes, UniquePtrSetGet )
     {
-        Document doc;
+        SerializableDocument doc;
 
         // Test with value
         auto ptr = std::make_unique<int>( 123 );
@@ -1214,7 +1257,7 @@ namespace nfx::serialization::json::test
 
     TEST( DirectDocument_StlTypes, SharedPtrSetGet )
     {
-        Document doc;
+        SerializableDocument doc;
 
         auto ptr = std::make_shared<std::string>( "shared data" );
         doc.set( "/shared", ptr );
@@ -1227,7 +1270,7 @@ namespace nfx::serialization::json::test
 
     TEST( DirectDocument_StlTypes, MapStringIntSetGet )
     {
-        Document doc;
+        SerializableDocument doc;
         std::map<std::string, int> map = { { "one", 1 }, { "two", 2 }, { "three", 3 } };
 
         doc.set( "/map", map );
@@ -1239,7 +1282,7 @@ namespace nfx::serialization::json::test
 
     TEST( DirectDocument_StlTypes, SetIntSetGet )
     {
-        Document doc;
+        SerializableDocument doc;
         std::set<int> set = { 1, 2, 3, 4, 5 };
 
         doc.set( "/set", set );
@@ -1251,7 +1294,7 @@ namespace nfx::serialization::json::test
 
     TEST( DirectDocument_StlTypes, NestedVectorSetGet )
     {
-        Document doc;
+        SerializableDocument doc;
         std::vector<std::vector<int>> nested = { { 1, 2 }, { 3, 4 }, { 5, 6 } };
 
         doc.set( "/nested", nested );
@@ -1263,9 +1306,8 @@ namespace nfx::serialization::json::test
 
     TEST( DirectDocument_StlTypes, ComplexTypeSetGet )
     {
-        Document doc;
-        std::map<std::string, std::vector<int>> complex = {
-            { "first", { 1, 2, 3 } }, { "second", { 4, 5, 6 } } };
+        SerializableDocument doc;
+        std::map<std::string, std::vector<int>> complex = { { "first", { 1, 2, 3 } }, { "second", { 4, 5, 6 } } };
 
         doc.set( "/complex", complex );
 
@@ -1276,7 +1318,7 @@ namespace nfx::serialization::json::test
 
     TEST( DirectDocument_StlTypes, MixedWithExtensionTypes )
     {
-        Document doc;
+        SerializableDocument doc;
 
         // Extension type
         nfx::datatypes::Decimal dec( "123.45" );
@@ -1298,5 +1340,4 @@ namespace nfx::serialization::json::test
         EXPECT_EQ( decResult.value().toString(), "123.45" );
         EXPECT_EQ( vecResult.value(), vec );
     }
-
 } // namespace nfx::serialization::json::test

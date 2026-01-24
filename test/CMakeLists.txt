@@ -58,9 +58,9 @@ if(NFX_SERIALIZATION_BUILD_EXTENSION_TESTS)
     include(FetchContent)
 
     # Try to find libraries first, then fetch if not found
-    find_package(nfx-containers 0.1.1 QUIET)
+    find_package(nfx-containers 0.2.0 QUIET)
     find_package(nfx-datatypes  0.2.0 QUIET)
-    find_package(nfx-datetime   0.2.0 QUIET)
+    find_package(nfx-datetime   0.3.0 QUIET)
 
     # nfx-containers (PerfectHashMap, FastHashMap, FastHashSet) - header-only
     if(NOT nfx-containers_FOUND)
@@ -127,18 +127,7 @@ if(NFX_SERIALIZATION_WITH_JSON)
         )
     endif()
 
-    # Core JSON tests
     list(APPEND test_sources
-        Tests_JsonArrayIterator.cpp
-        Tests_JsonArrays.cpp
-        Tests_JsonDocument.cpp
-        Tests_JsonFileLoading.cpp
-        Tests_JsonFormats.cpp
-        Tests_JsonObjectFieldIterator.cpp
-        Tests_JsonObjects.cpp
-        Tests_JsonPathView.cpp
-        Tests_JsonSchemaGenerator.cpp
-        Tests_JsonSchemaValidator.cpp
         Tests_JsonSerializer.cpp
     )
 endif()
@@ -159,8 +148,8 @@ foreach(test_source ${test_sources})
 
         target_link_libraries(${test_target_name}
             PRIVATE
-                nfx-serialization::static
                 GTest::gtest_main
+                nfx-serialization::nfx-serialization
         )
 
         #----------------------------------------------
@@ -215,17 +204,3 @@ foreach(test_source ${test_sources})
         )
     endif()
 endforeach()
-
-#----------------------------------------------
-# Copy testdata to output directory
-#----------------------------------------------
-
-if(EXISTS "${NFX_SERIALIZATION_TESTDATA_DIR}")
-    add_custom_target(copy_testdata_tests ALL
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${NFX_SERIALIZATION_TESTDATA_DIR}"
-            "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/testdata"
-        COMMENT "Copying testdata to tests output directory"
-    )
-endif()
-
