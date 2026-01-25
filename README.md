@@ -537,8 +537,6 @@ nfx-serialization provides packaging options for distribution.
 ```bash
 # Configure with packaging options
 cmake .. -DCMAKE_BUILD_TYPE=Release \
-         -DNFX_SERIALIZATION_BUILD_STATIC=ON \
-         -DNFX_SERIALIZATION_BUILD_SHARED=ON \
          -DNFX_SERIALIZATION_PACKAGE_ARCHIVE=ON \
          -DNFX_SERIALIZATION_PACKAGE_DEB=ON \
          -DNFX_SERIALIZATION_PACKAGE_RPM=ON
@@ -631,4 +629,4 @@ All dependencies are automatically fetched via CMake FetchContent when building 
 
 ---
 
-_Updated on January 24, 2026_
+_Updated on January 25, 2026_
