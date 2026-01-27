@@ -8,7 +8,9 @@
 
 ### Changed
 
-- NIL
+- Updated nfx-json dependency from 1.0.2 to 1.0.3
+- Updated nfx-containers dependency from 0.2.0 to 0.3.0 (extension tests)
+- Updated Google Benchmark dependency from 1.9.4 to 1.9.5
 
 ### Deprecated
 
