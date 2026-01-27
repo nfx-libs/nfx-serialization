@@ -8,9 +8,7 @@
 
 ### Changed
 
-- Updated nfx-json dependency from 1.0.2 to 1.0.3
-- Updated nfx-containers dependency from 0.2.0 to 0.3.0 (extension tests)
-- Updated Google Benchmark dependency from 1.9.4 to 1.9.5
+- NIL
 
 ### Deprecated
 
@@ -27,6 +25,14 @@
 ### Security
 
 - NIL
+
+## [0.6.1] - 2026-01-27
+
+### Changed
+
+- Updated nfx-json dependency from 1.0.2 to 1.0.3
+- Updated nfx-containers dependency from 0.2.0 to 0.3.0 (extension tests)
+- Updated Google Benchmark dependency from 1.9.4 to 1.9.5
 
 ## [0.6.0] - 2026-01-27
 
