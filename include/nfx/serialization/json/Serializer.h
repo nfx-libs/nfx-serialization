@@ -32,8 +32,8 @@
 
 #pragma once
 
-#include "SerializationTraits.h"
-#include "BuilderTraits.h"
+#include "traits/SerializationTraits.h"
+#include "traits/BuilderTraits.h"
 #include "SerializableDocument.h"
 
 #include <nfx/json/Document.h>

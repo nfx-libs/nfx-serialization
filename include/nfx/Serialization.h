@@ -34,4 +34,5 @@
 #pragma once
 
 #include "serialization/json/Serializer.h"
-#include "serialization/json/SerializationTraits.h"
+#include "serialization/json/traits/BuilderTraits.h"
+#include "serialization/json/traits/SerializationTraits.h"

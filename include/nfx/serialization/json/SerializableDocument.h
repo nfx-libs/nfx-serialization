@@ -29,10 +29,11 @@
 
 #pragma once
 
-#include <nfx/json/Document.h>
-
 #include "Concepts.h"
-#include "SerializationTraits.h"
+#include "traits/BuilderTraits.h"
+#include "traits/SerializationTraits.h"
+
+#include <nfx/json/Document.h>
 
 namespace nfx::serialization::json
 {
