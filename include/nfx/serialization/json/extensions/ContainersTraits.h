@@ -39,75 +39,10 @@
 
 #pragma once
 
+#include "nfx/serialization/json/BuilderTraits.h"
 #include "nfx/serialization/json/SerializableDocument.h"
 #include "nfx/serialization/json/SerializationTraits.h"
 #include "nfx/serialization/json/Serializer.h"
-
-#include <utility> // for std::pair
-
-//=====================================================================
-// std::pair support
-//=====================================================================
-
-namespace nfx::serialization::json
-{
-    /**
-     * @brief Specialization for std::pair
-     * @details Serializes std::pair as an object with "first" and "second" fields
-     */
-    template <typename TFirst, typename TSecond>
-    struct SerializationTraits<std::pair<TFirst, TSecond>>
-    {
-        /**
-         * @brief Serialize std::pair to JSON document
-         * @param obj The pair object to serialize
-         * @param doc The document to serialize into
-         */
-        static void serialize( const std::pair<TFirst, TSecond>& obj, SerializableDocument& doc )
-        {
-            // Create object to hold the pair
-            doc.document().set<nfx::json::Object>( "" );
-
-            // Serialize first
-            Document firstDoc;
-            Serializer<TFirst> firstSerializer;
-            firstDoc = firstSerializer.serialize( obj.first );
-            doc.document().set<nfx::json::Document>(
-                "first", std::move( static_cast<nfx::json::Document&>( firstDoc ) ) );
-
-            // Serialize second
-            Document secondDoc;
-            Serializer<TSecond> secondSerializer;
-            secondDoc = secondSerializer.serialize( obj.second );
-            doc.document().set<nfx::json::Document>(
-                "second", std::move( static_cast<nfx::json::Document&>( secondDoc ) ) );
-        }
-
-        /**
-         * @brief Deserialize std::pair from JSON document
-         * @param doc The document to deserialize from
-         * @param obj The pair object to deserialize into
-         */
-        static void deserialize( const SerializableDocument& doc, std::pair<TFirst, TSecond>& obj )
-        {
-            // Deserialize first
-            auto firstDoc = doc.document().get<nfx::json::Document>( "first" );
-            if( firstDoc.has_value() )
-            {
-                Serializer<TFirst> firstSerializer;
-                obj.first = firstSerializer.deserialize( firstDoc.value() );
-            }
-
-            // Deserialize second
-            auto secondDoc = doc.document().get<nfx::json::Document>( "second" );
-            if( secondDoc.has_value() )
-            {
-                Serializer<TSecond> secondSerializer;
-                obj.second = secondSerializer.deserialize( secondDoc.value() );
-            }
-        }
-    };
-} // namespace nfx::serialization::json
 
 //=====================================================================
 // PerfectHashMap support - enabled only if header is available
@@ -348,6 +283,45 @@ namespace nfx::serialization::json
             }
 
             obj = nfx::containers::PerfectHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>( std::move( items ) );
+        }
+    };
+
+    /**
+     * @brief BuilderTraits specialization for nfx::containers::PerfectHashMap (fast path for toString())
+     */
+    template <typename TKey, typename TValue, typename HashType, HashType Seed, typename Hasher, typename KeyEqual>
+    struct BuilderTraits<nfx::containers::PerfectHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>>
+    {
+        /**
+         * @brief Serialize PerfectHashMap using Builder API (13-23x faster than Document)
+         * @param obj The PerfectHashMap object to serialize
+         * @param builder The builder to write to
+         * @details Serializes as array of {key, value} objects: [{key:..., value:...}, ...]
+         */
+        static void serialize(
+            const nfx::containers::PerfectHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>& obj,
+            nfx::json::Builder& builder )
+        {
+            builder.writeStartArray();
+
+            for( auto it = obj.begin(); it != obj.end(); ++it )
+            {
+                const auto& pair = *it;
+
+                builder.writeStartObject();
+
+                // Write key
+                builder.writePropertyName( "key" );
+                Serializer<TKey>{}.serializeValue( pair.first, builder );
+
+                // Write value
+                builder.writePropertyName( "value" );
+                Serializer<TValue>{}.serializeValue( pair.second, builder );
+
+                builder.writeEndObject();
+            }
+
+            builder.writeEndArray();
         }
     };
 } // namespace nfx::serialization::json
@@ -628,6 +602,45 @@ namespace nfx::serialization::json
             }
         }
     };
+
+    /**
+     * @brief BuilderTraits specialization for nfx::containers::FastHashMap (fast path for toString())
+     */
+    template <typename TKey, typename TValue, typename HashType, HashType Seed, typename Hasher, typename KeyEqual>
+    struct BuilderTraits<nfx::containers::FastHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>>
+    {
+        /**
+         * @brief Serialize FastHashMap using Builder API (13-23x faster than Document)
+         * @param obj The FastHashMap object to serialize
+         * @param builder The builder to write to
+         * @details Serializes as array of {key, value} objects: [{key:..., value:...}, ...]
+         */
+        static void serialize(
+            const nfx::containers::FastHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>& obj,
+            nfx::json::Builder& builder )
+        {
+            builder.writeStartArray();
+
+            for( auto it = obj.begin(); it != obj.end(); ++it )
+            {
+                const auto& pair = *it;
+
+                builder.writeStartObject();
+
+                // Write key
+                builder.writePropertyName( "key" );
+                Serializer<TKey>{}.serializeValue( pair.first, builder );
+
+                // Write value
+                builder.writePropertyName( "value" );
+                Serializer<TValue>{}.serializeValue( pair.second, builder );
+
+                builder.writeEndObject();
+            }
+
+            builder.writeEndArray();
+        }
+    };
 } // namespace nfx::serialization::json
 
 #endif // __has_include(<nfx/containers/FastHashMap.h>)
@@ -734,6 +747,33 @@ namespace nfx::serialization::json
                     obj.insert( std::move( key ) );
                 }
             }
+        }
+    };
+
+    /**
+     * @brief BuilderTraits specialization for nfx::containers::FastHashSet (fast path for toString())
+     */
+    template <typename TKey, typename HashType, HashType Seed, typename Hasher, typename KeyEqual>
+    struct BuilderTraits<nfx::containers::FastHashSet<TKey, HashType, Seed, Hasher, KeyEqual>>
+    {
+        /**
+         * @brief Serialize FastHashSet using Builder API (13-23x faster than Document)
+         * @param obj The FastHashSet object to serialize
+         * @param builder The builder to write to
+         * @details Serializes as JSON array of elements
+         */
+        static void serialize(
+            const nfx::containers::FastHashSet<TKey, HashType, Seed, Hasher, KeyEqual>& obj,
+            nfx::json::Builder& builder )
+        {
+            builder.writeStartArray();
+
+            for( auto it = obj.begin(); it != obj.end(); ++it )
+            {
+                Serializer<TKey>{}.serializeValue( *it, builder );
+            }
+
+            builder.writeEndArray();
         }
     };
 } // namespace nfx::serialization::json
@@ -844,6 +884,31 @@ namespace nfx::serialization::json
                     obj.push_back( std::move( element ) );
                 }
             }
+        }
+    };
+
+    /**
+     * @brief BuilderTraits specialization for nfx::containers::SmallVector (fast path for toString())
+     */
+    template <typename T, std::size_t N>
+    struct BuilderTraits<nfx::containers::SmallVector<T, N>>
+    {
+        /**
+         * @brief Serialize SmallVector using Builder API (13-23x faster than Document)
+         * @param obj The SmallVector object to serialize
+         * @param builder The builder to write to
+         * @details Serializes as JSON array of elements
+         */
+        static void serialize( const nfx::containers::SmallVector<T, N>& obj, nfx::json::Builder& builder )
+        {
+            builder.writeStartArray();
+
+            for( const auto& element : obj )
+            {
+                Serializer<T>{}.serializeValue( element, builder );
+            }
+
+            builder.writeEndArray();
         }
     };
 } // namespace nfx::serialization::json

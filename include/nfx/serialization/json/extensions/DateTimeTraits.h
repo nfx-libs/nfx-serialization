@@ -41,6 +41,7 @@
 
 #include "nfx/serialization/json/SerializableDocument.h"
 #include "nfx/serialization/json/SerializationTraits.h"
+#include "nfx/serialization/json/BuilderTraits.h"
 
 //=====================================================================
 // TimeSpan support - enabled only if header is available
@@ -87,6 +88,18 @@ namespace nfx::serialization::json
             {
                 throw std::runtime_error{ "Invalid TimeSpan format: expected integer ticks" };
             }
+        }
+    };
+
+    /**
+     * @brief BuilderTraits specialization for nfx::time::TimeSpan (high-performance)
+     */
+    template <>
+    struct BuilderTraits<nfx::time::TimeSpan>
+    {
+        static void serialize( const nfx::time::TimeSpan& obj, Builder& builder )
+        {
+            builder.writeNumberValue( obj.ticks() );
         }
     };
 } // namespace nfx::serialization::json
@@ -140,6 +153,18 @@ namespace nfx::serialization::json
             }
         }
     };
+
+    /**
+     * @brief BuilderTraits specialization for nfx::time::DateTime (high-performance)
+     */
+    template <>
+    struct BuilderTraits<nfx::time::DateTime>
+    {
+        static void serialize( const nfx::time::DateTime& obj, Builder& builder )
+        {
+            builder.writeStringValue( obj.toString( nfx::time::DateTime::Format::Iso8601Precise ) );
+        }
+    };
 } // namespace nfx::serialization::json
 
 #endif // __has_include(<nfx/datetime/DateTime.h>)
@@ -189,6 +214,18 @@ namespace nfx::serialization::json
                     }
                 }
             }
+        }
+    };
+
+    /**
+     * @brief BuilderTraits specialization for nfx::time::DateTimeOffset (high-performance)
+     */
+    template <>
+    struct BuilderTraits<nfx::time::DateTimeOffset>
+    {
+        static void serialize( const nfx::time::DateTimeOffset& obj, Builder& builder )
+        {
+            builder.writeStringValue( obj.toString( nfx::time::DateTime::Format::Iso8601Precise ) );
         }
     };
 } // namespace nfx::serialization::json

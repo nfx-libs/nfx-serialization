@@ -33,9 +33,11 @@
 #pragma once
 
 #include "SerializationTraits.h"
+#include "BuilderTraits.h"
 #include "SerializableDocument.h"
 
 #include <nfx/json/Document.h>
+#include <nfx/json/Builder.h>
 
 namespace nfx::serialization::json
 {
@@ -52,6 +54,9 @@ namespace nfx::serialization::json
     template <typename T>
     class Serializer final
     {
+        template <typename U>
+        friend struct BuilderTraits;
+
     public:
         //----------------------------------------------
         // Serialization options and context
@@ -191,6 +196,15 @@ namespace nfx::serialization::json
          */
         template <typename U>
         inline void deserializeValue( const SerializableDocument& doc, U& obj ) const;
+
+        /**
+         * @brief High-performance serialization directly to Builder
+         * @tparam U The type to serialize (deduced from parameter)
+         * @param obj Object to serialize
+         * @param builder Builder to write JSON into
+         */
+        template <typename U>
+        inline void serializeValue( const U& obj, nfx::json::Builder& builder ) const;
 
         //----------------------------------------------
         // Member variables

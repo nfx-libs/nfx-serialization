@@ -2,13 +2,13 @@ name: CodeQL Security Analysis
 
 on:
   push:
-    branches: [main]
+    branches: [main, feature/json-builder-integration]
     paths-ignore:
       - "**/*.md"
       - "LICENSE.txt"
       - ".gitignore"
   pull_request:
-    branches: [main]
+    branches: [main, feature/json-builder-integration]
     paths-ignore:
       - "**/*.md"
       - "LICENSE.txt"

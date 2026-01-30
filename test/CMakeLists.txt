@@ -129,6 +129,7 @@ if(NFX_SERIALIZATION_WITH_JSON)
 
     list(APPEND test_sources
         Tests_JsonSerializer.cpp
+        Tests_JsonSerializerBuilder.cpp
     )
 endif()
 

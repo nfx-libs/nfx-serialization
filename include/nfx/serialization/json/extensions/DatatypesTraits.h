@@ -41,6 +41,7 @@
 
 #include "nfx/serialization/json/SerializableDocument.h"
 #include "nfx/serialization/json/SerializationTraits.h"
+#include "nfx/serialization/json/BuilderTraits.h"
 
 //=====================================================================
 // Int128 support - enabled only if header is available
@@ -101,6 +102,25 @@ namespace nfx::serialization::json
                     }
                 }
             }
+        }
+    };
+
+    /**
+     * @brief BuilderTraits specialization for nfx::datatypes::Int128
+     * @details Provides high-performance direct Builder serialization for Int128
+     */
+    template <>
+    struct BuilderTraits<nfx::datatypes::Int128>
+    {
+        /**
+         * @brief Serialize Int128 directly to Builder
+         * @param obj The Int128 object to serialize
+         * @param builder The Builder to write to
+         */
+        static void serialize( const nfx::datatypes::Int128& obj, nfx::json::Builder& builder )
+        {
+            std::string value = obj.toString();
+            builder.writeStringValue( value );
         }
     };
 } // namespace nfx::serialization::json
@@ -165,6 +185,25 @@ namespace nfx::serialization::json
                     }
                 }
             }
+        }
+    };
+
+    /**
+     * @brief BuilderTraits specialization for nfx::datatypes::Decimal
+     * @details Provides high-performance direct Builder serialization for Decimal
+     */
+    template <>
+    struct BuilderTraits<nfx::datatypes::Decimal>
+    {
+        /**
+         * @brief Serialize Decimal directly to Builder
+         * @param obj The Decimal object to serialize
+         * @param builder The Builder to write to
+         */
+        static void serialize( const nfx::datatypes::Decimal& obj, nfx::json::Builder& builder )
+        {
+            std::string value = obj.toString();
+            builder.writeStringValue( value );
         }
     };
 } // namespace nfx::serialization::json

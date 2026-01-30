@@ -51,7 +51,8 @@ if(NOT nfx-json_FOUND)
     FetchContent_Declare(
         nfx-json
             GIT_REPOSITORY https://github.com/nfx-libs/nfx-json.git
-            GIT_TAG        ${NFX_DEPS_NFX_JSON_VERSION}
+            #GIT_TAG        ${NFX_DEPS_NFX_JSON_VERSION}
+            GIT_TAG        feature/json-builder
             GIT_SHALLOW    TRUE
     )
 endif()

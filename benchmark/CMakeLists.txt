@@ -59,6 +59,8 @@ set(benchmark_sources "")
 if(NFX_SERIALIZATION_WITH_JSON)
     list(APPEND benchmark_sources
         BM_JsonSerialization.cpp
+        BM_JsonSerializerBuilder.cpp
+        BM_JsonExtensionTypes.cpp
     )
 endif()
 
@@ -80,6 +82,16 @@ foreach(benchmark_source ${benchmark_sources})
                 benchmark::benchmark
                 nfx-serialization::nfx-serialization
         )
+
+        # BM_JsonExtensionTypes needs extension libraries
+        if(benchmark_target_name STREQUAL "BM_JsonExtensionTypes")
+            if(TARGET nfx-datatypes::static)
+                target_link_libraries(${benchmark_target_name} PRIVATE nfx-datatypes::static)
+            endif()
+            if(TARGET nfx-datetime::static)
+                target_link_libraries(${benchmark_target_name} PRIVATE nfx-datetime::static)
+            endif()
+        endif()
 
         #----------------------------------------------
         # Enable specific CPU features
