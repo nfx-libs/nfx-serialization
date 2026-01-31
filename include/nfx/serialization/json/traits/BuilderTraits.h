@@ -40,10 +40,7 @@
 
 #pragma once
 
-#include "nfx/serialization/json/SerializableDocument.h"
-
 #include <nfx/json/Builder.h>
-#include <nfx/json/Document.h>
 
 #include <type_traits>
 
@@ -125,24 +122,4 @@ namespace nfx::serialization::json
         // No default implementation - must be specialized for each type
         // The has_builder_traits SFINAE detector will catch if this isn't specialized
     };
-
-    /**
-     * @brief BuilderTraits specialization for SerializableDocument
-     * @details Delegates to Builder's native write(Document) method for optimal performance.
-     *          Builder handles the Document traversal internally with zero-copy efficiency.
-     */
-    template <>
-    struct BuilderTraits<SerializableDocument>
-    {
-        /**
-         * @brief Serialize SerializableDocument to JSON Builder
-         * @param doc The SerializableDocument to serialize
-         * @param builder The JSON Builder to write to
-         */
-        static void serialize( const SerializableDocument& doc, nfx::json::Builder& builder )
-        {
-            builder.write( doc.document() );
-        }
-    };
-
 } // namespace nfx::serialization::json

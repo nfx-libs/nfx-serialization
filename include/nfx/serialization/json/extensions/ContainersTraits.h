@@ -58,114 +58,13 @@ namespace nfx::serialization::json
     struct DocumentTraits<nfx::containers::PerfectHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>>
     {
         /**
-         * @brief Serialize PerfectHashMap to JSON document as an array of key-value pairs
-         * @param obj The PerfectHashMap object to serialize
-         * @param doc The document to serialize into
-         * @details Uses array format to avoid JSON Pointer issues with empty/special character keys
-         */
-        static void toDocument(
-            const nfx::containers::PerfectHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>& obj,
-            SerializableDocument& doc )
-        {
-            // Create array to hold key-value pairs
-            doc.document().set<nfx::json::Array>( "" );
-
-            size_t index = 0;
-            // Use PerfectHashMap's iterator to traverse all key-value pairs
-            for( auto it = obj.begin(); it != obj.end(); ++it, ++index )
-            {
-                const auto& pair = *it;
-                const TKey& key = pair.first;
-                const TValue& value = pair.second;
-
-                // Build JSON Pointer path for this array index
-                char arrayPath[32];
-                std::snprintf( arrayPath, sizeof( arrayPath ), "/%zu", index );
-
-                // Initialize this array element as an object
-                doc.document().set<nfx::json::Object>( arrayPath );
-
-                // Serialize the key
-                Document keyDoc;
-                Serializer<TKey> keySerializer;
-                keyDoc = keySerializer.toDocument( key );
-
-                // Serialize the value
-                Document valueDoc;
-                Serializer<TValue> valueSerializer;
-                valueDoc = valueSerializer.toDocument( value );
-
-                // Build paths for key and value fields
-                std::string keyPath = std::string( arrayPath ) + "/key";
-                std::string valuePath = std::string( arrayPath ) + "/value";
-
-                // Add key and value to pair object
-                if( keyDoc.is<std::string>( "" ) )
-                {
-                    auto str = keyDoc.get<std::string>( "" );
-                    doc.set<std::string>( keyPath, str.value() );
-                }
-                else if( keyDoc.is<int>( "" ) )
-                {
-                    auto val = keyDoc.get<int64_t>( "" );
-                    doc.set<int64_t>( keyPath, val.value() );
-                }
-                else if( keyDoc.is<double>( "" ) )
-                {
-                    auto val = keyDoc.get<double>( "" );
-                    doc.set<double>( keyPath, val.value() );
-                }
-                else if( keyDoc.is<bool>( "" ) )
-                {
-                    auto val = keyDoc.get<bool>( "" );
-                    doc.set<bool>( keyPath, val.value() );
-                }
-                else if( keyDoc.is<Array>( "" ) || keyDoc.is<Object>( "" ) )
-                {
-                    doc.document().set<nfx::json::Document>(
-                        keyPath, std::move( static_cast<nfx::json::Document&>( keyDoc ) ) );
-                }
-
-                if( valueDoc.is<std::string>( "" ) )
-                {
-                    auto str = valueDoc.get<std::string>( "" );
-                    doc.set<std::string>( valuePath, str.value() );
-                }
-                else if( valueDoc.is<int>( "" ) )
-                {
-                    auto val = valueDoc.get<int64_t>( "" );
-                    doc.set<int64_t>( valuePath, val.value() );
-                }
-                else if( valueDoc.is<double>( "" ) )
-                {
-                    auto val = valueDoc.get<double>( "" );
-                    doc.set<double>( valuePath, val.value() );
-                }
-                else if( valueDoc.is<bool>( "" ) )
-                {
-                    auto val = valueDoc.get<bool>( "" );
-                    doc.set<bool>( valuePath, val.value() );
-                }
-                else if( valueDoc.isNull( "" ) )
-                {
-                    doc.setNull( valuePath );
-                }
-                else if( valueDoc.is<Array>( "" ) || valueDoc.is<Object>( "" ) )
-                {
-                    doc.document().set<nfx::json::Document>(
-                        valuePath, std::move( static_cast<nfx::json::Document&>( valueDoc ) ) );
-                }
-            }
-        }
-
-        /**
          * @brief Deserialize PerfectHashMap from JSON document
          * @param doc The document to deserialize from
          * @param obj The PerfectHashMap object to deserialize into
          * @details Expects array format with key-value pair objects
          */
         static void fromDocument(
-            const SerializableDocument& doc,
+            const Document& doc,
             nfx::containers::PerfectHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>& obj )
         {
             if( !doc.is<Array>( "" ) )
@@ -290,7 +189,7 @@ namespace nfx::serialization::json
     struct BuilderTraits<nfx::containers::PerfectHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>>
     {
         /**
-         * @brief Serialize PerfectHashMap using Builder API (13-23x faster than Document)
+         * @brief Serialize PerfectHashMap using Builder API
          * @param obj The PerfectHashMap object to serialize
          * @param builder The builder to write to
          * @details Serializes as array of {key, value} objects: [{key:..., value:...}, ...]
@@ -342,115 +241,13 @@ namespace nfx::serialization::json
     struct DocumentTraits<nfx::containers::FastHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>>
     {
         /**
-         * @brief Serialize FastHashMap to JSON document as an array of key-value pairs
-         * @param obj The FastHashMap object to serialize
-         * @param doc The document to serialize into
-         * @details Uses array format to avoid JSON Pointer issues with empty/special character keys
-         */
-        static void toDocument(
-            const nfx::containers::FastHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>& obj,
-            SerializableDocument& doc )
-        {
-            // Create array to hold key-value pairs
-            doc.document().set<nfx::json::Array>( "" );
-
-            size_t index = 0;
-            // Use FastHashMap's iterator to traverse all key-value pairs
-            for( auto it = obj.begin(); it != obj.end(); ++it, ++index )
-            {
-                const auto& pair = *it;
-                const TKey& key = pair.first;
-                const TValue& value = pair.second;
-
-                // Build JSON Pointer path for this array index
-                char arrayPath[32];
-                std::snprintf( arrayPath, sizeof( arrayPath ), "/%zu", index );
-
-                // Initialize this array element as an object
-                doc.document().set<nfx::json::Object>( arrayPath );
-
-                // Serialize the key
-                Document keyDoc;
-                Serializer<TKey> keySerializer;
-                keyDoc = keySerializer.toDocument( key );
-
-                // Serialize the value
-                Document valueDoc;
-                Serializer<TValue> valueSerializer;
-                valueDoc = valueSerializer.toDocument( value );
-
-                // Build paths for key and value fields
-                std::string keyPath = std::string( arrayPath ) + "/key";
-                std::string valuePath = std::string( arrayPath ) + "/value";
-
-                // Add key to pair object
-                if( keyDoc.is<std::string>( "" ) )
-                {
-                    auto str = keyDoc.get<std::string>( "" );
-                    doc.set<std::string>( keyPath, str.value() );
-                }
-                else if( keyDoc.is<int>( "" ) )
-                {
-                    auto val = keyDoc.get<int64_t>( "" );
-                    doc.set<int64_t>( keyPath, val.value() );
-                }
-                else if( keyDoc.is<double>( "" ) )
-                {
-                    auto val = keyDoc.get<double>( "" );
-                    doc.set<double>( keyPath, val.value() );
-                }
-                else if( keyDoc.is<bool>( "" ) )
-                {
-                    auto val = keyDoc.get<bool>( "" );
-                    doc.set<bool>( keyPath, val.value() );
-                }
-                else if( keyDoc.is<Array>( "" ) || keyDoc.is<Object>( "" ) )
-                {
-                    doc.document().set<nfx::json::Document>(
-                        keyPath, std::move( static_cast<nfx::json::Document&>( keyDoc ) ) );
-                }
-
-                // Add value to pair object
-                if( valueDoc.is<std::string>( "" ) )
-                {
-                    auto str = valueDoc.get<std::string>( "" );
-                    doc.set<std::string>( valuePath, str.value() );
-                }
-                else if( valueDoc.is<int>( "" ) )
-                {
-                    auto val = valueDoc.get<int64_t>( "" );
-                    doc.set<int64_t>( valuePath, val.value() );
-                }
-                else if( valueDoc.is<double>( "" ) )
-                {
-                    auto val = valueDoc.get<double>( "" );
-                    doc.set<double>( valuePath, val.value() );
-                }
-                else if( valueDoc.is<bool>( "" ) )
-                {
-                    auto val = valueDoc.get<bool>( "" );
-                    doc.set<bool>( valuePath, val.value() );
-                }
-                else if( valueDoc.isNull( "" ) )
-                {
-                    doc.setNull( valuePath );
-                }
-                else if( valueDoc.is<Array>( "" ) || valueDoc.is<Object>( "" ) )
-                {
-                    doc.document().set<nfx::json::Document>(
-                        valuePath, std::move( static_cast<nfx::json::Document&>( valueDoc ) ) );
-                }
-            }
-        }
-
-        /**
          * @brief Deserialize FastHashMap from JSON document
          * @param doc The document to deserialize from
          * @param obj The FastHashMap object to deserialize into
          * @details Supports both array format and object format for compatibility
          */
         static void fromDocument(
-            const SerializableDocument& doc,
+            const Document& doc,
             nfx::containers::FastHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>& obj )
         {
             // Clear existing content
@@ -476,13 +273,13 @@ namespace nfx::serialization::json
                             Document keyDoc;
                             keyDoc.set( "", keyStr );
                             Serializer<TKey> keySerializer;
-                            key = keySerializer.fromDocument( keyDoc );
+                            keySerializer.deserializeValue( keyDoc, key );
                         }
 
                         // Extract value
                         TValue value{};
                         Serializer<TValue> valueSerializer;
-                        value = valueSerializer.fromDocument( valueDoc );
+                        valueSerializer.deserializeValue( valueDoc, value );
                         obj.insertOrAssign( std::move( key ), std::move( value ) );
                     }
                 }
@@ -607,7 +404,7 @@ namespace nfx::serialization::json
     struct BuilderTraits<nfx::containers::FastHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>>
     {
         /**
-         * @brief Serialize FastHashMap using Builder API (13-23x faster than Document)
+         * @brief Serialize FastHashMap using Builder API
          * @param obj The FastHashMap object to serialize
          * @param builder The builder to write to
          * @details Serializes as array of {key, value} objects: [{key:..., value:...}, ...]
@@ -659,68 +456,12 @@ namespace nfx::serialization::json
     struct DocumentTraits<nfx::containers::FastHashSet<TKey, HashType, Seed, Hasher, KeyEqual>>
     {
         /**
-         * @brief Serialize FastHashSet to JSON document as an array
-         * @param obj The FastHashSet object to serialize
-         * @param doc The document to serialize into
-         */
-        static void toDocument(
-            const nfx::containers::FastHashSet<TKey, HashType, Seed, Hasher, KeyEqual>& obj, SerializableDocument& doc )
-        {
-            // Create array document
-            doc.document().set<nfx::json::Array>( "" );
-
-            size_t index = 0;
-            // Use FastHashSet's iterator to traverse all elements
-            for( auto it = obj.begin(); it != obj.end(); ++it, ++index )
-            {
-                const TKey& key = *it;
-
-                // Serialize the key using a temporary serializer
-                Document keyDoc;
-                Serializer<TKey> keySerializer;
-                keyDoc = keySerializer.toDocument( key );
-
-                // Build JSON Pointer path for this index
-                char arrayPath[32];
-                std::snprintf( arrayPath, sizeof( arrayPath ), "/%zu", index );
-
-                // Add to array based on type
-                if( keyDoc.is<std::string>( "" ) )
-                {
-                    auto str = keyDoc.get<std::string>( "" );
-                    doc.set<std::string>( arrayPath, str.value() );
-                }
-                else if( keyDoc.is<int>( "" ) )
-                {
-                    auto val = keyDoc.get<int64_t>( "" );
-                    doc.set<int64_t>( arrayPath, val.value() );
-                }
-                else if( keyDoc.is<double>( "" ) )
-                {
-                    auto val = keyDoc.get<double>( "" );
-                    doc.set<double>( arrayPath, val.value() );
-                }
-                else if( keyDoc.is<bool>( "" ) )
-                {
-                    auto val = keyDoc.get<bool>( "" );
-                    doc.set<bool>( arrayPath, val.value() );
-                }
-                else if( keyDoc.is<Object>( "" ) || keyDoc.is<Array>( "" ) )
-                {
-                    // Handle nested objects and arrays
-                    doc.document().set<nfx::json::Document>(
-                        arrayPath, std::move( static_cast<nfx::json::Document&>( keyDoc ) ) );
-                }
-            }
-        }
-
-        /**
          * @brief Deserialize FastHashSet from JSON document
          * @param doc The document to deserialize from
          * @param obj The FastHashSet object to deserialize into
          */
         static void fromDocument(
-            const SerializableDocument& doc, nfx::containers::FastHashSet<TKey, HashType, Seed, Hasher, KeyEqual>& obj )
+            const Document& doc, nfx::containers::FastHashSet<TKey, HashType, Seed, Hasher, KeyEqual>& obj )
         {
             if( !doc.is<Array>( "" ) )
             {
@@ -739,7 +480,7 @@ namespace nfx::serialization::json
                     // Deserialize the key using a temporary serializer
                     TKey key{};
                     Serializer<TKey> keySerializer;
-                    key = keySerializer.fromDocument( elementDoc );
+                    keySerializer.deserializeValue( elementDoc, key );
 
                     obj.insert( std::move( key ) );
                 }
@@ -754,7 +495,7 @@ namespace nfx::serialization::json
     struct BuilderTraits<nfx::containers::FastHashSet<TKey, HashType, Seed, Hasher, KeyEqual>>
     {
         /**
-         * @brief Serialize FastHashSet using Builder API (13-23x faster than Document)
+         * @brief Serialize FastHashSet using Builder API
          * @param obj The FastHashSet object to serialize
          * @param builder The builder to write to
          * @details Serializes as JSON array of elements
@@ -794,70 +535,11 @@ namespace nfx::serialization::json
     struct DocumentTraits<nfx::containers::SmallVector<T, N>>
     {
         /**
-         * @brief Serialize SmallVector to JSON document as an array
-         * @param obj The SmallVector object to serialize
-         * @param doc The document to serialize into
-         */
-        static void toDocument( const nfx::containers::SmallVector<T, N>& obj, SerializableDocument& doc )
-        {
-            // Create array document
-            doc.document().set<nfx::json::Array>( "" );
-
-            size_t index = 0;
-            // Use SmallVector's iterator to traverse all elements
-            for( auto it = obj.begin(); it != obj.end(); ++it, ++index )
-            {
-                const T& element = *it;
-
-                // Serialize the element using a temporary serializer
-                Document elementDoc;
-                Serializer<T> elementSerializer;
-                elementDoc = elementSerializer.toDocument( element );
-
-                // Build JSON Pointer path for this index
-                char arrayPath[32];
-                std::snprintf( arrayPath, sizeof( arrayPath ), "/%zu", index );
-
-                // Add to array based on type
-                if( elementDoc.is<std::string>( "" ) )
-                {
-                    auto str = elementDoc.get<std::string>( "" );
-                    doc.set<std::string>( arrayPath, str.value() );
-                }
-                else if( elementDoc.is<int>( "" ) )
-                {
-                    auto val = elementDoc.get<int64_t>( "" );
-                    doc.set<int64_t>( arrayPath, val.value() );
-                }
-                else if( elementDoc.is<double>( "" ) )
-                {
-                    auto val = elementDoc.get<double>( "" );
-                    doc.set<double>( arrayPath, val.value() );
-                }
-                else if( elementDoc.is<bool>( "" ) )
-                {
-                    auto val = elementDoc.get<bool>( "" );
-                    doc.set<bool>( arrayPath, val.value() );
-                }
-                else if( elementDoc.isNull( "" ) )
-                {
-                    doc.setNull( arrayPath );
-                }
-                else if( elementDoc.is<Object>( "" ) || elementDoc.is<Array>( "" ) )
-                {
-                    // Handle nested objects and arrays
-                    doc.document().set<nfx::json::Document>(
-                        arrayPath, std::move( static_cast<nfx::json::Document&>( elementDoc ) ) );
-                }
-            }
-        }
-
-        /**
          * @brief Deserialize SmallVector from JSON document
          * @param obj The SmallVector object to deserialize into
          * @param doc The document to deserialize from
          */
-        static void fromDocument( const SerializableDocument& doc, nfx::containers::SmallVector<T, N>& obj )
+        static void fromDocument( const Document& doc, nfx::containers::SmallVector<T, N>& obj )
         {
             if( !doc.is<Array>( "" ) )
             {
@@ -876,7 +558,7 @@ namespace nfx::serialization::json
                     // Deserialize the element using a temporary serializer
                     T element{};
                     Serializer<T> elementSerializer;
-                    element = elementSerializer.fromDocument( elementDoc );
+                    elementSerializer.deserializeValue( elementDoc, element );
 
                     obj.push_back( std::move( element ) );
                 }
@@ -891,7 +573,7 @@ namespace nfx::serialization::json
     struct BuilderTraits<nfx::containers::SmallVector<T, N>>
     {
         /**
-         * @brief Serialize SmallVector using Builder API (13-23x faster than Document)
+         * @brief Serialize SmallVector using Builder API
          * @param obj The SmallVector object to serialize
          * @param builder The builder to write to
          * @details Serializes as JSON array of elements

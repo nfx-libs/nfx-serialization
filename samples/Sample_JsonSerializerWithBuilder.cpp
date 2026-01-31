@@ -29,7 +29,7 @@
  *          compared to the Document-based approach, with 30-150% performance improvements.
  */
 
-#include <nfx/Serialization.h>
+#include <nfx/serialization/json/Serializer.h>
 #include <nfx/json/Builder.h>
 
 #include <iostream>

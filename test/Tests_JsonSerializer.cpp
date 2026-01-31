@@ -33,7 +33,8 @@
 
 #include <gtest/gtest.h>
 
-#include <nfx/Serialization.h>
+#include <nfx/serialization/json/Serializer.h>
+#include <nfx/json/Document.h>
 
 #include <array>
 #include <deque>
@@ -204,7 +205,7 @@ namespace nfx::serialization::json::test
             return name == other.name && age == other.age && email == other.email && hobbies == other.hobbies;
         }
 
-        // Custom toDocument method (void return, takes Document&)
+        // Custom toDocument method
         void toDocument( const Serializer<Person>& serializer, Document& doc ) const
         {
             doc.set<std::string>( "/name", name );
@@ -222,11 +223,13 @@ namespace nfx::serialization::json::test
 
             // Serialize hobbies vector using Serializer
             Serializer<std::vector<std::string>> hobbiesSerializer;
-            Document hobbiesDoc = hobbiesSerializer.toDocument( hobbies );
-            doc.set<Document>( "/hobbies", hobbiesDoc );
+            auto hobbiesJson = hobbiesSerializer.toString( hobbies );
+            auto hobbiesDoc = Document::fromString( hobbiesJson );
+            if( hobbiesDoc )
+                doc.set<Document>( "/hobbies", *hobbiesDoc );
         }
 
-        // Custom fromDocument method (doc first, serializer second)
+        // Custom fromDocument method
         void fromDocument( const Document& doc, const Serializer<Person>& serializer )
         {
             if( auto nameVal = doc.get<std::string>( "/name" ) )
@@ -251,7 +254,8 @@ namespace nfx::serialization::json::test
             if( auto hobbiesDocOpt = doc.get<Document>( "/hobbies" ) )
             {
                 Serializer<std::vector<std::string>> hobbiesSerializer;
-                hobbies = hobbiesSerializer.fromDocument( *hobbiesDocOpt );
+                auto hobbiesJson = hobbiesDocOpt->toString();
+                hobbies = hobbiesSerializer.fromString( hobbiesJson );
             }
 
             if( serializer.options().validateOnDeserialize )

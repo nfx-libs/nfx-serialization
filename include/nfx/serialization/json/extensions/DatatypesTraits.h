@@ -67,20 +67,6 @@ namespace nfx::serialization::json
     struct DocumentTraits<nfx::datatypes::Int128>
     {
         /**
-         * @brief Serialize Int128 to JSON document using platform-independent string representation
-         * @param obj The Int128 object to serialize
-         * @param doc The document to serialize into
-         * @details Uses toString() method to ensure cross-platform compatibility.
-         *          String representation works consistently across GCC/Clang (native __int128)
-         *          and MSVC (manual implementation) platforms.
-         */
-        static void toDocument( const nfx::datatypes::Int128& obj, Document& doc )
-        {
-            std::string value = obj.toString();
-            doc.set<std::string>( "", value );
-        }
-
-        /**
          * @brief Deserialize Int128 from JSON document using platform-independent string parsing
          * @param obj The Int128 object to deserialize into
          * @param doc The document to deserialize from
@@ -150,19 +136,6 @@ namespace nfx::serialization::json
     template <>
     struct DocumentTraits<nfx::datatypes::Decimal>
     {
-        /**
-         * @brief Serialize Decimal to JSON document using platform-independent string representation
-         * @param obj The Decimal object to serialize
-         * @param doc The document to serialize into
-         * @details Uses toString() method to ensure cross-platform compatibility.
-         *          String representation is platform-independent and preserves full precision.
-         */
-        static void toDocument( const nfx::datatypes::Decimal& obj, Document& doc )
-        {
-            std::string value = obj.toString();
-            doc.set<std::string>( "", value );
-        }
-
         /**
          * @brief Deserialize Decimal from JSON document using platform-independent string parsing
          * @param obj The Decimal object to deserialize into

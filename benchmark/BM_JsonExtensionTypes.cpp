@@ -5,9 +5,10 @@
 
 #include <benchmark/benchmark.h>
 
-#include <nfx/Serialization.h>
+#include <nfx/serialization/json/extensions/ContainersTraits.h>
 #include <nfx/serialization/json/extensions/DatatypesTraits.h>
 #include <nfx/serialization/json/extensions/DateTimeTraits.h>
+#include <nfx/serialization/json/Serializer.h>
 
 using namespace nfx::serialization::json;
 
@@ -22,7 +23,7 @@ static void BM_Int128_Single( benchmark::State& state )
     for( auto _ : state )
     {
         Serializer<nfx::datatypes::Int128> ser;
-        std::string result = ser.toDocument( value ).toString();
+        std::string result = ser.toString( value );
         benchmark::DoNotOptimize( result );
     }
 }
@@ -39,7 +40,7 @@ static void BM_Int128_VectorSmall( benchmark::State& state )
     for( auto _ : state )
     {
         Serializer<std::vector<nfx::datatypes::Int128>> ser;
-        std::string result = ser.toDocument( values ).toString();
+        std::string result = ser.toString( values );
         benchmark::DoNotOptimize( result );
     }
 }
@@ -56,7 +57,7 @@ static void BM_Int128_VectorLarge( benchmark::State& state )
     for( auto _ : state )
     {
         Serializer<std::vector<nfx::datatypes::Int128>> ser;
-        std::string result = ser.toDocument( values ).toString();
+        std::string result = ser.toString( values );
         benchmark::DoNotOptimize( result );
     }
 }
@@ -73,7 +74,7 @@ static void BM_Decimal_Single( benchmark::State& state )
     for( auto _ : state )
     {
         Serializer<nfx::datatypes::Decimal> ser;
-        std::string result = ser.toDocument( value ).toString();
+        std::string result = ser.toString( value );
         benchmark::DoNotOptimize( result );
     }
 }
@@ -90,7 +91,7 @@ static void BM_Decimal_VectorSmall( benchmark::State& state )
     for( auto _ : state )
     {
         Serializer<std::vector<nfx::datatypes::Decimal>> ser;
-        std::string result = ser.toDocument( values ).toString();
+        std::string result = ser.toString( values );
         benchmark::DoNotOptimize( result );
     }
 }
@@ -107,7 +108,7 @@ static void BM_TimeSpan_Single( benchmark::State& state )
     for( auto _ : state )
     {
         Serializer<nfx::time::TimeSpan> ser;
-        std::string result = ser.toDocument( value ).toString();
+        std::string result = ser.toString( value );
         benchmark::DoNotOptimize( result );
     }
 }
@@ -124,7 +125,7 @@ static void BM_TimeSpan_VectorSmall( benchmark::State& state )
     for( auto _ : state )
     {
         Serializer<std::vector<nfx::time::TimeSpan>> ser;
-        std::string result = ser.toDocument( values ).toString();
+        std::string result = ser.toString( values );
         benchmark::DoNotOptimize( result );
     }
 }
@@ -141,7 +142,7 @@ static void BM_DateTime_Single( benchmark::State& state )
     for( auto _ : state )
     {
         Serializer<nfx::time::DateTime> ser;
-        std::string result = ser.toDocument( value ).toString();
+        std::string result = ser.toString( value );
         benchmark::DoNotOptimize( result );
     }
 }
@@ -159,14 +160,14 @@ static void BM_DateTime_VectorSmall( benchmark::State& state )
     for( auto _ : state )
     {
         Serializer<std::vector<nfx::time::DateTime>> ser;
-        std::string result = ser.toDocument( values ).toString();
+        std::string result = ser.toString( values );
         benchmark::DoNotOptimize( result );
     }
 }
 BENCHMARK( BM_DateTime_VectorSmall );
 
 //=====================================================================
-// Comparison Benchmarks: BuilderTraits (toString) vs DocumentTraits (serialize)
+// Comparison Benchmarks: BuilderTraits (toString) vs DocumentTraits (toDocument)
 //=====================================================================
 
 // Int128 comparison
@@ -177,7 +178,7 @@ static void BM_Int128_BuilderTraits( benchmark::State& state )
     for( auto _ : state )
     {
         Serializer<nfx::datatypes::Int128> ser;
-        std::string result = ser.toString( value ); // ← Uses BuilderTraits
+        std::string result = ser.toString( value );
         benchmark::DoNotOptimize( result );
     }
 }
@@ -190,7 +191,7 @@ static void BM_Int128_DocumentTraits( benchmark::State& state )
     for( auto _ : state )
     {
         Serializer<nfx::datatypes::Int128> ser;
-        std::string result = ser.toDocument( value ).toString(); // ← Uses DocumentTraits
+        std::string result = ser.toString( value );
         benchmark::DoNotOptimize( result );
     }
 }
@@ -204,7 +205,7 @@ static void BM_Decimal_BuilderTraits( benchmark::State& state )
     for( auto _ : state )
     {
         Serializer<nfx::datatypes::Decimal> ser;
-        std::string result = ser.toString( value ); // ← Uses BuilderTraits
+        std::string result = ser.toString( value );
         benchmark::DoNotOptimize( result );
     }
 }
@@ -217,7 +218,7 @@ static void BM_Decimal_DocumentTraits( benchmark::State& state )
     for( auto _ : state )
     {
         Serializer<nfx::datatypes::Decimal> ser;
-        std::string result = ser.toDocument( value ).toString(); // ← Uses DocumentTraits
+        std::string result = ser.toString( value );
         benchmark::DoNotOptimize( result );
     }
 }
@@ -231,7 +232,7 @@ static void BM_DateTime_BuilderTraits( benchmark::State& state )
     for( auto _ : state )
     {
         Serializer<nfx::time::DateTime> ser;
-        std::string result = ser.toString( value ); // ← Uses BuilderTraits
+        std::string result = ser.toString( value );
         benchmark::DoNotOptimize( result );
     }
 }
@@ -244,7 +245,7 @@ static void BM_DateTime_DocumentTraits( benchmark::State& state )
     for( auto _ : state )
     {
         Serializer<nfx::time::DateTime> ser;
-        std::string result = ser.toDocument( value ).toString(); // ← Uses DocumentTraits
+        std::string result = ser.toString( value );
         benchmark::DoNotOptimize( result );
     }
 }

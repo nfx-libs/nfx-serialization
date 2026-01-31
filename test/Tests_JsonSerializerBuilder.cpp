@@ -33,6 +33,7 @@
 #include <gtest/gtest.h>
 
 #include <nfx/Serialization.h>
+#include <nfx/serialization/json/traits/DocumentTraits.h>
 
 #include <array>
 #include <deque>

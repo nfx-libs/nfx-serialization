@@ -37,15 +37,10 @@
 namespace nfx::serialization::json
 {
     //=====================================================================
-    // Forward declarations
-    //=====================================================================
-
-    class SerializableDocument; // Extended Document with serialization support
-
-    //=====================================================================
     // Import types from nfx::json
     //=====================================================================
 
+    using nfx::json::Document;
     using nfx::json::Array;
     using nfx::json::Object;
     using nfx::json::Type;
@@ -132,26 +127,22 @@ namespace nfx::serialization::json
      *          - nfx extension types (use DocumentTraits)
      *          - Primitives (delegated to base Document)
      *          - JSON containers (delegated to base Document)
-     *          - SerializableDocument itself (avoid recursion)
      *          - Document derivatives (avoid confusion)
      */
     template <typename T>
-    concept StlSerializable =
-        !detail::is_nfx_extension_type_v<T> && !nfx::json::Primitive<T> && !is_json_container_v<T> &&
-        !std::is_same_v<std::remove_cvref_t<T>, SerializableDocument> &&
-        !std::is_base_of_v<nfx::json::Document, std::remove_cvref_t<T>>;
+    concept StlSerializable = !detail::is_nfx_extension_type_v<T> && !nfx::json::Primitive<T> &&
+                              !is_json_container_v<T> &&
+                              !std::is_base_of_v<nfx::json::Document, std::remove_cvref_t<T>>;
 
     /**
      * @brief Concept for nfx extension types that use DocumentTraits<T>
      * @details Matches types that ARE nfx extensions but NOT:
      *          - Primitives (delegated to base Document)
      *          - JSON containers (delegated to base Document)
-     *          - SerializableDocument itself (avoid recursion)
      *          - Document derivatives (avoid confusion)
      */
     template <typename T>
-    concept NfxSerializable =
-        detail::is_nfx_extension_type_v<T> && !nfx::json::Primitive<T> && !is_json_container_v<T> &&
-        !std::is_same_v<std::remove_cvref_t<T>, SerializableDocument> &&
-        !std::is_base_of_v<nfx::json::Document, std::remove_cvref_t<T>>;
+    concept NfxSerializable = detail::is_nfx_extension_type_v<T> && !nfx::json::Primitive<T> &&
+                              !is_json_container_v<T> &&
+                              !std::is_base_of_v<nfx::json::Document, std::remove_cvref_t<T>>;
 } // namespace nfx::serialization::json

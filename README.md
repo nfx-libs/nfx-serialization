@@ -21,7 +21,9 @@ nfx-serialization is a modern C++20 library that provides a powerful C++ type se
 ### 🔄 C++ Type Serialization
 
 - **Serializer<T>**: Template-based automatic serialization/deserialization with compile-time type detection
-- **SerializationTraits**: Extensible trait system for custom type support
+- **Dual Serialization APIs**:
+  - **DocumentTraits**: Bidirectional DOM-based serialization for full JSON manipulation
+  - **BuilderTraits**: Write-only streaming serialization for optimal performance
 - **Type-safe**: Automatic type mapping with compile-time verification
 - **Zero-overhead**: Header-only template implementations with inline expansion
 
@@ -31,7 +33,7 @@ nfx-serialization is a modern C++20 library that provides a powerful C++ type se
 - STL containers (`vector`, `array`, `list`, `deque`, `set`, `unordered_set`, `map`, `unordered_map`)
 - Smart pointers (`unique_ptr`, `shared_ptr`)
 - Optional types (`std::optional`, `std::nullopt`)
-- Custom types via `SerializationTraits` specialization
+- Custom types via `DocumentTraits` specialization
 - Nested structures and containers
 
 ### 🔌 Optional nfx Library Extensions
@@ -258,7 +260,7 @@ if (hobbiesDoc) {
 }
 ```
 
-### Custom Type Serialization with SerializationTraits
+### Custom Type Serialization with DocumentTraits
 
 ```cpp
 #include <nfx/Serialization.h>
@@ -275,23 +277,23 @@ struct Person {
 
 // Define serialization traits
 template<>
-struct SerializationTraits<Person> {
-    static void serialize(const Person& person, Document& doc) {
+struct DocumentTraits<Person> {
+    static void toDocument(const Person& person, Document& doc) {
         doc.set<std::string>("/name", person.name);
         doc.set<int64_t>("/age", person.age);
         
         // Serialize hobbies vector
-        auto hobbiesDoc = Serializer<std::vector<std::string>>().serialize(person.hobbies);
+        auto hobbiesDoc = Serializer<std::vector<std::string>>().toDocument(person.hobbies);
         doc.set<Document>("/hobbies", hobbiesDoc);
     }
 
-    static void deserialize(Person& person, const Document& doc) {
+    static void fromDocument(const Document& doc, Person& person) {
         person.name = doc.get<std::string>("/name").value_or("");
         person.age = static_cast<int>(doc.get<int64_t>("/age").value_or(0));
         
         // Deserialize hobbies vector
         if (auto hobbiesDoc = doc.get<Document>("/hobbies")) {
-            person.hobbies = Serializer<std::vector<std::string>>().deserialize(*hobbiesDoc);
+            person.hobbies = Serializer<std::vector<std::string>>().fromDocument(*hobbiesDoc);
         }
     }
 };
@@ -307,6 +309,52 @@ std::string json = Serializer<Person>::toString(alice);
 Person restored = Serializer<Person>::fromString(json);
 // restored == alice
 ```
+
+### Streaming Serialization with BuilderTraits
+
+For write-only scenarios where you only need to serialize (not deserialize), use BuilderTraits for optimal performance:
+
+```cpp
+#include <nfx/Serialization.h>
+
+using namespace nfx::json;
+using namespace nfx::serialization::json;
+
+struct Person {
+    std::string name;
+    int age;
+    std::vector<std::string> hobbies;
+};
+
+// Define streaming serialization traits (write-only)
+template<>
+struct BuilderTraits<Person> {
+    static void serialize(const Person& person, Builder& builder) {
+        builder.startObject();
+        builder.key("name").write(person.name);
+        builder.key("age").write(person.age);
+        
+        builder.key("hobbies");
+        builder.startArray();
+        for (const auto& hobby : person.hobbies) {
+            builder.write(hobby);
+        }
+        builder.endArray();
+        
+        builder.endObject();
+    }
+};
+
+Person alice{"Alice", 30, {"reading", "coding"}};
+std::string json = Serializer<Person>::toString(alice);
+// Result: {"name":"Alice","age":30,"hobbies":["reading","coding"]}
+```
+
+**When to use BuilderTraits vs DocumentTraits:**
+- **BuilderTraits**: Write-only streaming (faster, lower memory, single-pass)
+- **DocumentTraits**: Bidirectional with full JSON manipulation (modify before/after serialization)
+
+**Note**: Both traits can coexist - the Serializer automatically uses BuilderTraits for `toString()` if available, and falls back to DocumentTraits.
 
 ### Complete Example - Combining nfx-json and nfx-serialization
 
@@ -396,9 +444,9 @@ Restored 3 users
 
 nfx-serialization provides two approaches for integrating custom types:
 
-#### Approach 1: SerializationTraits for Custom Objects
+#### Approach 1: DocumentTraits for Custom Objects
 
-For types that need custom JSON representation, implement `SerializationTraits`:
+For types that need custom JSON representation, implement `DocumentTraits`:
 
 ```cpp
 #include <nfx/Serialization.h>
@@ -412,14 +460,14 @@ struct Point3D {
 
 // Define how Point3D serializes
 template<>
-struct SerializationTraits<Point3D> {
-    static void serialize(const Point3D& point, Document& doc) {
+struct DocumentTraits<Point3D> {
+    static void toDocument(const Point3D& point, Document& doc) {
         doc.set<double>("/x", point.x);
         doc.set<double>("/y", point.y);
         doc.set<double>("/z", point.z);
     }
 
-    static void deserialize(Point3D& point, const Document& doc) {
+    static void fromDocument(const Document& doc, Point3D& point) {
         point.x = doc.get<double>("/x").value_or(0.0);
         point.y = doc.get<double>("/y").value_or(0.0);
         point.z = doc.get<double>("/z").value_or(0.0);
@@ -585,8 +633,9 @@ nfx-serialization/
 ├── include/nfx/
 │   └── serialization/json/
 │       ├── Serializer.h           # Main serializer class
-│       ├── SerializableDocument.h # Document wrapper for serialization
-│       ├── SerializationTraits.h  # Trait specialization interface
+│       ├── traits/
+│       │   ├── DocumentTraits.h   # Bidirectional DOM-based traits
+│       │   └── BuilderTraits.h    # Streaming write-only traits
 │       ├── Concepts.h             # C++20 concepts and type traits
 │       └── extensions/            # Optional nfx library integrations
 │           ├── ContainersTraits.h # nfx-containers support
@@ -629,4 +678,4 @@ All dependencies are automatically fetched via CMake FetchContent when building 
 
 ---
 
-_Updated on January 25, 2026_
+_Updated on January 31, 2026_

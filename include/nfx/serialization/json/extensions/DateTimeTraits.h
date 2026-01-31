@@ -58,16 +58,6 @@ namespace nfx::serialization::json
     struct DocumentTraits<nfx::time::TimeSpan>
     {
         /**
-         * @brief Serialize TimeSpan to JSON document using platform-optimized methods
-         * @param obj The TimeSpan object to serialize
-         * @param doc The document to serialize into
-         */
-        static void toDocument( const nfx::time::TimeSpan& obj, Document& doc )
-        {
-            doc.set<int64_t>( "", obj.ticks() );
-        }
-
-        /**
          * @brief Deserialize TimeSpan from JSON document using platform-optimized methods
          * @param obj The TimeSpan object to deserialize into
          * @param doc The document to deserialize from
@@ -121,17 +111,6 @@ namespace nfx::serialization::json
     struct DocumentTraits<nfx::time::DateTime>
     {
         /**
-         * @brief Serialize DateTime to JSON document using platform-optimized methods
-         * @param obj The DateTime object to serialize
-         * @param doc The document to serialize into
-         */
-        static void toDocument( const nfx::time::DateTime& obj, Document& doc )
-        {
-            std::string value = obj.toString( nfx::time::DateTime::Format::Iso8601Precise );
-            doc.set<std::string>( "", value );
-        }
-
-        /**
          * @brief Deserialize DateTime from JSON document using platform-optimized methods
          * @param obj The DateTime object to deserialize into
          * @param doc The document to deserialize from
@@ -183,17 +162,6 @@ namespace nfx::serialization::json
     template <>
     struct DocumentTraits<nfx::time::DateTimeOffset>
     {
-        /**
-         * @brief Serialize DateTimeOffset to JSON document using platform-optimized methods
-         * @param obj The DateTimeOffset object to serialize
-         * @param doc The document to serialize into
-         */
-        static void toDocument( const nfx::time::DateTimeOffset& obj, Document& doc )
-        {
-            std::string value = obj.toString( nfx::time::DateTime::Format::Iso8601Precise );
-            doc.set<std::string>( "", value );
-        }
-
         /**
          * @brief Deserialize DateTimeOffset from JSON document using platform-optimized methods
          * @param obj The DateTimeOffset object to deserialize into

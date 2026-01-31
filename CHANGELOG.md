@@ -4,11 +4,43 @@
 
 ### Added
 
-- NIL
+- **Serializer**: Added streaming serialization with BuilderTraits API
+  - New `BuilderTraits<T>` template for streaming JSON generation via Builder API
+  - Eliminates Document intermediate representation for performance improvement
+  - BuilderTraits specializations for all nfx extension types (containers, datatypes, datetime)
+  - New sample: `Sample_JsonSerializerWithBuilder.cpp`
+  - New tests: `Tests_JsonSerializerBuilder.cpp`
+- **Serializer**: Added native `std::pair<TFirst, TSecond>` support in core serializer
+  - Moved from ContainersTraits extension to built-in Serializer functionality
+  - Serializes as JSON object with `"first"` and `"second"` fields
+  - Supports nested deserialization with proper error handling
 
 ### Changed
 
-- NIL
+- **Breaking**: Removed `toDocument()` and `fromDocument()` from public Serializer API
+  - Serializer now uses **only** `toString()` and `fromString()` static methods for serialization
+  - Removed instance methods `toDocument(const T&)` and `fromDocument(const Document&)`
+  - Internal serialization now streams directly to Builder (no intermediate Document)
+  - DocumentTraits still used internally for deserialization from Document
+  - User code must use `Serializer<T>::toString(obj)` and `Serializer<T>::fromString(json)` only
+- **Breaking**: Renamed `SerializationTraits` to `DocumentTraits` with updated method signatures
+  - File renamed from `SerializationTraits.h` to `DocumentTraits.h` (in `traits/` subfolder)
+  - Methods renamed: `serialize()` → `toDocument()`, `deserialize()` → `fromDocument()`
+  - Method signature change: `fromDocument(const Document& doc, T& obj)` - document parameter now comes first
+  - Affects all custom types and extension traits (ContainersTraits, DatatypesTraits, DateTimeTraits)
+  - User code with custom serialization must update method names and signatures
+  - **Note**: DocumentTraits now primarily used for deserialization; serialization uses BuilderTraits for performance
+- **Breaking**: Simplified `toDocument()` custom method signature - single variant only
+  - User types must now implement: `void toDocument(const Serializer<T>&, Document&) const`
+  - Removed support for `Document toDocument()` (no serializer access)
+  - Removed support for `Document toDocument(const Serializer<T>&)` (functional style)
+  - Single signature provides serializer options access and document reuse for performance
+  - All samples and tests updated to use new signature
+- **Architecture**: Simplified container serialization by removing nfx-specific container handling from Serializer
+  - Removed specialized nfx container logic (PerfectHashMap, FastHashMap, FastHashSet handling) from core Serializer
+  - nfx containers now exclusively handled through DocumentTraits specializations in ContainersTraits.h extension
+  - Cleaner separation: Serializer handles STL containers, extensions handle nfx containers
+- Updated nfx-json dependency from 1.0.3 to 1.1.0
 
 ### Deprecated
 
@@ -16,11 +48,27 @@
 
 ### Removed
 
-- NIL
+- **Breaking**: Removed `SerializableDocument` class completely
+  - SerializableDocument was an intermediate wrapper around Document used by old serialization API
+  - No longer needed - serialization now streams directly to Builder for performance
+  - Deserialization works directly with nfx::json::Document
+  - All functionality replaced by `Serializer<T>::toString()` and `Serializer<T>::fromString()`
+- **Breaking**: Removed `toDocument()` and `fromDocument()` instance methods from Serializer
+  - These methods returned/accepted SerializableDocument
+  - Use static methods `toString()` and `fromString()` instead
+- **Breaking**: Removed `std::pair` support from ContainersTraits extension
+  - `std::pair` is now a built-in type in core Serializer (see Added section)
+  - No longer requires including ContainersTraits.h for std::pair serialization
 
 ### Fixed
 
-- NIL
+- **Serializer**: Fixed unreachable dead code in `serializeValue()` fallback path
+  - Removed duplicate `BuilderTraits` check that was impossible to reach
+  - Simplified final fallback - now compilation fails if type has no BuilderTraits or built-in support
+- **Serializer**: Optimized type resolution order in `serializeValue()` for better performance
+  - Reordered checks: BuilderTraits → Built-in types → Custom toDocument() method
+  - Built-in types (bool, int, string, containers) now bypass Document intermediate representation
+  - Custom `toDocument()` methods still supported but with documented performance implications
 
 ### Security
 

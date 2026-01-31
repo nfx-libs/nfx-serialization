@@ -29,7 +29,7 @@
 
 #include <benchmark/benchmark.h>
 
-#include <nfx/Serialization.h>
+#include <nfx/serialization/json/Serializer.h>
 
 #include <map>
 #include <vector>
@@ -73,8 +73,10 @@ namespace nfx::serialization::json::benchmark
 
             // Serialize staff using Serializer
             Serializer<std::vector<Person>> staffSerializer;
-            nfx::json::Document staffDoc = staffSerializer.toDocument( staff ).document();
-            doc.set( "/staff", staffDoc );
+            auto staffJson = staffSerializer.toString( staff );
+            auto staffDoc = nfx::json::Document::fromString( staffJson );
+            if( staffDoc )
+                doc.set( "/staff", *staffDoc );
         }
     };
 
@@ -220,20 +222,6 @@ namespace nfx::serialization::json::benchmark
         }
     }
 
-    static void BM_IntVector_Small_Document( ::benchmark::State& state )
-    {
-        auto data = createIntVector( 10 );
-        Serializer<std::vector<int>> serializer;
-
-        for( auto _ : state )
-        {
-            (void)_;
-            auto doc = serializer.toDocument( data );
-            std::string json = doc.document().toString();
-            ::benchmark::DoNotOptimize( json );
-        }
-    }
-
     static void BM_IntVector_Large_Builder( ::benchmark::State& state )
     {
         auto data = createIntVector( 10000 );
@@ -243,20 +231,6 @@ namespace nfx::serialization::json::benchmark
         {
             (void)_;
             std::string json = serializer.toString( data );
-            ::benchmark::DoNotOptimize( json );
-        }
-    }
-
-    static void BM_IntVector_Large_Document( ::benchmark::State& state )
-    {
-        auto data = createIntVector( 10000 );
-        Serializer<std::vector<int>> serializer;
-
-        for( auto _ : state )
-        {
-            (void)_;
-            auto doc = serializer.toDocument( data );
-            std::string json = doc.document().toString();
             ::benchmark::DoNotOptimize( json );
         }
     }
@@ -274,22 +248,8 @@ namespace nfx::serialization::json::benchmark
         }
     }
 
-    static void BM_StringIntMap_Document( ::benchmark::State& state )
-    {
-        auto data = createStringIntMap( 100 );
-        Serializer<std::map<std::string, int>> serializer;
-
-        for( auto _ : state )
-        {
-            (void)_;
-            auto doc = serializer.toDocument( data );
-            std::string json = doc.document().toString();
-            ::benchmark::DoNotOptimize( json );
-        }
-    }
-
     //----------------------------------------------
-    // Custom Types: Builder vs Document
+    // Custom Types: Builder only (Document path removed)
     //----------------------------------------------
 
     static void BM_Person_Builder( ::benchmark::State& state )
@@ -301,20 +261,6 @@ namespace nfx::serialization::json::benchmark
         {
             (void)_;
             std::string json = serializer.toString( person );
-            ::benchmark::DoNotOptimize( json );
-        }
-    }
-
-    static void BM_Person_Document( ::benchmark::State& state )
-    {
-        Person person = { "John Doe", 30, "john@example.com", true };
-        Serializer<Person> serializer;
-
-        for( auto _ : state )
-        {
-            (void)_;
-            auto doc = serializer.toDocument( person );
-            std::string json = doc.document().toString();
             ::benchmark::DoNotOptimize( json );
         }
     }
@@ -332,20 +278,6 @@ namespace nfx::serialization::json::benchmark
         }
     }
 
-    static void BM_PersonVector_Document( ::benchmark::State& state )
-    {
-        auto people = createPersonVector( 100 );
-        Serializer<std::vector<Person>> serializer;
-
-        for( auto _ : state )
-        {
-            (void)_;
-            auto doc = serializer.toDocument( people );
-            std::string json = doc.document().toString();
-            ::benchmark::DoNotOptimize( json );
-        }
-    }
-
     static void BM_Company_Builder( ::benchmark::State& state )
     {
         auto company = createCompany();
@@ -355,20 +287,6 @@ namespace nfx::serialization::json::benchmark
         {
             (void)_;
             std::string json = serializer.toString( company );
-            ::benchmark::DoNotOptimize( json );
-        }
-    }
-
-    static void BM_Company_Document( ::benchmark::State& state )
-    {
-        auto company = createCompany();
-        Serializer<Company> serializer;
-
-        for( auto _ : state )
-        {
-            (void)_;
-            auto doc = serializer.toDocument( company );
-            std::string json = doc.document().toString();
             ::benchmark::DoNotOptimize( json );
         }
     }
@@ -384,19 +302,13 @@ namespace nfx::serialization::json::benchmark
 
     // STL Containers
     BENCHMARK( BM_IntVector_Small_Builder );
-    BENCHMARK( BM_IntVector_Small_Document );
     BENCHMARK( BM_IntVector_Large_Builder );
-    BENCHMARK( BM_IntVector_Large_Document );
     BENCHMARK( BM_StringIntMap_Builder );
-    BENCHMARK( BM_StringIntMap_Document );
 
     // Custom Types
     BENCHMARK( BM_Person_Builder );
-    BENCHMARK( BM_Person_Document );
     BENCHMARK( BM_PersonVector_Builder );
-    BENCHMARK( BM_PersonVector_Document );
     BENCHMARK( BM_Company_Builder );
-    BENCHMARK( BM_Company_Document );
 } // namespace nfx::serialization::json::benchmark
 
 BENCHMARK_MAIN();

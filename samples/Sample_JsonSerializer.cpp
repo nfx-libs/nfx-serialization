@@ -29,7 +29,9 @@
  *          STL containers, custom objects, and serialization options.
  */
 
-#include <nfx/Serialization.h>
+#include <nfx/serialization/json/Serializer.h>
+#include <nfx/serialization/json/traits/DocumentTraits.h>
+#include <nfx/json/Document.h>
 
 #include <array>
 #include <iostream>
@@ -261,11 +263,14 @@ struct Company
                 // Create Person serializer with same options as Company serializer
                 auto personOptions = Serializer<Person>::Options::createFrom<Company>( companySerializer.options() );
                 Serializer<Person> personSerializer( personOptions );
-                Document employeeDoc = personSerializer.toDocument( employee );
+
+                auto employeeJson = personSerializer.toString( employee );
+                auto employeeDoc = Document::fromString( employeeJson );
+
                 auto employeesArrayWrapper = doc.get<Array>( "/employees" );
-                if( employeesArrayWrapper.has_value() )
+                if( employeesArrayWrapper.has_value() && employeeDoc )
                 {
-                    employeesArrayWrapper->push_back( employeeDoc );
+                    employeesArrayWrapper->push_back( *employeeDoc );
                     doc.set<Array>( "/employees", employeesArrayWrapper.value() );
                 }
             }
@@ -320,7 +325,8 @@ struct Company
                         personOptions.validateOnDeserialize = serializer.options().validateOnDeserialize;
 
                         Serializer<Person> personSerializer( personOptions );
-                        Person employee = personSerializer.fromDocument( employeeDoc );
+                        auto employeeJson = employeeDoc.toString();
+                        Person employee = personSerializer.fromString( employeeJson );
                         employees.push_back( std::move( employee ) );
                     }
                 }
@@ -593,17 +599,9 @@ void demonstrateSerializerClass()
 
     std::vector<int> data{ 10, 20, 30, 40, 50 };
 
-    // Serialize to document
-    Document document = vectorSerializer.toDocument( data );
-    std::cout << "Document serialization: " << document.toString() << std::endl;
-
-    // Serialize to string
+    // Serialize to string (Document path removed - use Builder directly)
     std::string jsonString = Serializer<std::vector<int>>::toString( data );
     std::cout << "String serialization: " << jsonString << std::endl;
-
-    // Deserialize from document
-    std::vector<int> fromDoc = vectorSerializer.fromDocument( document );
-    std::cout << "From document - equal: " << ( data == fromDoc ? "YES" : "NO" ) << std::endl;
 
     // Deserialize from string
     std::vector<int> fromString = Serializer<std::vector<int>>::fromString( jsonString );

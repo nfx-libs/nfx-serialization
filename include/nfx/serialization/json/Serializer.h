@@ -32,9 +32,9 @@
 
 #pragma once
 
+#include "Concepts.h"
 #include "traits/DocumentTraits.h"
 #include "traits/BuilderTraits.h"
-#include "SerializableDocument.h"
 
 #include <nfx/json/Document.h>
 #include <nfx/json/Builder.h>
@@ -56,6 +56,9 @@ namespace nfx::serialization::json
     {
         template <typename U>
         friend struct BuilderTraits;
+
+        template <typename U>
+        friend struct DocumentTraits;
 
     public:
         //----------------------------------------------
@@ -154,48 +157,10 @@ namespace nfx::serialization::json
          */
         inline static T fromString( std::string_view jsonStr, const Options& options = {} );
 
-        //----------------------------------------------
-        // Instance serialization methods
-        //----------------------------------------------
-
-        /**
-         * @brief Serialize object to JSON document
-         * @param obj The object to serialize
-         * @return SerializableDocument containing the serialized JSON
-         * @throws std::runtime_error if serialization fails
-         */
-        inline SerializableDocument toDocument( const T& obj ) const;
-
-        /**
-         * @brief Deserialize object from JSON document
-         * @param doc The document to deserialize from
-         * @return Deserialized object
-         * @throws std::runtime_error if deserialization fails
-         */
-        inline T fromDocument( const SerializableDocument& doc ) const;
-
     private:
         //----------------------------------------------
         // Private methods
         //----------------------------------------------
-
-        /**
-         * @brief Unified templated serialization method
-         * @tparam U The type to serialize (deduced from parameter)
-         * @param obj Object to serialize
-         * @param doc SerializableDocument to serialize into
-         */
-        template <typename U>
-        inline void serializeValue( const U& obj, SerializableDocument& doc ) const;
-
-        /**
-         * @brief Unified templated deserialization method
-         * @tparam U The type to deserialize (deduced from parameter)
-         * @param doc SerializableDocument to deserialize from
-         * @param obj Object to deserialize into
-         */
-        template <typename U>
-        inline void deserializeValue( const SerializableDocument& doc, U& obj ) const;
 
         /**
          * @brief High-performance serialization directly to Builder
@@ -205,6 +170,15 @@ namespace nfx::serialization::json
          */
         template <typename U>
         inline void serializeValue( const U& obj, nfx::json::Builder& builder ) const;
+
+        /**
+         * @brief Unified templated deserialization method
+         * @tparam U The type to deserialize (deduced from parameter)
+         * @param doc Document to deserialize from
+         * @param obj Object to deserialize into
+         */
+        template <typename U>
+        inline void deserializeValue( const nfx::json::Document& doc, U& obj ) const;
 
         //----------------------------------------------
         // Member variables
