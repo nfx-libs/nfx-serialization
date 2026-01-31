@@ -337,7 +337,7 @@ struct Company
                 // Create Person serializer with same options as Company serializer
                 auto personOptions = Serializer<Person>::Options::createFrom<Company>( companySerializer.options() );
                 Serializer<Person> personSerializer( personOptions );
-                Document employeeDoc = personSerializer.serialize( employee );
+                Document employeeDoc = personSerializer.toDocument( employee );
                 auto employeesArrayWrapper = doc.get<Array>( "/employees" );
                 if( employeesArrayWrapper.has_value() )
                 {
@@ -404,7 +404,7 @@ struct Company
                         personOptions.validateOnDeserialize = serializer.options().validateOnDeserialize;
 
                         Serializer<Person> personSerializer( personOptions );
-                        Person employee = personSerializer.deserialize( employeeDoc );
+                        Person employee = personSerializer.fromDocument( employeeDoc );
                         employees.push_back( std::move( employee ) );
                     }
                 }
@@ -678,7 +678,7 @@ void demonstrateSerializerClass()
     std::vector<int> data{ 10, 20, 30, 40, 50 };
 
     // Serialize to document
-    Document document = vectorSerializer.serialize( data );
+    Document document = vectorSerializer.toDocument( data );
     std::cout << "Document serialization: " << document.toString() << std::endl;
 
     // Serialize to string
@@ -686,7 +686,7 @@ void demonstrateSerializerClass()
     std::cout << "String serialization: " << jsonString << std::endl;
 
     // Deserialize from document
-    std::vector<int> fromDoc = vectorSerializer.deserialize( document );
+    std::vector<int> fromDoc = vectorSerializer.fromDocument( document );
     std::cout << "From document - equal: " << ( data == fromDoc ? "YES" : "NO" ) << std::endl;
 
     // Deserialize from string

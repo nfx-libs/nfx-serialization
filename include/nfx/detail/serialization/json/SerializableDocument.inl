@@ -160,7 +160,7 @@ namespace nfx::serialization::json
     inline void SerializableDocument::set( std::string_view path, const T& value )
     {
         Serializer<T> serializer;
-        nfx::json::Document temp = serializer.serialize( value );
+        nfx::json::Document temp = serializer.toDocument( value );
         m_doc.set<nfx::json::Document>( path, std::move( temp ) );
     }
 
@@ -169,7 +169,7 @@ namespace nfx::serialization::json
     inline void SerializableDocument::set( std::string_view path, T&& value )
     {
         Serializer<std::remove_cvref_t<T>> serializer;
-        nfx::json::Document temp = serializer.serialize( std::forward<T>( value ) );
+        nfx::json::Document temp = serializer.toDocument( std::forward<T>( value ) );
         m_doc.set<nfx::json::Document>( path, std::move( temp ) );
     }
 
@@ -184,7 +184,7 @@ namespace nfx::serialization::json
         }
 
         Serializer<T> serializer;
-        return serializer.deserialize( docOpt.value() );
+        return serializer.fromDocument( docOpt.value() );
     }
 
     template <typename T>
@@ -210,7 +210,7 @@ namespace nfx::serialization::json
         try
         {
             Serializer<T> serializer;
-            serializer.deserialize( docOpt.value() );
+            serializer.fromDocument( docOpt.value() );
             return true;
         }
         catch( ... )

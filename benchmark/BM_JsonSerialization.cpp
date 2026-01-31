@@ -73,7 +73,7 @@ namespace nfx::serialization::json::benchmark
 
             // Serialize staff using Serializer
             Serializer<std::vector<Person>> staffSerializer;
-            nfx::json::Document staffDoc = staffSerializer.serialize( staff ).document();
+            nfx::json::Document staffDoc = staffSerializer.toDocument( staff ).document();
             doc.set( "/staff", staffDoc );
         }
     };
@@ -228,7 +228,7 @@ namespace nfx::serialization::json::benchmark
         for( auto _ : state )
         {
             (void)_;
-            auto doc = serializer.serialize( data );
+            auto doc = serializer.toDocument( data );
             std::string json = doc.document().toString();
             ::benchmark::DoNotOptimize( json );
         }
@@ -255,7 +255,7 @@ namespace nfx::serialization::json::benchmark
         for( auto _ : state )
         {
             (void)_;
-            auto doc = serializer.serialize( data );
+            auto doc = serializer.toDocument( data );
             std::string json = doc.document().toString();
             ::benchmark::DoNotOptimize( json );
         }
@@ -282,7 +282,7 @@ namespace nfx::serialization::json::benchmark
         for( auto _ : state )
         {
             (void)_;
-            auto doc = serializer.serialize( data );
+            auto doc = serializer.toDocument( data );
             std::string json = doc.document().toString();
             ::benchmark::DoNotOptimize( json );
         }
@@ -313,7 +313,7 @@ namespace nfx::serialization::json::benchmark
         for( auto _ : state )
         {
             (void)_;
-            auto doc = serializer.serialize( person );
+            auto doc = serializer.toDocument( person );
             std::string json = doc.document().toString();
             ::benchmark::DoNotOptimize( json );
         }
@@ -340,7 +340,7 @@ namespace nfx::serialization::json::benchmark
         for( auto _ : state )
         {
             (void)_;
-            auto doc = serializer.serialize( people );
+            auto doc = serializer.toDocument( people );
             std::string json = doc.document().toString();
             ::benchmark::DoNotOptimize( json );
         }
@@ -367,7 +367,7 @@ namespace nfx::serialization::json::benchmark
         for( auto _ : state )
         {
             (void)_;
-            auto doc = serializer.serialize( company );
+            auto doc = serializer.toDocument( company );
             std::string json = doc.document().toString();
             ::benchmark::DoNotOptimize( json );
         }

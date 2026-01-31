@@ -222,7 +222,7 @@ namespace nfx::serialization::json::test
 
             // Serialize hobbies vector using Serializer
             Serializer<std::vector<std::string>> hobbiesSerializer;
-            Document hobbiesDoc = hobbiesSerializer.serialize( hobbies );
+            Document hobbiesDoc = hobbiesSerializer.toDocument( hobbies );
             doc.set<Document>( "/hobbies", hobbiesDoc );
         }
 
@@ -251,7 +251,7 @@ namespace nfx::serialization::json::test
             if( auto hobbiesDocOpt = doc.get<Document>( "/hobbies" ) )
             {
                 Serializer<std::vector<std::string>> hobbiesSerializer;
-                hobbies = hobbiesSerializer.deserialize( *hobbiesDocOpt );
+                hobbies = hobbiesSerializer.fromDocument( *hobbiesDocOpt );
             }
 
             if( serializer.options().validateOnDeserialize )

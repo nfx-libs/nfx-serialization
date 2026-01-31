@@ -88,12 +88,12 @@ namespace nfx::serialization::json
                 // Serialize the key
                 Document keyDoc;
                 Serializer<TKey> keySerializer;
-                keyDoc = keySerializer.serialize( key );
+                keyDoc = keySerializer.toDocument( key );
 
                 // Serialize the value
                 Document valueDoc;
                 Serializer<TValue> valueSerializer;
-                valueDoc = valueSerializer.serialize( value );
+                valueDoc = valueSerializer.toDocument( value );
 
                 // Build paths for key and value fields
                 std::string keyPath = std::string( arrayPath ) + "/key";
@@ -372,12 +372,12 @@ namespace nfx::serialization::json
                 // Serialize the key
                 Document keyDoc;
                 Serializer<TKey> keySerializer;
-                keyDoc = keySerializer.serialize( key );
+                keyDoc = keySerializer.toDocument( key );
 
                 // Serialize the value
                 Document valueDoc;
                 Serializer<TValue> valueSerializer;
-                valueDoc = valueSerializer.serialize( value );
+                valueDoc = valueSerializer.toDocument( value );
 
                 // Build paths for key and value fields
                 std::string keyPath = std::string( arrayPath ) + "/key";
@@ -476,13 +476,13 @@ namespace nfx::serialization::json
                             Document keyDoc;
                             keyDoc.set( "", keyStr );
                             Serializer<TKey> keySerializer;
-                            key = keySerializer.deserialize( keyDoc );
+                            key = keySerializer.fromDocument( keyDoc );
                         }
 
                         // Extract value
                         TValue value{};
                         Serializer<TValue> valueSerializer;
-                        value = valueSerializer.deserialize( valueDoc );
+                        value = valueSerializer.fromDocument( valueDoc );
                         obj.insertOrAssign( std::move( key ), std::move( value ) );
                     }
                 }
@@ -678,7 +678,7 @@ namespace nfx::serialization::json
                 // Serialize the key using a temporary serializer
                 Document keyDoc;
                 Serializer<TKey> keySerializer;
-                keyDoc = keySerializer.serialize( key );
+                keyDoc = keySerializer.toDocument( key );
 
                 // Build JSON Pointer path for this index
                 char arrayPath[32];
@@ -739,7 +739,7 @@ namespace nfx::serialization::json
                     // Deserialize the key using a temporary serializer
                     TKey key{};
                     Serializer<TKey> keySerializer;
-                    key = keySerializer.deserialize( elementDoc );
+                    key = keySerializer.fromDocument( elementDoc );
 
                     obj.insert( std::move( key ) );
                 }
@@ -812,7 +812,7 @@ namespace nfx::serialization::json
                 // Serialize the element using a temporary serializer
                 Document elementDoc;
                 Serializer<T> elementSerializer;
-                elementDoc = elementSerializer.serialize( element );
+                elementDoc = elementSerializer.toDocument( element );
 
                 // Build JSON Pointer path for this index
                 char arrayPath[32];
@@ -876,7 +876,7 @@ namespace nfx::serialization::json
                     // Deserialize the element using a temporary serializer
                     T element{};
                     Serializer<T> elementSerializer;
-                    element = elementSerializer.deserialize( elementDoc );
+                    element = elementSerializer.fromDocument( elementDoc );
 
                     obj.push_back( std::move( element ) );
                 }

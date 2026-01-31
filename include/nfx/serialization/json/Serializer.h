@@ -164,7 +164,7 @@ namespace nfx::serialization::json
          * @return SerializableDocument containing the serialized JSON
          * @throws std::runtime_error if serialization fails
          */
-        inline SerializableDocument serialize( const T& obj ) const;
+        inline SerializableDocument toDocument( const T& obj ) const;
 
         /**
          * @brief Deserialize object from JSON document
@@ -172,7 +172,7 @@ namespace nfx::serialization::json
          * @return Deserialized object
          * @throws std::runtime_error if deserialization fails
          */
-        inline T deserialize( const SerializableDocument& doc ) const;
+        inline T fromDocument( const SerializableDocument& doc ) const;
 
     private:
         //----------------------------------------------

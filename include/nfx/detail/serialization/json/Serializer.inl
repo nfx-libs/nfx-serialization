@@ -336,7 +336,7 @@ namespace nfx::serialization::json
         {
             throw std::runtime_error{ "Failed to parse JSON string" };
         }
-        return serializer.deserialize( *optDoc );
+        return serializer.fromDocument( *optDoc );
     }
 
     //----------------------------------------------
@@ -344,7 +344,7 @@ namespace nfx::serialization::json
     //----------------------------------------------
 
     template <typename T>
-    inline SerializableDocument Serializer<T>::serialize( const T& obj ) const
+    inline SerializableDocument Serializer<T>::toDocument( const T& obj ) const
     {
         SerializableDocument doc;
         // Look for serialize method with no parameters
@@ -375,7 +375,7 @@ namespace nfx::serialization::json
     }
 
     template <typename T>
-    inline T Serializer<T>::deserialize( const SerializableDocument& doc ) const
+    inline T Serializer<T>::fromDocument( const SerializableDocument& doc ) const
     {
         T obj{};
         if constexpr( detail::has_deserialize_method<T>::value )
