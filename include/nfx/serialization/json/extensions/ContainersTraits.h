@@ -160,13 +160,13 @@ namespace nfx::serialization::json
 
         /**
          * @brief Deserialize PerfectHashMap from JSON document
-         * @param obj The PerfectHashMap object to deserialize into
          * @param doc The document to deserialize from
+         * @param obj The PerfectHashMap object to deserialize into
          * @details Expects array format with key-value pair objects
          */
         static void fromDocument(
-            nfx::containers::PerfectHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>& obj,
-            const SerializableDocument& doc )
+            const SerializableDocument& doc,
+            nfx::containers::PerfectHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>& obj )
         {
             if( !doc.is<Array>( "" ) )
             {
@@ -445,13 +445,13 @@ namespace nfx::serialization::json
 
         /**
          * @brief Deserialize FastHashMap from JSON document
-         * @param obj The FastHashMap object to deserialize into
          * @param doc The document to deserialize from
+         * @param obj The FastHashMap object to deserialize into
          * @details Supports both array format and object format for compatibility
          */
         static void fromDocument(
-            nfx::containers::FastHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>& obj,
-            const SerializableDocument& doc )
+            const SerializableDocument& doc,
+            nfx::containers::FastHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>& obj )
         {
             // Clear existing content
             obj.clear();
@@ -716,11 +716,11 @@ namespace nfx::serialization::json
 
         /**
          * @brief Deserialize FastHashSet from JSON document
-         * @param obj The FastHashSet object to deserialize into
          * @param doc The document to deserialize from
+         * @param obj The FastHashSet object to deserialize into
          */
         static void fromDocument(
-            nfx::containers::FastHashSet<TKey, HashType, Seed, Hasher, KeyEqual>& obj, const SerializableDocument& doc )
+            const SerializableDocument& doc, nfx::containers::FastHashSet<TKey, HashType, Seed, Hasher, KeyEqual>& obj )
         {
             if( !doc.is<Array>( "" ) )
             {
@@ -857,7 +857,7 @@ namespace nfx::serialization::json
          * @param obj The SmallVector object to deserialize into
          * @param doc The document to deserialize from
          */
-        static void fromDocument( nfx::containers::SmallVector<T, N>& obj, const SerializableDocument& doc )
+        static void fromDocument( const SerializableDocument& doc, nfx::containers::SmallVector<T, N>& obj )
         {
             if( !doc.is<Array>( "" ) )
             {

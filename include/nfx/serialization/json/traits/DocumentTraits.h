@@ -61,21 +61,6 @@ namespace nfx::serialization::json
     template <typename T>
     class Serializer;
 
-    namespace detail
-    {
-        template <typename T>
-        struct has_toDocument_method;
-
-        template <typename T>
-        struct has_toDocument_method_returning_document;
-
-        template <typename T>
-        struct has_toDocument_method_no_params;
-
-        template <typename T>
-        struct has_fromDocument_method;
-    } // namespace detail
-
     //=====================================================================
     // Document Traits (extensible by users)
     //=====================================================================
@@ -88,8 +73,12 @@ namespace nfx::serialization::json
      *          library types with custom serialization logic.
      *
      *          DocumentTraits provides bidirectional serialization through the Document API:
-     *          - serialize(): Convert object → Document (used by toDocument())
-     *          - deserialize(): Convert Document → object (used by fromDocument())
+     *          - toDocument(obj, doc): Convert object → Document (serialization)
+     *          - fromDocument(doc, obj): Convert Document → object (deserialization)
+     *
+     *          User types must provide member methods with these signatures:
+     *          - void toDocument(const Serializer<T>&, Document&) const
+     *          - void fromDocument(const Document&, const Serializer<T>&)
      *
      *          For write-only streaming serialization, see BuilderTraits.
      */
@@ -103,31 +92,8 @@ namespace nfx::serialization::json
          */
         static void toDocument( const T& obj, Document& doc )
         {
-            // Look for toDocument method with no parameters
-            if constexpr( detail::has_toDocument_method_no_params<T>::value )
-            {
-                doc = obj.toDocument();
-            }
-            // Look for toDocument method returning Document with serializer parameter
-            else if constexpr( detail::has_toDocument_method_returning_document<T>::value )
-            {
-                Serializer<T> serializer;
-                doc = obj.toDocument( serializer );
-            }
-            // Look for traditional toDocument method with serializer and document parameters
-            else if constexpr( detail::has_toDocument_method<T>::value )
-            {
-                Serializer<T> serializer;
-                obj.toDocument( serializer, doc );
-            }
-            else
-            {
-                static_assert(
-                    detail::has_toDocument_method<T>::value ||
-                        detail::has_toDocument_method_returning_document<T>::value ||
-                        detail::has_toDocument_method_no_params<T>::value,
-                    "Type must either specialize DocumentTraits or have a toDocument() member method" );
-            }
+            Serializer<T> serializer;
+            obj.toDocument( serializer, doc );
         }
 
         /**
@@ -137,18 +103,8 @@ namespace nfx::serialization::json
          */
         static void fromDocument( const Document& doc, T& obj )
         {
-            // Look for member fromDocument method (doc first, serializer second)
-            if constexpr( detail::has_fromDocument_method<T>::value )
-            {
-                Serializer<T> serializer;
-                obj.fromDocument( doc, serializer );
-            }
-            else
-            {
-                static_assert(
-                    detail::has_fromDocument_method<T>::value,
-                    "Type must either specialize DocumentTraits or have a fromDocument() member method" );
-            }
+            Serializer<T> serializer;
+            obj.fromDocument( doc, serializer );
         }
     };
 } // namespace nfx::serialization::json

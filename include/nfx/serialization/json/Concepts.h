@@ -83,7 +83,7 @@ namespace nfx::serialization::json
         template <typename T>
         struct has_serialization_traits<
             T,
-            std::void_t<decltype( DocumentTraits<std::decay_t<T>>::serialize(
+            std::void_t<decltype( DocumentTraits<std::decay_t<T>>::toDocument(
                 std::declval<const std::decay_t<T>&>(), std::declval<Document&>() ) )>> : std::true_type
         {
         };

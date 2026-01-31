@@ -136,40 +136,8 @@ struct Person
                hobbies == other.hobbies;
     }
 
-    // Custom serialization method - no parameters
-    Document toDocument() const
-    {
-        Document doc;
-        doc.set<std::string>( "/name", name );
-        doc.set<int64_t>( "/age", age );
-        doc.set<bool>( "/isActive", isActive );
-
-        if( email.has_value() )
-        {
-            doc.set<std::string>( "/email", *email );
-        }
-        // Note: includeNullFields not available without serializer parameter
-
-        // Serialize hobbies array
-        if( !hobbies.empty() )
-        {
-            doc.set<Array>( "/hobbies" );
-            for( const auto& hobby : hobbies )
-            {
-                auto hobbiesArrayRef = doc.get<Array>( "/hobbies" );
-                if( hobbiesArrayRef.has_value() )
-                {
-                    hobbiesArrayRef->push_back( Document( hobby ) );
-                    doc.set<Array>( "/hobbies", hobbiesArrayRef.value() );
-                }
-            }
-        }
-
-        return doc;
-    }
-
     // Serialization with dependency injection
-    void toDocument( Serializer<Person>& serializer, Document& doc ) const
+    void toDocument( const Serializer<Person>& serializer, Document& doc ) const
     {
         doc.set<std::string>( "/name", name );
         doc.set<int64_t>( "/age", age );
@@ -275,53 +243,9 @@ struct Company
                founded == other.founded;
     }
 
-    // Custom serialization method - no parameters (simple case)
-    Document toDocument() const
+    // Custom serialization method - with serializer and out-param Document
+    void toDocument( const Serializer<Company>& companySerializer, Document& doc ) const
     {
-        Document doc;
-        doc.set<std::string>( "/name", name );
-
-        // Serialize founded date
-        std::string foundedStr = founded.toIso8601();
-        doc.set<std::string>( "/founded", foundedStr );
-
-        // Serialize employees array using default serialization
-        if( !employees.empty() )
-        {
-            doc.set<Array>( "/employees" );
-            for( const auto& employee : employees )
-            {
-                // Use the no-parameter serialize method for simplicity
-                Document employeeDoc = employee.toDocument();
-                auto employeesArrayWrapper = doc.get<Array>( "/employees" );
-                if( employeesArrayWrapper.has_value() )
-                {
-                    employeesArrayWrapper->push_back( employeeDoc );
-                    doc.set<Array>( "/employees", employeesArrayWrapper.value() );
-                }
-            }
-        }
-
-        // Serialize departments map
-        if( !departments.empty() )
-        {
-            Document departmentsObj;
-
-            for( const auto& [deptName, count] : departments )
-            {
-                std::string fieldPath = "/" + deptName;
-                departmentsObj.set<int64_t>( fieldPath, count );
-            }
-            doc.set<Document>( "/departments", departmentsObj );
-        }
-
-        return doc;
-    }
-
-    // Custom serialization method - with serializer (for options and cross-type serialization)
-    Document toDocument( Serializer<Company>& companySerializer ) const
-    {
-        Document doc;
         doc.set<std::string>( "/name", name );
 
         // Serialize founded date
@@ -359,14 +283,6 @@ struct Company
             }
             doc.set<Document>( "/departments", departmentsObj );
         }
-
-        return doc;
-    }
-
-    // Alternative serialization method - void with document parameter (different API style)
-    void toDocument( Serializer<Company>& companySerializer, Document& doc ) const
-    {
-        doc = toDocument( companySerializer ); // Delegate to the Document-returning version
     }
 
     // Custom deserialization method

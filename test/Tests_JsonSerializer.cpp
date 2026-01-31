@@ -285,14 +285,12 @@ namespace nfx::serialization::json::test
         }
 
         // Custom toDocument method
-        Document toDocument( const Serializer<Product>& ) const
+        void toDocument( const Serializer<Product>&, Document& doc ) const
         {
-            Document doc;
             doc.set<std::string>( "/id", id );
             doc.set<std::string>( "/name", name );
             doc.set<double>( "/price", price );
             doc.set<int64_t>( "/quantity", quantity );
-            return doc;
         }
 
         // Custom fromDocument method

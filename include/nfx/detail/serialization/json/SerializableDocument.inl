@@ -249,7 +249,7 @@ namespace nfx::serialization::json
         }
 
         T result;
-        DocumentTraits<T>::fromDocument( result, docOpt.value() );
+        DocumentTraits<T>::fromDocument( docOpt.value(), result );
         return result;
     }
 
@@ -276,7 +276,7 @@ namespace nfx::serialization::json
         try
         {
             T temp;
-            DocumentTraits<T>::fromDocument( temp, docOpt.value() );
+            DocumentTraits<T>::fromDocument( docOpt.value(), temp );
             return true;
         }
         catch( ... )

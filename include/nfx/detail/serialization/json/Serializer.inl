@@ -51,9 +51,9 @@ namespace nfx::serialization::json
     namespace detail
     {
         /**
-         * @brief Type trait to detect if a type has a serialize method (void version)
+         * @brief Type trait to detect if a type has a toDocument method
          * @tparam T The type to check
-         * @details Uses SFINAE to detect if type T has a serialize method that accepts
+         * @details Uses SFINAE to detect if type T has a toDocument method that accepts
          *          a Serializer<T>& parameter and Document& parameter. Used for compile-time
          *          dispatch to custom serialization methods.
          */
@@ -68,59 +68,16 @@ namespace nfx::serialization::json
             static std::false_type test( ... );
 
         public:
-            /** @brief True if type T has a serialize method, false otherwise */
+            /** @brief True if type T has a toDocument method, false otherwise */
             static constexpr bool value = decltype( test<T>( 0 ) )::value;
         };
 
         /**
-         * @brief Type trait to detect if a type has a serialize method (Document return version)
+         * @brief Type trait to detect if a type has a fromDocument method
          * @tparam T The type to check
-         * @details Uses SFINAE to detect if type T has a serialize method that returns
-         *          Document and accepts a Serializer<T>& parameter. Used for compile-time
-         *          dispatch to custom serialization methods.
-         */
-        template <typename T>
-        struct has_toDocument_method_returning_document
-        {
-        private:
-            template <typename U>
-            static auto test( int )
-                -> decltype( std::declval<const U&>().toDocument( std::declval<const Serializer<U>&>() ), std::true_type{} );
-            template <typename>
-            static std::false_type test( ... );
-
-        public:
-            /** @brief True if type T has a serialize method returning Document, false otherwise */
-            static constexpr bool value = decltype( test<T>( 0 ) )::value;
-        };
-
-        /**
-         * @brief Type trait to detect if a type has a toDocument method (no parameters version)
-         * @tparam T The type to check
-         * @details Uses SFINAE to detect if type T has a toDocument method that returns
-         *          Document and takes no parameters. Used for compile-time dispatch to
-         *          custom serialization methods.
-         */
-        template <typename T>
-        struct has_toDocument_method_no_params
-        {
-        private:
-            template <typename U>
-            static auto test( int ) -> decltype( std::declval<const U&>().toDocument(), std::true_type{} );
-            template <typename>
-            static std::false_type test( ... );
-
-        public:
-            /** @brief True if type T has a toDocument method taking no parameters, false otherwise */
-            static constexpr bool value = decltype( test<T>( 0 ) )::value;
-        };
-
-        /**
-         * @brief Type trait to detect if a type has a deserialize method
-         * @tparam T The type to check
-         * @details Uses SFINAE to detect if type T has a deserialize method that accepts
-         *          a const Serializer<T>& parameter. Used for compile-time dispatch to custom
-         *          deserialization methods.
+         * @details Uses SFINAE to detect if type T has a fromDocument method that accepts
+         *          a const Document& and const Serializer<T>& parameter. Used for compile-time
+         *          dispatch to custom deserialization methods.
          */
         template <typename T>
         struct has_fromDocument_method
@@ -133,7 +90,7 @@ namespace nfx::serialization::json
             static std::false_type test( ... );
 
         public:
-            /** @brief True if type T has a deserialize method, false otherwise */
+            /** @brief True if type T has a fromDocument method, false otherwise */
             static constexpr bool value = decltype( test<T>( 0 ) )::value;
         };
 
@@ -347,23 +304,12 @@ namespace nfx::serialization::json
     inline SerializableDocument Serializer<T>::toDocument( const T& obj ) const
     {
         SerializableDocument doc;
-        // Look for serialize method with no parameters
-        if constexpr( detail::has_toDocument_method_no_params<T>::value )
-        {
-            doc = obj.toDocument();
-        }
-        // Look for serialize method returning Document with serializer parameter
-        else if constexpr( detail::has_toDocument_method_returning_document<T>::value )
-        {
-            doc = obj.toDocument( *this );
-        }
-        // Look for traditional serialize method with serializer and document parameters
-        else if constexpr( detail::has_toDocument_method<T>::value )
+        if constexpr( detail::has_toDocument_method<T>::value )
         {
             // Initialize document as empty object for custom serialization
             doc.set<nfx::json::Object>( "" );
 
-            // Use custom serialize method if available
+            // Use custom serialize method
             obj.toDocument( *this, doc );
         }
         else
@@ -633,9 +579,7 @@ namespace nfx::serialization::json
             return;
         }
 
-        if constexpr(
-            detail::has_toDocument_method_no_params<U>::value ||
-            detail::has_toDocument_method_returning_document<U>::value || detail::has_toDocument_method<U>::value )
+        if constexpr( detail::has_toDocument_method<U>::value )
         {
             // Use Document-based serialization for custom methods, then convert to Builder
             // NOTE: Custom serialize() methods are Document-based by design (API contract)
@@ -648,19 +592,8 @@ namespace nfx::serialization::json
             Serializer<U> objSerializer( objOptions );
 
             SerializableDocument tempDoc;
-            if constexpr( detail::has_toDocument_method_no_params<U>::value )
-            {
-                tempDoc = obj.toDocument();
-            }
-            else if constexpr( detail::has_toDocument_method_returning_document<U>::value )
-            {
-                tempDoc = obj.toDocument( objSerializer );
-            }
-            else if constexpr( detail::has_toDocument_method<U>::value )
-            {
-                tempDoc.set<nfx::json::Object>( "" );
-                obj.toDocument( objSerializer, tempDoc );
-            }
+            tempDoc.set<nfx::json::Object>( "" );
+            obj.toDocument( objSerializer, tempDoc );
 
             std::string tempJson = tempDoc.toString( m_options.prettyPrint ? 2 : 0 );
             builder.writeRawJson( tempJson );
