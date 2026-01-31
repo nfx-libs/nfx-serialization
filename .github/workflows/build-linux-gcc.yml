@@ -2,13 +2,13 @@ name: nfx-serialization - Linux GCC
 
 on:
   push:
-    branches: [main, feature/json-builder-integration]
+    branches: [main]
     paths-ignore:
       - "**/*.md"
       - "LICENSE.txt"
       - ".gitignore"
   pull_request:
-    branches: [main, feature/json-builder-integration]
+    branches: [main]
     paths-ignore:
       - "**/*.md"
       - "LICENSE.txt"

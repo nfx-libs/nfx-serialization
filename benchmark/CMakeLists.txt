@@ -59,7 +59,6 @@ set(benchmark_sources "")
 if(NFX_SERIALIZATION_WITH_JSON)
     list(APPEND benchmark_sources
         BM_JsonSerialization.cpp
-        BM_JsonSerializerBuilder.cpp
         BM_JsonExtensionTypes.cpp
     )
 endif()
