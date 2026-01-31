@@ -55,7 +55,7 @@ namespace nfx::serialization::json
      * @brief Specialization for nfx::containers::PerfectHashMap
      */
     template <typename TKey, typename TValue, typename HashType, HashType Seed, typename Hasher, typename KeyEqual>
-    struct DocumentTraits<nfx::containers::PerfectHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>>
+    struct SerializationTraits<nfx::containers::PerfectHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>>
     {
         /**
          * @brief Deserialize PerfectHashMap from JSON document
@@ -180,16 +180,9 @@ namespace nfx::serialization::json
 
             obj = nfx::containers::PerfectHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>( std::move( items ) );
         }
-    };
 
-    /**
-     * @brief BuilderTraits specialization for nfx::containers::PerfectHashMap (fast path for toString())
-     */
-    template <typename TKey, typename TValue, typename HashType, HashType Seed, typename Hasher, typename KeyEqual>
-    struct BuilderTraits<nfx::containers::PerfectHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>>
-    {
         /**
-         * @brief Serialize PerfectHashMap using Builder API
+         * @brief High-performance streaming serialization
          * @param obj The PerfectHashMap object to serialize
          * @param builder The builder to write to
          * @details Serializes as array of {key, value} objects: [{key:..., value:...}, ...]
@@ -238,7 +231,7 @@ namespace nfx::serialization::json
      * @brief Specialization for nfx::containers::FastHashMap
      */
     template <typename TKey, typename TValue, typename HashType, HashType Seed, typename Hasher, typename KeyEqual>
-    struct DocumentTraits<nfx::containers::FastHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>>
+    struct SerializationTraits<nfx::containers::FastHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>>
     {
         /**
          * @brief Deserialize FastHashMap from JSON document
@@ -395,16 +388,9 @@ namespace nfx::serialization::json
                 throw std::runtime_error{ "Cannot deserialize JSON value into FastHashMap: must be object or array" };
             }
         }
-    };
 
-    /**
-     * @brief BuilderTraits specialization for nfx::containers::FastHashMap (fast path for toString())
-     */
-    template <typename TKey, typename TValue, typename HashType, HashType Seed, typename Hasher, typename KeyEqual>
-    struct BuilderTraits<nfx::containers::FastHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>>
-    {
         /**
-         * @brief Serialize FastHashMap using Builder API
+         * @brief High-performance streaming serialization
          * @param obj The FastHashMap object to serialize
          * @param builder The builder to write to
          * @details Serializes as array of {key, value} objects: [{key:..., value:...}, ...]
@@ -453,7 +439,7 @@ namespace nfx::serialization::json
      * @brief Specialization for nfx::containers::FastHashSet
      */
     template <typename TKey, typename HashType, HashType Seed, typename Hasher, typename KeyEqual>
-    struct DocumentTraits<nfx::containers::FastHashSet<TKey, HashType, Seed, Hasher, KeyEqual>>
+    struct SerializationTraits<nfx::containers::FastHashSet<TKey, HashType, Seed, Hasher, KeyEqual>>
     {
         /**
          * @brief Deserialize FastHashSet from JSON document
@@ -461,7 +447,8 @@ namespace nfx::serialization::json
          * @param obj The FastHashSet object to deserialize into
          */
         static void fromDocument(
-            const Document& doc, nfx::containers::FastHashSet<TKey, HashType, Seed, Hasher, KeyEqual>& obj )
+            const Document& doc,
+            nfx::containers::FastHashSet<TKey, HashType, Seed, Hasher, KeyEqual>& obj )
         {
             if( !doc.is<Array>( "" ) )
             {
@@ -475,27 +462,17 @@ namespace nfx::serialization::json
             auto arrayOpt = doc.get<Array>( "" );
             if( arrayOpt.has_value() )
             {
-                for( const auto& elementDoc : arrayOpt.value() )
+                for( const auto& itemDoc : arrayOpt.value() )
                 {
-                    // Deserialize the key using a temporary serializer
-                    TKey key{};
-                    Serializer<TKey> keySerializer;
-                    keySerializer.deserializeValue( elementDoc, key );
-
-                    obj.insert( std::move( key ) );
+                    TKey item;
+                    Serializer<TKey>{}.deserializeValue( itemDoc, item );
+                    obj.insert( std::move( item ) );
                 }
             }
         }
-    };
 
-    /**
-     * @brief BuilderTraits specialization for nfx::containers::FastHashSet (fast path for toString())
-     */
-    template <typename TKey, typename HashType, HashType Seed, typename Hasher, typename KeyEqual>
-    struct BuilderTraits<nfx::containers::FastHashSet<TKey, HashType, Seed, Hasher, KeyEqual>>
-    {
         /**
-         * @brief Serialize FastHashSet using Builder API
+         * @brief High-performance streaming serialization
          * @param obj The FastHashSet object to serialize
          * @param builder The builder to write to
          * @details Serializes as JSON array of elements
@@ -532,12 +509,12 @@ namespace nfx::serialization::json
      * @brief Specialization for nfx::containers::SmallVector
      */
     template <typename T, std::size_t N>
-    struct DocumentTraits<nfx::containers::SmallVector<T, N>>
+    struct SerializationTraits<nfx::containers::SmallVector<T, N>>
     {
         /**
          * @brief Deserialize SmallVector from JSON document
-         * @param obj The SmallVector object to deserialize into
          * @param doc The document to deserialize from
+         * @param obj The SmallVector object to deserialize into
          */
         static void fromDocument( const Document& doc, nfx::containers::SmallVector<T, N>& obj )
         {
@@ -564,16 +541,9 @@ namespace nfx::serialization::json
                 }
             }
         }
-    };
 
-    /**
-     * @brief BuilderTraits specialization for nfx::containers::SmallVector (fast path for toString())
-     */
-    template <typename T, std::size_t N>
-    struct BuilderTraits<nfx::containers::SmallVector<T, N>>
-    {
         /**
-         * @brief Serialize SmallVector using Builder API
+         * @brief High-performance streaming serialization
          * @param obj The SmallVector object to serialize
          * @param builder The builder to write to
          * @details Serializes as JSON array of elements

@@ -24,14 +24,14 @@
 
 /**
  * @file DateTimeTraits.h
- * @brief DocumentTraits specializations for nfx-datetime types
+ * @brief SerializationTraits specializations for nfx-datetime types
  * @details This is an optional extension header that provides JSON serialization support
  *          for nfx::time types (DateTime, DateTimeOffset, TimeSpan).
  *
  *          This header is safe to include even if nfx-datetime is not available.
  *          Each datetime type is independently supported - you can use any subset.
  *
- *          #include <nfx/serialization/json/DocumentTraits.h>
+ *          #include <nfx/serialization/json/Serializer.h>
  *          #include <nfx/serialization/json/extensions/DateTimeTraits.h>
  *
  * @note Each specialization is only enabled if its corresponding header is available.
@@ -55,12 +55,20 @@ namespace nfx::serialization::json
      * @brief Specialization for nfx::time::TimeSpan
      */
     template <>
-    struct DocumentTraits<nfx::time::TimeSpan>
+    struct SerializationTraits<nfx::time::TimeSpan>
     {
         /**
-         * @brief Deserialize TimeSpan from JSON document using platform-optimized methods
-         * @param obj The TimeSpan object to deserialize into
+         * @brief High-performance streaming serialization
+         */
+        static void serialize( const nfx::time::TimeSpan& obj, Builder& builder )
+        {
+            builder.write( obj.ticks() );
+        }
+
+        /**
+         * @brief Deserialize TimeSpan from JSON document
          * @param doc The document to deserialize from
+         * @param obj The TimeSpan object to deserialize into
          */
         static void fromDocument( const Document& doc, nfx::time::TimeSpan& obj )
         {
@@ -76,18 +84,6 @@ namespace nfx::serialization::json
             {
                 throw std::runtime_error{ "Invalid TimeSpan format: expected integer ticks" };
             }
-        }
-    };
-
-    /**
-     * @brief BuilderTraits specialization for nfx::time::TimeSpan (high-performance)
-     */
-    template <>
-    struct BuilderTraits<nfx::time::TimeSpan>
-    {
-        static void serialize( const nfx::time::TimeSpan& obj, Builder& builder )
-        {
-            builder.write( obj.ticks() );
         }
     };
 } // namespace nfx::serialization::json
@@ -108,12 +104,20 @@ namespace nfx::serialization::json
      * @brief Specialization for nfx::time::DateTime
      */
     template <>
-    struct DocumentTraits<nfx::time::DateTime>
+    struct SerializationTraits<nfx::time::DateTime>
     {
         /**
-         * @brief Deserialize DateTime from JSON document using platform-optimized methods
-         * @param obj The DateTime object to deserialize into
+         * @brief High-performance streaming serialization
+         */
+        static void serialize( const nfx::time::DateTime& obj, Builder& builder )
+        {
+            builder.write( obj.toString( nfx::time::DateTime::Format::Iso8601Precise ) );
+        }
+
+        /**
+         * @brief Deserialize DateTime from JSON document
          * @param doc The document to deserialize from
+         * @param obj The DateTime object to deserialize into
          */
         static void fromDocument( const Document& doc, nfx::time::DateTime& obj )
         {
@@ -128,18 +132,6 @@ namespace nfx::serialization::json
                     }
                 }
             }
-        }
-    };
-
-    /**
-     * @brief BuilderTraits specialization for nfx::time::DateTime (high-performance)
-     */
-    template <>
-    struct BuilderTraits<nfx::time::DateTime>
-    {
-        static void serialize( const nfx::time::DateTime& obj, Builder& builder )
-        {
-            builder.write( obj.toString( nfx::time::DateTime::Format::Iso8601Precise ) );
         }
     };
 } // namespace nfx::serialization::json
@@ -160,12 +152,20 @@ namespace nfx::serialization::json
      * @brief Specialization for nfx::time::DateTimeOffset
      */
     template <>
-    struct DocumentTraits<nfx::time::DateTimeOffset>
+    struct SerializationTraits<nfx::time::DateTimeOffset>
     {
         /**
-         * @brief Deserialize DateTimeOffset from JSON document using platform-optimized methods
-         * @param obj The DateTimeOffset object to deserialize into
+         * @brief High-performance streaming serialization
+         */
+        static void serialize( const nfx::time::DateTimeOffset& obj, Builder& builder )
+        {
+            builder.write( obj.toString( nfx::time::DateTime::Format::Iso8601Precise ) );
+        }
+
+        /**
+         * @brief Deserialize DateTimeOffset from JSON document
          * @param doc The document to deserialize from
+         * @param obj The DateTimeOffset object to deserialize into
          */
         static void fromDocument( const Document& doc, nfx::time::DateTimeOffset& obj )
         {
@@ -180,18 +180,6 @@ namespace nfx::serialization::json
                     }
                 }
             }
-        }
-    };
-
-    /**
-     * @brief BuilderTraits specialization for nfx::time::DateTimeOffset (high-performance)
-     */
-    template <>
-    struct BuilderTraits<nfx::time::DateTimeOffset>
-    {
-        static void serialize( const nfx::time::DateTimeOffset& obj, Builder& builder )
-        {
-            builder.write( obj.toString( nfx::time::DateTime::Format::Iso8601Precise ) );
         }
     };
 } // namespace nfx::serialization::json

@@ -54,10 +54,7 @@ namespace nfx::serialization::json
     class Serializer final
     {
         template <typename U>
-        friend struct BuilderTraits;
-
-        template <typename U>
-        friend struct DocumentTraits;
+        friend struct SerializationTraits;
 
     public:
         //----------------------------------------------

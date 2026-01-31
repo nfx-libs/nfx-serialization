@@ -307,15 +307,14 @@ namespace nfx::serialization::json
     inline void Serializer<T>::serializeValue( const U& obj, Builder& builder ) const
     {
         // Priority order (performance-optimized):
-        // 1. BuilderTraits - optimal streaming serialization
+        // 1. SerializationTraits::serialize() - optimal streaming serialization
         // 2. Built-in types - efficient direct serialization
         // 3. Custom toDocument() - user override (performance hit: Document → JSON → Builder)
-        // 4. DocumentTraits - fallback for user types
 
         // Fast path
-        if constexpr( detail::has_builder_traits_v<U> )
+        if constexpr( detail::has_streaming_serialization_v<U> )
         {
-            BuilderTraits<U>::serialize( obj, builder );
+            SerializationTraits<U>::serialize( obj, builder );
             return;
         }
 
@@ -414,7 +413,7 @@ namespace nfx::serialization::json
             if constexpr( detail::has_toDocument_method<U>::value )
             {
                 // Custom toDocument() method - performance hit (Document → JSON → Builder)
-                // NOTE: For better performance, implement BuilderTraits instead
+                // NOTE: For better performance, implement SerializationTraits::serialize() instead
                 // Create a properly-typed serializer for this object
                 typename Serializer<U>::Options objOptions;
                 objOptions.includeNullFields = m_options.includeNullFields;
@@ -429,8 +428,8 @@ namespace nfx::serialization::json
                 std::string tempJson = tempDoc.toString( m_options.prettyPrint ? 2 : 0 );
                 builder.writeRawJson( tempJson );
             }
-            // NOTE: No fallback to DocumentTraits - all types must either:
-            //       - Have BuilderTraits (checked above)
+            // NOTE: No fallback to SerializationTraits::toDocument() - all types must either:
+            //       - Have SerializationTraits::serialize() (checked above)
             //       - Have custom toDocument() method (checked above)
             //       - Be built-in types (checked above)
             // If none match, compilation will fail (by design)
@@ -652,8 +651,8 @@ namespace nfx::serialization::json
         }
         else
         {
-            // Fall back to DocumentTraits (custom types: nfx extensions and user types)
-            DocumentTraits<U>::fromDocument( doc, obj );
+            // Fall back to SerializationTraits::fromDocument() (custom types: nfx extensions and user types)
+            SerializationTraits<U>::fromDocument( doc, obj );
         }
     }
 } // namespace nfx::serialization::json

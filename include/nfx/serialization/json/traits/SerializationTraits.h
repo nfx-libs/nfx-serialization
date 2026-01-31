@@ -24,15 +24,16 @@
 
 /**
  * @file SerializationTraits.h
- * @brief Serialization traits for JSON serialization/deserialization
- * @details Contains both BuilderTraits and DocumentTraits templates that provide
- *          the extensible serialization framework for nfx-serialization library.
+ * @brief Unified serialization traits for JSON serialization/deserialization
+ * @details Contains SerializationTraits template that provides the extensible
+ *          serialization framework for nfx-serialization library.
  *
- *          Two complementary trait systems:
- *          - **BuilderTraits**: High-performance streaming serialization (write-only)
- *          - **DocumentTraits**: Bidirectional DOM-based serialization (read/write)
+ *          SerializationTraits provides three complementary methods:
+ *          - **serialize()**: High-performance streaming serialization (write-only)
+ *          - **toDocument()**: DOM-based serialization (write)
+ *          - **fromDocument()**: DOM-based deserialization (read)
  *
- *          Users can specialize these traits to customize serialization behavior
+ *          Users can specialize this trait to customize serialization behavior
  *          for their own types.
  *
  *          For serialization support of nfx framework types (datetime, datatypes, containers),
@@ -64,10 +65,7 @@ namespace nfx::serialization::json
     class Serializer;
 
     template <typename T>
-    struct BuilderTraits;
-
-    template <typename T>
-    struct DocumentTraits;
+    struct SerializationTraits;
 
     //=====================================================================
     // SFINAE detectors
@@ -76,54 +74,59 @@ namespace nfx::serialization::json
     namespace detail
     {
         /**
-         * @brief SFINAE detector for BuilderTraits specialization
+         * @brief SFINAE detector for streaming serialization
          * @tparam T Type to check
          */
         template <typename T, typename = void>
-        struct has_builder_traits : std::false_type
+        struct has_streaming_serialization : std::false_type
         {
         };
 
         /**
-         * @brief SFINAE detector for BuilderTraits specialization (specialized version)
+         * @brief SFINAE detector for streaming serialization (specialized version)
          * @tparam T Type to check
-         * @details Checks if BuilderTraits<T>::serialize(const T&, Builder&) is valid
+         * @details Checks if SerializationTraits<T>::serialize(const T&, Builder&) is valid
          */
         template <typename T>
-        struct has_builder_traits<
+        struct has_streaming_serialization<
             T,
-            std::void_t<decltype( BuilderTraits<T>::serialize(
+            std::void_t<decltype( SerializationTraits<T>::serialize(
                 std::declval<const T&>(), std::declval<nfx::json::Builder&>() ) )>> : std::true_type
         {
         };
 
         /**
-         * @brief Helper variable template for has_builder_traits
+         * @brief Helper variable template for has_streaming_serialization
          */
         template <typename T>
-        inline constexpr bool has_builder_traits_v = has_builder_traits<T>::value;
+        inline constexpr bool has_streaming_serialization_v = has_streaming_serialization<T>::value;
     } // namespace detail
 
     //=====================================================================
-    // BuilderTraits - High-performance streaming serialization
+    // SerializationTraits - Unified serialization interface
     //=====================================================================
 
     /**
-     * @brief Builder traits for direct JSON serialization
-     * @tparam T The type to serialize
-     * @details This is the extension point for high-performance serialization.
-     *          Users can specialize this template to provide direct Builder serialization
-     *          for their types, avoiding the Document→JSON conversion overhead.
+     * @brief Unified serialization traits for JSON serialization/deserialization
+     * @tparam T The type to serialize/deserialize
+     * @details This is the extension point for users to define custom serialization.
+     *          Users can specialize this template for their types with one or more methods:
      *
-     *          When BuilderTraits<T> is specialized, the serializer will use it directly
-     *          instead of falling back to DocumentTraits + Document conversion.
+     *          1. **serialize()** - High-performance streaming (write-only, no DOM overhead)
+     *          2. **toDocument()** - DOM-based serialization (write, for bidirectional support)
+     *          3. **fromDocument()** - DOM-based deserialization (read)
      *
-     *          Provides write-only streaming serialization with no intermediate DOM.
+     *          The serializer will prefer serialize() when available (detected via SFINAE),
+     *          falling back to toDocument()/fromDocument() for bidirectional operations.
      *
-     * @example
+     *          User types can provide member methods with these signatures:
+     *          - void toDocument(const Serializer<T>&, Document&) const
+     *          - void fromDocument(const Document&, const Serializer<T>&)
+     *
+     * **Example: High-performance streaming only**
      * ```cpp
      * template <>
-     * struct BuilderTraits<MyType>
+     * struct SerializationTraits<MyType>
      * {
      *     static void serialize( const MyType& obj, nfx::json::Builder& builder )
      *     {
@@ -134,42 +137,41 @@ namespace nfx::serialization::json
      *     }
      * };
      * ```
+     *
+     * **Example: Bidirectional serialization**
+     * ```cpp
+     * template <>
+     * struct SerializationTraits<MyType>
+     * {
+     *     static void serialize( const MyType& obj, nfx::json::Builder& builder )
+     *     {
+     *         builder.writeStartObject();
+     *         builder.write( "field1", obj.field1 );
+     *         builder.writeEndObject();
+     *     }
+     *
+     *     static void toDocument( const MyType& obj, Document& doc )
+     *     {
+     *         Serializer<MyType> serializer;
+     *         obj.toDocument( serializer, doc );
+     *     }
+     *
+     *     static void fromDocument( const Document& doc, MyType& obj )
+     *     {
+     *         Serializer<MyType> serializer;
+     *         obj.fromDocument( doc, serializer );
+     *     }
+     * };
+     * ```
      */
     template <typename T>
-    struct BuilderTraits
-    {
-        // No default implementation - must be specialized for each type
-        // The has_builder_traits SFINAE detector will catch if this isn't specialized
-    };
-
-    //=====================================================================
-    // DocumentTraits - Bidirectional DOM-based serialization
-    //=====================================================================
-
-    /**
-     * @brief Document-based serialization traits - users can specialize this
-     * @tparam T The type to serialize/deserialize
-     * @details This is the extension point for users to define custom DOM-based serialization.
-     *          Users can specialize this template for their types or even override
-     *          library types with custom serialization logic.
-     *
-     *          DocumentTraits provides bidirectional serialization through the Document API:
-     *          - toDocument(obj, doc): Convert object → Document (serialization)
-     *          - fromDocument(doc, obj): Convert Document → object (deserialization)
-     *
-     *          User types must provide member methods with these signatures:
-     *          - void toDocument(const Serializer<T>&, Document&) const
-     *          - void fromDocument(const Document&, const Serializer<T>&)
-     *
-     *          For write-only streaming serialization, see BuilderTraits.
-     */
-    template <typename T>
-    struct DocumentTraits
+    struct SerializationTraits
     {
         /**
          * @brief Convert object to Document (serialization)
          * @param obj Object to convert (source)
          * @param doc Document to populate (destination)
+         * @details Default implementation calls member method toDocument()
          */
         static void toDocument( const T& obj, Document& doc )
         {
@@ -181,11 +183,15 @@ namespace nfx::serialization::json
          * @brief Convert Document to object (deserialization)
          * @param doc Document to read from (source)
          * @param obj Object to populate (destination)
+         * @details Default implementation calls member method fromDocument()
          */
         static void fromDocument( const Document& doc, T& obj )
         {
             Serializer<T> serializer;
             obj.fromDocument( doc, serializer );
         }
+
+        // No default implementation for serialize() - must be specialized if needed
+        // SFINAE detector will check if serialize() is available
     };
 } // namespace nfx::serialization::json
