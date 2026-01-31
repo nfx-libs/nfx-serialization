@@ -28,9 +28,8 @@
  * @details Contains SerializationTraits template that provides the extensible
  *          serialization framework for nfx-serialization library.
  *
- *          SerializationTraits provides three complementary methods:
- *          - **serialize()**: High-performance streaming serialization (write-only)
- *          - **toDocument()**: DOM-based serialization (write)
+ *          SerializationTraits provides two complementary methods:
+ *          - **serialize()**: High-performance streaming serialization (write)
  *          - **fromDocument()**: DOM-based deserialization (read)
  *
  *          Users can specialize this trait to customize serialization behavior
@@ -110,20 +109,18 @@ namespace nfx::serialization::json
      * @brief Unified serialization traits for JSON serialization/deserialization
      * @tparam T The type to serialize/deserialize
      * @details This is the extension point for users to define custom serialization.
-     *          Users can specialize this template for their types with one or more methods:
+     *          Users can specialize this template for their types with one or both methods:
      *
-     *          1. **serialize()** - High-performance streaming (write-only, no DOM overhead)
-     *          2. **toDocument()** - DOM-based serialization (write, for bidirectional support)
-     *          3. **fromDocument()** - DOM-based deserialization (read)
+     *          1. **serialize()** - High-performance streaming (write, no DOM overhead)
+     *          2. **fromDocument()** - DOM-based deserialization (read)
      *
      *          The serializer will prefer serialize() when available (detected via SFINAE),
-     *          falling back to toDocument()/fromDocument() for bidirectional operations.
+     *          falling back to user types with member method fromDocument().
      *
-     *          User types can provide member methods with these signatures:
-     *          - void toDocument(const Serializer<T>&, Document&) const
+     *          User types can provide member method with this signature:
      *          - void fromDocument(const Document&, const Serializer<T>&)
      *
-     * **Example: High-performance streaming only**
+     * **Example: High-performance streaming serialization**
      * ```cpp
      * template <>
      * struct SerializationTraits<MyType>
@@ -135,31 +132,11 @@ namespace nfx::serialization::json
      *         builder.write( "field2", obj.field2 );
      *         builder.writeEndObject();
      *     }
-     * };
-     * ```
-     *
-     * **Example: Bidirectional serialization**
-     * ```cpp
-     * template <>
-     * struct SerializationTraits<MyType>
-     * {
-     *     static void serialize( const MyType& obj, nfx::json::Builder& builder )
-     *     {
-     *         builder.writeStartObject();
-     *         builder.write( "field1", obj.field1 );
-     *         builder.writeEndObject();
-     *     }
-     *
-     *     static void toDocument( const MyType& obj, Document& doc )
-     *     {
-     *         Serializer<MyType> serializer;
-     *         obj.toDocument( serializer, doc );
-     *     }
-     *
+     *     
      *     static void fromDocument( const Document& doc, MyType& obj )
      *     {
-     *         Serializer<MyType> serializer;
-     *         obj.fromDocument( doc, serializer );
+     *         obj.field1 = doc.get<int>("field1").value();
+     *         obj.field2 = doc.get<string>("field2").value();
      *     }
      * };
      * ```
@@ -167,18 +144,6 @@ namespace nfx::serialization::json
     template <typename T>
     struct SerializationTraits
     {
-        /**
-         * @brief Convert object to Document (serialization)
-         * @param obj Object to convert (source)
-         * @param doc Document to populate (destination)
-         * @details Default implementation calls member method toDocument()
-         */
-        static void toDocument( const T& obj, Document& doc )
-        {
-            Serializer<T> serializer;
-            obj.toDocument( serializer, doc );
-        }
-
         /**
          * @brief Convert Document to object (deserialization)
          * @param doc Document to read from (source)
