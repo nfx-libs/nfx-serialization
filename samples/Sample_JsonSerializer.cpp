@@ -30,7 +30,7 @@
  */
 
 #include <nfx/serialization/json/Serializer.h>
-#include <nfx/serialization/json/traits/DocumentTraits.h>
+#include <nfx/serialization/json/traits/SerializationTraits.h>
 #include <nfx/json/Document.h>
 
 #include <array>

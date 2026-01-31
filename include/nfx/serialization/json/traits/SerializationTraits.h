@@ -23,17 +23,17 @@
  */
 
 /**
- * @file DocumentTraits.h
- * @brief Document-based serialization traits for JSON DOM serialization/deserialization
- * @details Contains the DocumentTraits template that provides the extensible DOM-based
- *          serialization framework for nfx-serialization library.
+ * @file SerializationTraits.h
+ * @brief Serialization traits for JSON serialization/deserialization
+ * @details Contains both BuilderTraits and DocumentTraits templates that provide
+ *          the extensible serialization framework for nfx-serialization library.
  *
- *          This file provides the base template that allows users to customize
- *          serialization behavior for their own types by specializing DocumentTraits.
- *          DocumentTraits provides bidirectional serialization (read/write) through
- *          the Document API.
+ *          Two complementary trait systems:
+ *          - **BuilderTraits**: High-performance streaming serialization (write-only)
+ *          - **DocumentTraits**: Bidirectional DOM-based serialization (read/write)
  *
- *          For high-performance write-only streaming serialization, see BuilderTraits.h
+ *          Users can specialize these traits to customize serialization behavior
+ *          for their own types.
  *
  *          For serialization support of nfx framework types (datetime, datatypes, containers),
  *          include the appropriate extension headers:
@@ -44,10 +44,12 @@
 
 #pragma once
 
+#include <nfx/json/Builder.h>
 #include <nfx/json/Document.h>
 
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 using namespace nfx::json;
@@ -61,8 +63,87 @@ namespace nfx::serialization::json
     template <typename T>
     class Serializer;
 
+    template <typename T>
+    struct BuilderTraits;
+
+    template <typename T>
+    struct DocumentTraits;
+
     //=====================================================================
-    // Document Traits (extensible by users)
+    // SFINAE detectors
+    //=====================================================================
+
+    namespace detail
+    {
+        /**
+         * @brief SFINAE detector for BuilderTraits specialization
+         * @tparam T Type to check
+         */
+        template <typename T, typename = void>
+        struct has_builder_traits : std::false_type
+        {
+        };
+
+        /**
+         * @brief SFINAE detector for BuilderTraits specialization (specialized version)
+         * @tparam T Type to check
+         * @details Checks if BuilderTraits<T>::serialize(const T&, Builder&) is valid
+         */
+        template <typename T>
+        struct has_builder_traits<
+            T,
+            std::void_t<decltype( BuilderTraits<T>::serialize(
+                std::declval<const T&>(), std::declval<nfx::json::Builder&>() ) )>> : std::true_type
+        {
+        };
+
+        /**
+         * @brief Helper variable template for has_builder_traits
+         */
+        template <typename T>
+        inline constexpr bool has_builder_traits_v = has_builder_traits<T>::value;
+    } // namespace detail
+
+    //=====================================================================
+    // BuilderTraits - High-performance streaming serialization
+    //=====================================================================
+
+    /**
+     * @brief Builder traits for direct JSON serialization
+     * @tparam T The type to serialize
+     * @details This is the extension point for high-performance serialization.
+     *          Users can specialize this template to provide direct Builder serialization
+     *          for their types, avoiding the Document→JSON conversion overhead.
+     *
+     *          When BuilderTraits<T> is specialized, the serializer will use it directly
+     *          instead of falling back to DocumentTraits + Document conversion.
+     *
+     *          Provides write-only streaming serialization with no intermediate DOM.
+     *
+     * @example
+     * ```cpp
+     * template <>
+     * struct BuilderTraits<MyType>
+     * {
+     *     static void serialize( const MyType& obj, nfx::json::Builder& builder )
+     *     {
+     *         builder.writeStartObject();
+     *         builder.write( "field1", obj.field1 );
+     *         builder.write( "field2", obj.field2 );
+     *         builder.writeEndObject();
+     *     }
+     * };
+     * ```
+     */
+    template <typename T>
+    struct BuilderTraits
+    {
+        // No default implementation - must be specialized for each type
+        // The has_builder_traits SFINAE detector will catch if this isn't specialized
+    };
+
+    //=====================================================================
+    // DocumentTraits - Bidirectional DOM-based serialization
     //=====================================================================
 
     /**

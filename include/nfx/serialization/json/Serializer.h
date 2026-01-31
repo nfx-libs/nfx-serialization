@@ -33,8 +33,7 @@
 #pragma once
 
 #include "Concepts.h"
-#include "traits/DocumentTraits.h"
-#include "traits/BuilderTraits.h"
+#include "traits/SerializationTraits.h"
 
 #include <nfx/json/Document.h>
 #include <nfx/json/Builder.h>
