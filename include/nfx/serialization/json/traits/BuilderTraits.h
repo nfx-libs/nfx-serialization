@@ -128,9 +128,8 @@ namespace nfx::serialization::json
 
     /**
      * @brief BuilderTraits specialization for SerializableDocument
-     * @details High-performance streaming serialization that traverses the internal
-     *          Document DOM and writes directly to the Builder, avoiding the
-     *          toString() string allocation and subsequent copy in writeRawJson().
+     * @details Delegates to Builder's native write(Document) method for optimal performance.
+     *          Builder handles the Document traversal internally with zero-copy efficiency.
      */
     template <>
     struct BuilderTraits<SerializableDocument>
@@ -142,113 +141,7 @@ namespace nfx::serialization::json
          */
         static void serialize( const SerializableDocument& doc, nfx::json::Builder& builder )
         {
-            serializeDocument( doc.document(), builder );
-        }
-
-    private:
-        /**
-         * @brief Serialize a Document to Builder by traversing its structure
-         * @param doc The Document to serialize
-         * @param builder The JSON Builder to write to
-         */
-        static void serializeDocument( const nfx::json::Document& doc, nfx::json::Builder& builder )
-        {
-            using namespace nfx::json;
-
-            // Dispatch based on root type
-            switch( doc.type() )
-            {
-                case Type::Null:
-                    builder.write( nullptr );
-                    break;
-
-                case Type::Boolean:
-                    if( auto val = doc.root<bool>() )
-                    {
-                        builder.write( *val );
-                    }
-                    break;
-
-                case Type::Integer:
-                    if( auto val = doc.root<int64_t>() )
-                    {
-                        builder.write( *val );
-                    }
-                    break;
-
-                case Type::UnsignedInteger:
-                    if( auto val = doc.root<uint64_t>() )
-                    {
-                        builder.write( *val );
-                    }
-                    break;
-
-                case Type::Double:
-                    if( auto val = doc.root<double>() )
-                    {
-                        builder.write( *val );
-                    }
-                    break;
-
-                case Type::String:
-                    if( auto val = doc.root<std::string>() )
-                    {
-                        builder.write( *val );
-                    }
-                    break;
-
-                case Type::Array:
-                    if( auto arr = doc.root<Array>() )
-                    {
-                        serializeArray( *arr, builder );
-                    }
-                    break;
-
-                case Type::Object:
-                    if( auto obj = doc.root<Object>() )
-                    {
-                        serializeObject( *obj, builder );
-                    }
-                    break;
-
-                default:
-                    throw std::runtime_error{ "Unknown Document type" };
-            }
-        }
-
-        /**
-         * @brief Serialize a JSON Object to Builder
-         * @param obj The Object to serialize
-         * @param builder The JSON Builder to write to
-         */
-        static void serializeObject( const nfx::json::Object& obj, nfx::json::Builder& builder )
-        {
-            builder.writeStartObject();
-
-            for( const auto& [key, value] : obj )
-            {
-                builder.writeKey( key );
-                serializeDocument( value, builder );
-            }
-
-            builder.writeEndObject();
-        }
-
-        /**
-         * @brief Serialize a JSON Array to Builder
-         * @param arr The Array to serialize
-         * @param builder The JSON Builder to write to
-         */
-        static void serializeArray( const nfx::json::Array& arr, nfx::json::Builder& builder )
-        {
-            builder.writeStartArray();
-
-            for( const auto& value : arr )
-            {
-                serializeDocument( value, builder );
-            }
-
-            builder.writeEndArray();
+            builder.write( doc.document() );
         }
     };
 
