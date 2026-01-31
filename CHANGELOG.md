@@ -8,7 +8,7 @@
 
 ### Changed
 
-- NIL
+- Updated nfx-json dependency from 1.0.3 to 1.1.0
 
 ### Deprecated
 

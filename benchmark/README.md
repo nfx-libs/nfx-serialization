@@ -21,11 +21,11 @@
 
 ### Software Configuration
 
-| Platform    | OS         | Benchmark Framework     | C++ Compiler           | nfx-serialization Version |
-| ----------- | ---------- | ----------------------- | ---------------------- | ------------------------- |
-| **Linux**   | LMDE 7     | Google Benchmark v1.9.4 | Clang 19.1.7-x64       | v0.2.0                    |
-| **Windows** | Windows 10 | Google Benchmark v1.9.4 | MinGW GCC 14.2.0-x64   | v0.2.0                    |
-| **Windows** | Windows 10 | Google Benchmark v1.9.4 | MSVC 19.44.35217.0-x64 | v0.2.0                    |
+| Platform    | OS         | Benchmark Framework     | C++ Compiler           | nfx-serialization Version | nfx-json Version |
+| ----------- | ---------- | ----------------------- | ---------------------- | :-----------------------: | :--------------: |
+| **Linux**   | LMDE 7     | Google Benchmark v1.9.4 | Clang 19.1.7-x64       |          v0.6.1           |      v1.1.0      |
+| **Windows** | Windows 10 | Google Benchmark v1.9.4 | MinGW GCC 14.2.0-x64   |          v0.6.1           |      v1.1.0      |
+| **Windows** | Windows 10 | Google Benchmark v1.9.4 | MSVC 19.44.35217.0-x64 |          v0.6.1           |      v1.1.0      |
 
 ---
 
@@ -35,12 +35,12 @@
 
 ### Serialize to String
 
-| Operation                  | Linux Clang  | Windows MinGW GCC | Windows MSVC |
-| -------------------------- | :----------: | :---------------: | :----------: |
-| **Serialize Small Object** |  **164 ns**  |      289  ns      |   289   ns   |
-| **Serialize Large Object** | **1,160 ns** |     1,585 ns      |   1,716 ns   |
-| **Serialize Pretty Print** | **1,314 ns** |     1,739 ns      |   2,040 ns   |
+| Operation                  | Linux Clang | Windows MinGW GCC | Windows MSVC |
+| -------------------------- | :---------: | :---------------: | :----------: |
+| **Serialize Small Object** |   108 ns    |     148   ns      |   172   ns   |
+| **Serialize Large Object** |   772 ns    |     1,105 ns      |   1,176 ns   |
+| **Serialize Pretty Print** |   872 ns    |     1,296 ns      |   1,322 ns   |
 
 ---
 
-_Updated on November 30, 2025_
+_Updated on January 31, 2026_
