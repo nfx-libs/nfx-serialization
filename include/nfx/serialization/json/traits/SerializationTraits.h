@@ -102,7 +102,7 @@ namespace nfx::serialization::json
     } // namespace detail
 
     //=====================================================================
-    // SerializationTraits - Unified serialization interface
+    // SerializationTraits - Read/Write serialization interface
     //=====================================================================
 
     /**
