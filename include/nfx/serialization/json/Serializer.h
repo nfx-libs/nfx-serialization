@@ -32,7 +32,7 @@
 
 #pragma once
 
-#include "SerializationTraits.h"
+#include "traits/SerializationTraits.h"
 #include "SerializableDocument.h"
 
 #include <nfx/json/Document.h>

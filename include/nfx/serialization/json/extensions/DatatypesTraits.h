@@ -39,8 +39,7 @@
 
 #pragma once
 
-#include "nfx/serialization/json/SerializableDocument.h"
-#include "nfx/serialization/json/SerializationTraits.h"
+#include "nfx/serialization/json/Serializer.h"
 
 //=====================================================================
 // Int128 support - enabled only if header is available

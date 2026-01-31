@@ -34,4 +34,3 @@
 #pragma once
 
 #include "serialization/json/Serializer.h"
-#include "serialization/json/SerializationTraits.h"

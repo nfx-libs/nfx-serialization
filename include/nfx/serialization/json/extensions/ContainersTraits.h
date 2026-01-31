@@ -39,8 +39,6 @@
 
 #pragma once
 
-#include "nfx/serialization/json/SerializableDocument.h"
-#include "nfx/serialization/json/SerializationTraits.h"
 #include "nfx/serialization/json/Serializer.h"
 
 #include <utility> // for std::pair
