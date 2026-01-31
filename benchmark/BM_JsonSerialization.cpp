@@ -47,7 +47,7 @@ namespace nfx::serialization::json::benchmark
         std::string email;
         bool active;
 
-        void serialize( const Serializer<Person>& serializer, nfx::json::Document& doc ) const
+        void toDocument( const Serializer<Person>& serializer, nfx::json::Document& doc ) const
         {
             doc.set( "/name", name );
             doc.set( "/age", age );
@@ -64,7 +64,7 @@ namespace nfx::serialization::json::benchmark
         int founded;
         std::vector<Person> staff;
 
-        void serialize( const Serializer<Company>& serializer, nfx::json::Document& doc ) const
+        void toDocument( const Serializer<Company>& serializer, nfx::json::Document& doc ) const
         {
             doc.set( "/name", name );
             doc.set( "/industry", industry );

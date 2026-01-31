@@ -31,7 +31,7 @@
 
 #include "Concepts.h"
 #include "traits/BuilderTraits.h"
-#include "traits/SerializationTraits.h"
+#include "traits/DocumentTraits.h"
 
 #include <nfx/json/Document.h>
 
@@ -44,7 +44,7 @@ namespace nfx::serialization::json
     /**
      * @brief SerializableDocument class with serialization support
      * @details Wraps nfx::json::Document to support serialization of STL types
-     *          (via Serializer<T>) and nfx extension types (via SerializationTraits<T>).
+     *          (via Serializer<T>) and nfx extension types (via DocumentTraits<T>).
      *
      * @par Usage
      * SerializableDocument extends Document with automatic C++ type serialization:
@@ -52,7 +52,7 @@ namespace nfx::serialization::json
      * SerializableDocument doc;
      * doc.set("/users", std::vector<std::string>{"alice", "bob"}); // STL via Serializer
      * doc.set("/count", std::optional<int>{42});                   // STL optional
-     * doc.set("/price", Decimal("99.99"));                         // nfx via SerializationTraits
+     * doc.set("/price", Decimal("99.99"));                         // nfx via DocumentTraits
      * @endcode
      *
      * For low-level Document operations (iteration, visitors, merging), use the document() accessor:
@@ -309,32 +309,32 @@ namespace nfx::serialization::json
         inline bool is( std::string_view path ) const;
 
         //-----------------------------
-        // SerializationTraits support for nfx extension types
+        // DocumentTraits support for nfx extension types
         //-----------------------------
 
         /**
-         * @brief Set value using SerializationTraits (copy version)
-         * @tparam T Type with SerializationTraits defined (e.g., Decimal, DateTime, FastHashMap)
+         * @brief Set value using DocumentTraits (copy version)
+         * @tparam T Type with DocumentTraits defined (e.g., Decimal, DateTime, FastHashMap)
          * @param path JSON Pointer path where to set value
-         * @param value Value to serialize using its SerializationTraits
+         * @param value Value to serialize using its DocumentTraits
          */
         template <typename T>
             requires NfxSerializable<T>
         inline void set( std::string_view path, const T& value );
 
         /**
-         * @brief Set value using SerializationTraits (move version)
-         * @tparam T Type with SerializationTraits defined (e.g., Decimal, DateTime, FastHashMap)
+         * @brief Set value using DocumentTraits (move version)
+         * @tparam T Type with DocumentTraits defined (e.g., Decimal, DateTime, FastHashMap)
          * @param path JSON Pointer path where to set value
-         * @param value Value to serialize using its SerializationTraits
+         * @param value Value to serialize using its DocumentTraits
          */
         template <typename T>
             requires NfxSerializable<T>
         inline void set( std::string_view path, T&& value );
 
         /**
-         * @brief Get value using SerializationTraits
-         * @tparam T Type with SerializationTraits defined (e.g., Decimal, DateTime, FastHashMap)
+         * @brief Get value using DocumentTraits
+         * @tparam T Type with DocumentTraits defined (e.g., Decimal, DateTime, FastHashMap)
          * @param path JSON Pointer path to value
          * @return Optional containing deserialized value if exists
          */
@@ -343,8 +343,8 @@ namespace nfx::serialization::json
         inline std::optional<T> get( std::string_view path ) const;
 
         /**
-         * @brief Get value using SerializationTraits into output parameter
-         * @tparam T Type with SerializationTraits defined (e.g., Decimal, DateTime, FastHashMap)
+         * @brief Get value using DocumentTraits into output parameter
+         * @tparam T Type with DocumentTraits defined (e.g., Decimal, DateTime, FastHashMap)
          * @param path JSON Pointer path to value
          * @param[out] value Output parameter to store deserialized value
          * @return true if value exists and was successfully deserialized
@@ -355,7 +355,7 @@ namespace nfx::serialization::json
 
         /**
          * @brief Check if value at path can be deserialized as type T
-         * @tparam T Type with SerializationTraits to check for
+         * @tparam T Type with DocumentTraits to check for
          * @param path JSON Pointer path to check
          * @return true if value exists and can be deserialized as T, false otherwise
          */
@@ -369,7 +369,7 @@ namespace nfx::serialization::json
 
         /**
          * @brief Set value from const char* for types constructible from string
-         * @tparam T Type with SerializationTraits and constructible from const char*
+         * @tparam T Type with DocumentTraits and constructible from const char*
          * @param path JSON Pointer path where to set value
          * @param value String value to construct T from
          */
@@ -379,7 +379,7 @@ namespace nfx::serialization::json
 
         /**
          * @brief Set value from arithmetic type for types with explicit constructors
-         * @tparam T Type with SerializationTraits constructible from arithmetic (e.g., Decimal from double)
+         * @tparam T Type with DocumentTraits constructible from arithmetic (e.g., Decimal from double)
          * @tparam U Arithmetic type (int, double, float, etc.)
          * @param path JSON Pointer path where to set value
          * @param value Arithmetic value to construct T from

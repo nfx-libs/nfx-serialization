@@ -23,13 +23,17 @@
  */
 
 /**
- * @file SerializationTraits.h
- * @brief Serialization traits and type specializations for JSON serialization
- * @details Contains the SerializationTraits template that provides the extensible
+ * @file DocumentTraits.h
+ * @brief Document-based serialization traits for JSON DOM serialization/deserialization
+ * @details Contains the DocumentTraits template that provides the extensible DOM-based
  *          serialization framework for nfx-serialization library.
  *
  *          This file provides the base template that allows users to customize
- *          serialization behavior for their own types by specializing SerializationTraits.
+ *          serialization behavior for their own types by specializing DocumentTraits.
+ *          DocumentTraits provides bidirectional serialization (read/write) through
+ *          the Document API.
+ *
+ *          For high-performance write-only streaming serialization, see BuilderTraits.h
  *
  *          For serialization support of nfx framework types (datetime, datatypes, containers),
  *          include the appropriate extension headers:
@@ -60,84 +64,90 @@ namespace nfx::serialization::json
     namespace detail
     {
         template <typename T>
-        struct has_serialize_method;
+        struct has_toDocument_method;
 
         template <typename T>
-        struct has_serialize_method_returning_document;
+        struct has_toDocument_method_returning_document;
 
         template <typename T>
-        struct has_serialize_method_no_params;
+        struct has_toDocument_method_no_params;
 
         template <typename T>
-        struct has_deserialize_method;
+        struct has_fromDocument_method;
     } // namespace detail
 
     //=====================================================================
-    // Serialization Traits (extensible by users)
+    // Document Traits (extensible by users)
     //=====================================================================
 
     /**
-     * @brief Default serialization traits - users can specialize this
+     * @brief Document-based serialization traits - users can specialize this
      * @tparam T The type to serialize/deserialize
-     * @details This is the extension point for users to define custom serialization.
+     * @details This is the extension point for users to define custom DOM-based serialization.
      *          Users can specialize this template for their types or even override
      *          library types with custom serialization logic.
+     *
+     *          DocumentTraits provides bidirectional serialization through the Document API:
+     *          - serialize(): Convert object → Document (used by toDocument())
+     *          - deserialize(): Convert Document → object (used by fromDocument())
+     *
+     *          For write-only streaming serialization, see BuilderTraits.
      */
     template <typename T>
-    struct SerializationTraits
+    struct DocumentTraits
     {
         /**
-         * @brief Default serialize implementation - delegates to member method
-         * @param obj Object to serialize
-         * @param doc Document to serialize into
+         * @brief Convert object to Document (serialization)
+         * @param obj Object to convert (source)
+         * @param doc Document to populate (destination)
          */
-        static void serialize( const T& obj, Document& doc )
+        static void toDocument( const T& obj, Document& doc )
         {
-            // Look for serialize method with no parameters
-            if constexpr( detail::has_serialize_method_no_params<T>::value )
+            // Look for toDocument method with no parameters
+            if constexpr( detail::has_toDocument_method_no_params<T>::value )
             {
-                doc = obj.serialize();
+                doc = obj.toDocument();
             }
-            // Look for serialize method returning Document with serializer parameter
-            else if constexpr( detail::has_serialize_method_returning_document<T>::value )
+            // Look for toDocument method returning Document with serializer parameter
+            else if constexpr( detail::has_toDocument_method_returning_document<T>::value )
             {
                 Serializer<T> serializer;
-                doc = obj.serialize( serializer );
+                doc = obj.toDocument( serializer );
             }
-            // Look for traditional serialize method with serializer and document parameters
-            else if constexpr( detail::has_serialize_method<T>::value )
+            // Look for traditional toDocument method with serializer and document parameters
+            else if constexpr( detail::has_toDocument_method<T>::value )
             {
                 Serializer<T> serializer;
-                obj.serialize( serializer, doc );
+                obj.toDocument( serializer, doc );
             }
             else
             {
                 static_assert(
-                    detail::has_serialize_method<T>::value ||
-                        detail::has_serialize_method_returning_document<T>::value ||
-                        detail::has_serialize_method_no_params<T>::value,
-                    "Type must either specialize SerializationTraits or have a serialize() member method" );
+                    detail::has_toDocument_method<T>::value ||
+                        detail::has_toDocument_method_returning_document<T>::value ||
+                        detail::has_toDocument_method_no_params<T>::value,
+                    "Type must either specialize DocumentTraits or have a toDocument() member method" );
             }
         }
 
         /**
-         * @brief Default deserialize implementation - delegates to member method
-         * @param obj Object to deserialize into
-         * @param doc Document to deserialize from
+         * @brief Convert Document to object (deserialization)
+         * @param doc Document to read from (source)
+         * @param obj Object to populate (destination)
          */
-        static void deserialize( T& obj, const Document& doc )
+        static void fromDocument( const Document& doc, T& obj )
         {
-            // Look for member deserialize method
-            if constexpr( detail::has_deserialize_method<T>::value )
+            // Look for member fromDocument method (doc first, serializer second)
+            if constexpr( detail::has_fromDocument_method<T>::value )
             {
                 Serializer<T> serializer;
-                obj.deserialize( serializer, doc );
+                obj.fromDocument( doc, serializer );
             }
             else
             {
                 static_assert(
-                    detail::has_deserialize_method<T>::value,
-                    "Type must either specialize SerializationTraits or have a deserialize() member method" );
+                    detail::has_fromDocument_method<T>::value,
+                    "Type must either specialize DocumentTraits or have a fromDocument() member method" );
             }
         }
     };

@@ -58,12 +58,12 @@ namespace nfx::serialization::json
          *          dispatch to custom serialization methods.
          */
         template <typename T>
-        struct has_serialize_method
+        struct has_toDocument_method
         {
         private:
             template <typename U>
             static auto test( int )
-                -> decltype( std::declval<const U&>().serialize( std::declval<const Serializer<U>&>(), std::declval<Document&>() ), std::true_type{} );
+                -> decltype( std::declval<const U&>().toDocument( std::declval<const Serializer<U>&>(), std::declval<Document&>() ), std::true_type{} );
             template <typename>
             static std::false_type test( ... );
 
@@ -80,12 +80,12 @@ namespace nfx::serialization::json
          *          dispatch to custom serialization methods.
          */
         template <typename T>
-        struct has_serialize_method_returning_document
+        struct has_toDocument_method_returning_document
         {
         private:
             template <typename U>
             static auto test( int )
-                -> decltype( std::declval<const U&>().serialize( std::declval<const Serializer<U>&>() ), std::true_type{} );
+                -> decltype( std::declval<const U&>().toDocument( std::declval<const Serializer<U>&>() ), std::true_type{} );
             template <typename>
             static std::false_type test( ... );
 
@@ -95,23 +95,23 @@ namespace nfx::serialization::json
         };
 
         /**
-         * @brief Type trait to detect if a type has a serialize method (no parameters version)
+         * @brief Type trait to detect if a type has a toDocument method (no parameters version)
          * @tparam T The type to check
-         * @details Uses SFINAE to detect if type T has a serialize method that returns
+         * @details Uses SFINAE to detect if type T has a toDocument method that returns
          *          Document and takes no parameters. Used for compile-time dispatch to
          *          custom serialization methods.
          */
         template <typename T>
-        struct has_serialize_method_no_params
+        struct has_toDocument_method_no_params
         {
         private:
             template <typename U>
-            static auto test( int ) -> decltype( std::declval<const U&>().serialize(), std::true_type{} );
+            static auto test( int ) -> decltype( std::declval<const U&>().toDocument(), std::true_type{} );
             template <typename>
             static std::false_type test( ... );
 
         public:
-            /** @brief True if type T has a serialize method taking no parameters, false otherwise */
+            /** @brief True if type T has a toDocument method taking no parameters, false otherwise */
             static constexpr bool value = decltype( test<T>( 0 ) )::value;
         };
 
@@ -123,12 +123,12 @@ namespace nfx::serialization::json
          *          deserialization methods.
          */
         template <typename T>
-        struct has_deserialize_method
+        struct has_fromDocument_method
         {
         private:
             template <typename U>
             static auto test( int )
-                -> decltype( std::declval<U>().deserialize( std::declval<const Serializer<U>&>(), std::declval<const Document&>() ), std::true_type{} );
+                -> decltype( std::declval<U>().fromDocument( std::declval<const Document&>(), std::declval<const Serializer<U>&>() ), std::true_type{} );
             template <typename>
             static std::false_type test( ... );
 
@@ -348,23 +348,23 @@ namespace nfx::serialization::json
     {
         SerializableDocument doc;
         // Look for serialize method with no parameters
-        if constexpr( detail::has_serialize_method_no_params<T>::value )
+        if constexpr( detail::has_toDocument_method_no_params<T>::value )
         {
-            doc = obj.serialize();
+            doc = obj.toDocument();
         }
         // Look for serialize method returning Document with serializer parameter
-        else if constexpr( detail::has_serialize_method_returning_document<T>::value )
+        else if constexpr( detail::has_toDocument_method_returning_document<T>::value )
         {
-            doc = obj.serialize( *this );
+            doc = obj.toDocument( *this );
         }
         // Look for traditional serialize method with serializer and document parameters
-        else if constexpr( detail::has_serialize_method<T>::value )
+        else if constexpr( detail::has_toDocument_method<T>::value )
         {
             // Initialize document as empty object for custom serialization
             doc.set<nfx::json::Object>( "" );
 
             // Use custom serialize method if available
-            obj.serialize( *this, doc );
+            obj.toDocument( *this, doc );
         }
         else
         {
@@ -378,10 +378,10 @@ namespace nfx::serialization::json
     inline T Serializer<T>::fromDocument( const SerializableDocument& doc ) const
     {
         T obj{};
-        if constexpr( detail::has_deserialize_method<T>::value )
+        if constexpr( detail::has_fromDocument_method<T>::value )
         {
-            // Use custom deserialize method if available
-            obj.deserialize( *this, doc );
+            // Use custom fromDocument method if available
+            obj.fromDocument( doc, *this );
         }
         else
         {
@@ -618,8 +618,8 @@ namespace nfx::serialization::json
         }
         else
         {
-            // Fall back to SerializationTraits (handles custom types: nfx extensions and user types)
-            SerializationTraits<U>::serialize( obj, doc );
+            // Fall back to DocumentTraits (handles custom types: nfx extensions and user types)
+            DocumentTraits<U>::toDocument( obj, doc );
         }
     }
 
@@ -634,8 +634,8 @@ namespace nfx::serialization::json
         }
 
         if constexpr(
-            detail::has_serialize_method_no_params<U>::value ||
-            detail::has_serialize_method_returning_document<U>::value || detail::has_serialize_method<U>::value )
+            detail::has_toDocument_method_no_params<U>::value ||
+            detail::has_toDocument_method_returning_document<U>::value || detail::has_toDocument_method<U>::value )
         {
             // Use Document-based serialization for custom methods, then convert to Builder
             // NOTE: Custom serialize() methods are Document-based by design (API contract)
@@ -648,18 +648,18 @@ namespace nfx::serialization::json
             Serializer<U> objSerializer( objOptions );
 
             SerializableDocument tempDoc;
-            if constexpr( detail::has_serialize_method_no_params<U>::value )
+            if constexpr( detail::has_toDocument_method_no_params<U>::value )
             {
-                tempDoc = obj.serialize();
+                tempDoc = obj.toDocument();
             }
-            else if constexpr( detail::has_serialize_method_returning_document<U>::value )
+            else if constexpr( detail::has_toDocument_method_returning_document<U>::value )
             {
-                tempDoc = obj.serialize( objSerializer );
+                tempDoc = obj.toDocument( objSerializer );
             }
-            else if constexpr( detail::has_serialize_method<U>::value )
+            else if constexpr( detail::has_toDocument_method<U>::value )
             {
                 tempDoc.set<nfx::json::Object>( "" );
-                obj.serialize( objSerializer, tempDoc );
+                obj.toDocument( objSerializer, tempDoc );
             }
 
             std::string tempJson = tempDoc.toString( m_options.prettyPrint ? 2 : 0 );
@@ -764,9 +764,9 @@ namespace nfx::serialization::json
             }
             else
             {
-                // This path is for user-defined types that only implement SerializationTraits
+                // This path is for user-defined types that only implement DocumentTraits
                 SerializableDocument tempDoc;
-                SerializationTraits<U>::serialize( obj, tempDoc );
+                DocumentTraits<U>::toDocument( obj, tempDoc );
                 std::string tempJson = tempDoc.toString( m_options.prettyPrint ? 2 : 0 );
                 builder.writeRawJson( tempJson );
             }
@@ -988,8 +988,8 @@ namespace nfx::serialization::json
         }
         else
         {
-            // Fall back to SerializationTraits (custom types: nfx extensions and user types)
-            SerializationTraits<U>::deserialize( obj, doc );
+            // Fall back to DocumentTraits (custom types: nfx extensions and user types)
+            DocumentTraits<U>::fromDocument( doc, obj );
         }
     }
 } // namespace nfx::serialization::json

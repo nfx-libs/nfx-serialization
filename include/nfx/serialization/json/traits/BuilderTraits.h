@@ -102,7 +102,7 @@ namespace nfx::serialization::json
      *          for their types, avoiding the Document→JSON conversion overhead.
      *
      *          When BuilderTraits<T> is specialized, the serializer will use it directly
-     *          instead of falling back to SerializationTraits + Document conversion.
+     *          instead of falling back to DocumentTraits + Document conversion.
      *
      * @example
      * ```cpp

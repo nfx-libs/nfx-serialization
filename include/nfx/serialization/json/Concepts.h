@@ -25,7 +25,7 @@
 /**
  * @file Concepts.h
  * @brief Type traits for JSON serialization
- * @details Defines type traits to detect SerializationTraits specializations
+ * @details Defines type traits to detect DocumentTraits specializations
  *          and identify nfx extension types for proper template overload resolution.
  */
 
@@ -58,10 +58,10 @@ namespace nfx::serialization::json
     //=====================================================================
 
     template <typename T>
-    struct SerializationTraits;
+    struct DocumentTraits;
 
     //=====================================================================
-    // Type trait to detect SerializationTraits specializations
+    // Type trait to detect DocumentTraits specializations
     //=====================================================================
 
     namespace detail
@@ -69,8 +69,8 @@ namespace nfx::serialization::json
         using nfx::json::Document;
 
         /**
-         * @brief Detect if a type has a custom SerializationTraits specialization
-         * @details Uses SFINAE to detect if SerializationTraits<T>::serialize is available
+         * @brief Detect if a type has a custom DocumentTraits specialization
+         * @details Uses SFINAE to detect if DocumentTraits<T>::toDocument is available
          *          and is not the default implementation (which requires member methods).
          *          This allows conditional support for extension types only when their
          *          trait headers are included.
@@ -83,7 +83,7 @@ namespace nfx::serialization::json
         template <typename T>
         struct has_serialization_traits<
             T,
-            std::void_t<decltype( SerializationTraits<std::decay_t<T>>::serialize(
+            std::void_t<decltype( DocumentTraits<std::decay_t<T>>::serialize(
                 std::declval<const std::decay_t<T>&>(), std::declval<Document&>() ) )>> : std::true_type
         {
         };
@@ -99,10 +99,10 @@ namespace nfx::serialization::json
         //=====================================================================
 
         /**
-         * @brief Identifies types from nfx:: namespaces that have SerializationTraits
+         * @brief Identifies types from nfx:: namespaces that have DocumentTraits
          * @details This trait explicitly lists all nfx extension types to distinguish them
          *          from STL types. Used to route types to correct template overloads:
-         *          - nfx types → SerializationTraits templates
+         *          - nfx types → DocumentTraits templates
          *          - STL types → Serializer templates
          */
         /**
@@ -129,7 +129,7 @@ namespace nfx::serialization::json
     /**
      * @brief Concept for STL types that use Serializer<T>
      * @details Matches types that are NOT:
-     *          - nfx extension types (use SerializationTraits)
+     *          - nfx extension types (use DocumentTraits)
      *          - Primitives (delegated to base Document)
      *          - JSON containers (delegated to base Document)
      *          - SerializableDocument itself (avoid recursion)
@@ -142,7 +142,7 @@ namespace nfx::serialization::json
         !std::is_base_of_v<nfx::json::Document, std::remove_cvref_t<T>>;
 
     /**
-     * @brief Concept for nfx extension types that use SerializationTraits<T>
+     * @brief Concept for nfx extension types that use DocumentTraits<T>
      * @details Matches types that ARE nfx extensions but NOT:
      *          - Primitives (delegated to base Document)
      *          - JSON containers (delegated to base Document)

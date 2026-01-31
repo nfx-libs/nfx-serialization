@@ -27,7 +27,7 @@
  * @brief Unit tests for JSON Serializer functionality
  * @details Tests covering all type specializations including primitive types,
  *          containers, smart pointers, optional types, nfx datatypes, and custom structs.
- *          Demonstrates how to specialize SerializationTraits for user-defined types.
+ *          Demonstrates how to specialize DocumentTraits for user-defined types.
  *          Validates serialization roundtrip integrity (serialize → deserialize == original).
  */
 
@@ -52,7 +52,7 @@ using namespace nfx::json;
 namespace nfx::serialization::json::test
 {
     //=====================================================================
-    // Custom types for demonstrating SerializationTraits specialization
+    // Custom types for demonstrating DocumentTraits specialization
     //=====================================================================
 
     //----------------------------------------------
@@ -204,8 +204,8 @@ namespace nfx::serialization::json::test
             return name == other.name && age == other.age && email == other.email && hobbies == other.hobbies;
         }
 
-        // Custom serialization method (void return, takes Document&)
-        void serialize( const Serializer<Person>& serializer, Document& doc ) const
+        // Custom toDocument method (void return, takes Document&)
+        void toDocument( const Serializer<Person>& serializer, Document& doc ) const
         {
             doc.set<std::string>( "/name", name );
             doc.set<int64_t>( "/age", age );
@@ -226,8 +226,8 @@ namespace nfx::serialization::json::test
             doc.set<Document>( "/hobbies", hobbiesDoc );
         }
 
-        // Custom deserialization method
-        void deserialize( const Serializer<Person>& serializer, const Document& doc )
+        // Custom fromDocument method (doc first, serializer second)
+        void fromDocument( const Document& doc, const Serializer<Person>& serializer )
         {
             if( auto nameVal = doc.get<std::string>( "/name" ) )
             {
@@ -284,8 +284,8 @@ namespace nfx::serialization::json::test
                    quantity == other.quantity;
         }
 
-        // Custom serialization method (returns Document)
-        Document serialize( const Serializer<Product>& ) const
+        // Custom toDocument method
+        Document toDocument( const Serializer<Product>& ) const
         {
             Document doc;
             doc.set<std::string>( "/id", id );
@@ -295,8 +295,8 @@ namespace nfx::serialization::json::test
             return doc;
         }
 
-        // Custom deserialization method
-        void deserialize( const Serializer<Product>&, const Document& doc )
+        // Custom fromDocument method
+        void fromDocument( const Document& doc, const Serializer<Product>& )
         {
             if( auto idVal = doc.get<std::string>( "/id" ) )
                 id = *idVal;
@@ -787,7 +787,7 @@ namespace nfx::serialization::json::test
 } // namespace nfx::serialization::json::test
 
 //=====================================================================
-// SerializationTraits specializations for custom types
+// DocumentTraits specializations for custom types
 //=====================================================================
 
 namespace nfx::serialization::json::detail

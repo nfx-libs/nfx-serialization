@@ -166,7 +166,7 @@ static void BM_DateTime_VectorSmall( benchmark::State& state )
 BENCHMARK( BM_DateTime_VectorSmall );
 
 //=====================================================================
-// Comparison Benchmarks: BuilderTraits (toString) vs SerializationTraits (serialize)
+// Comparison Benchmarks: BuilderTraits (toString) vs DocumentTraits (serialize)
 //=====================================================================
 
 // Int128 comparison
@@ -183,18 +183,18 @@ static void BM_Int128_BuilderTraits( benchmark::State& state )
 }
 BENCHMARK( BM_Int128_BuilderTraits );
 
-static void BM_Int128_SerializationTraits( benchmark::State& state )
+static void BM_Int128_DocumentTraits( benchmark::State& state )
 {
     nfx::datatypes::Int128 value( static_cast<int64_t>( 123456789012LL ) );
 
     for( auto _ : state )
     {
         Serializer<nfx::datatypes::Int128> ser;
-        std::string result = ser.toDocument( value ).toString(); // ← Uses SerializationTraits
+        std::string result = ser.toDocument( value ).toString(); // ← Uses DocumentTraits
         benchmark::DoNotOptimize( result );
     }
 }
-BENCHMARK( BM_Int128_SerializationTraits );
+BENCHMARK( BM_Int128_DocumentTraits );
 
 // Decimal comparison
 static void BM_Decimal_BuilderTraits( benchmark::State& state )
@@ -210,18 +210,18 @@ static void BM_Decimal_BuilderTraits( benchmark::State& state )
 }
 BENCHMARK( BM_Decimal_BuilderTraits );
 
-static void BM_Decimal_SerializationTraits( benchmark::State& state )
+static void BM_Decimal_DocumentTraits( benchmark::State& state )
 {
     nfx::datatypes::Decimal value( "123.456789" );
 
     for( auto _ : state )
     {
         Serializer<nfx::datatypes::Decimal> ser;
-        std::string result = ser.toDocument( value ).toString(); // ← Uses SerializationTraits
+        std::string result = ser.toDocument( value ).toString(); // ← Uses DocumentTraits
         benchmark::DoNotOptimize( result );
     }
 }
-BENCHMARK( BM_Decimal_SerializationTraits );
+BENCHMARK( BM_Decimal_DocumentTraits );
 
 // DateTime comparison
 static void BM_DateTime_BuilderTraits( benchmark::State& state )
@@ -237,17 +237,17 @@ static void BM_DateTime_BuilderTraits( benchmark::State& state )
 }
 BENCHMARK( BM_DateTime_BuilderTraits );
 
-static void BM_DateTime_SerializationTraits( benchmark::State& state )
+static void BM_DateTime_DocumentTraits( benchmark::State& state )
 {
     nfx::time::DateTime value = nfx::time::DateTime::now();
 
     for( auto _ : state )
     {
         Serializer<nfx::time::DateTime> ser;
-        std::string result = ser.toDocument( value ).toString(); // ← Uses SerializationTraits
+        std::string result = ser.toDocument( value ).toString(); // ← Uses DocumentTraits
         benchmark::DoNotOptimize( result );
     }
 }
-BENCHMARK( BM_DateTime_SerializationTraits );
+BENCHMARK( BM_DateTime_DocumentTraits );
 
 BENCHMARK_MAIN();

@@ -32,7 +32,7 @@
 
 #pragma once
 
-#include "traits/SerializationTraits.h"
+#include "traits/DocumentTraits.h"
 #include "traits/BuilderTraits.h"
 #include "SerializableDocument.h"
 

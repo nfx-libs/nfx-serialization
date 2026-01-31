@@ -24,14 +24,14 @@
 
 /**
  * @file ContainersTraits.h
- * @brief SerializationTraits specializations for nfx-containers types
+ * @brief DocumentTraits specializations for nfx-containers types
  * @details This is an optional extension header that provides JSON serialization support
  *          for nfx::containers types (PerfectHashMap, FastHashMap, FastHashSet).
  *
  *          This header is safe to include even if nfx-containers is not available.
  *          Each container type is independently supported - you can use any subset.
  *
- *          #include <nfx/serialization/json/SerializationTraits.h>
+ *          #include <nfx/serialization/json/DocumentTraits.h>
  *          #include <nfx/serialization/json/extensions/ContainersTraits.h>
  *
  * @note Each specialization is only enabled if its corresponding header is available.
@@ -55,7 +55,7 @@ namespace nfx::serialization::json
      * @brief Specialization for nfx::containers::PerfectHashMap
      */
     template <typename TKey, typename TValue, typename HashType, HashType Seed, typename Hasher, typename KeyEqual>
-    struct SerializationTraits<nfx::containers::PerfectHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>>
+    struct DocumentTraits<nfx::containers::PerfectHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>>
     {
         /**
          * @brief Serialize PerfectHashMap to JSON document as an array of key-value pairs
@@ -63,7 +63,7 @@ namespace nfx::serialization::json
          * @param doc The document to serialize into
          * @details Uses array format to avoid JSON Pointer issues with empty/special character keys
          */
-        static void serialize(
+        static void toDocument(
             const nfx::containers::PerfectHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>& obj,
             SerializableDocument& doc )
         {
@@ -164,7 +164,7 @@ namespace nfx::serialization::json
          * @param doc The document to deserialize from
          * @details Expects array format with key-value pair objects
          */
-        static void deserialize(
+        static void fromDocument(
             nfx::containers::PerfectHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>& obj,
             const SerializableDocument& doc )
         {
@@ -339,7 +339,7 @@ namespace nfx::serialization::json
      * @brief Specialization for nfx::containers::FastHashMap
      */
     template <typename TKey, typename TValue, typename HashType, HashType Seed, typename Hasher, typename KeyEqual>
-    struct SerializationTraits<nfx::containers::FastHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>>
+    struct DocumentTraits<nfx::containers::FastHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>>
     {
         /**
          * @brief Serialize FastHashMap to JSON document as an array of key-value pairs
@@ -347,7 +347,7 @@ namespace nfx::serialization::json
          * @param doc The document to serialize into
          * @details Uses array format to avoid JSON Pointer issues with empty/special character keys
          */
-        static void serialize(
+        static void toDocument(
             const nfx::containers::FastHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>& obj,
             SerializableDocument& doc )
         {
@@ -449,7 +449,7 @@ namespace nfx::serialization::json
          * @param doc The document to deserialize from
          * @details Supports both array format and object format for compatibility
          */
-        static void deserialize(
+        static void fromDocument(
             nfx::containers::FastHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>& obj,
             const SerializableDocument& doc )
         {
@@ -656,14 +656,14 @@ namespace nfx::serialization::json
      * @brief Specialization for nfx::containers::FastHashSet
      */
     template <typename TKey, typename HashType, HashType Seed, typename Hasher, typename KeyEqual>
-    struct SerializationTraits<nfx::containers::FastHashSet<TKey, HashType, Seed, Hasher, KeyEqual>>
+    struct DocumentTraits<nfx::containers::FastHashSet<TKey, HashType, Seed, Hasher, KeyEqual>>
     {
         /**
          * @brief Serialize FastHashSet to JSON document as an array
          * @param obj The FastHashSet object to serialize
          * @param doc The document to serialize into
          */
-        static void serialize(
+        static void toDocument(
             const nfx::containers::FastHashSet<TKey, HashType, Seed, Hasher, KeyEqual>& obj, SerializableDocument& doc )
         {
             // Create array document
@@ -719,7 +719,7 @@ namespace nfx::serialization::json
          * @param obj The FastHashSet object to deserialize into
          * @param doc The document to deserialize from
          */
-        static void deserialize(
+        static void fromDocument(
             nfx::containers::FastHashSet<TKey, HashType, Seed, Hasher, KeyEqual>& obj, const SerializableDocument& doc )
         {
             if( !doc.is<Array>( "" ) )
@@ -791,14 +791,14 @@ namespace nfx::serialization::json
      * @brief Specialization for nfx::containers::SmallVector
      */
     template <typename T, std::size_t N>
-    struct SerializationTraits<nfx::containers::SmallVector<T, N>>
+    struct DocumentTraits<nfx::containers::SmallVector<T, N>>
     {
         /**
          * @brief Serialize SmallVector to JSON document as an array
          * @param obj The SmallVector object to serialize
          * @param doc The document to serialize into
          */
-        static void serialize( const nfx::containers::SmallVector<T, N>& obj, SerializableDocument& doc )
+        static void toDocument( const nfx::containers::SmallVector<T, N>& obj, SerializableDocument& doc )
         {
             // Create array document
             doc.document().set<nfx::json::Array>( "" );
@@ -857,7 +857,7 @@ namespace nfx::serialization::json
          * @param obj The SmallVector object to deserialize into
          * @param doc The document to deserialize from
          */
-        static void deserialize( nfx::containers::SmallVector<T, N>& obj, const SerializableDocument& doc )
+        static void fromDocument( nfx::containers::SmallVector<T, N>& obj, const SerializableDocument& doc )
         {
             if( !doc.is<Array>( "" ) )
             {

@@ -24,14 +24,14 @@
 
 /**
  * @file DatatypesTraits.h
- * @brief SerializationTraits specializations for nfx-datatypes types
+ * @brief DocumentTraits specializations for nfx-datatypes types
  * @details This is an optional extension header that provides JSON serialization support
  *          for nfx::datatypes types (Int128, Decimal).
  *
  *          This header is safe to include even if nfx-datatypes is not available.
  *          Each datatype is independently supported - you can use any subset.
  *
- *          #include <nfx/serialization/json/SerializationTraits.h>
+ *          #include <nfx/serialization/json/DocumentTraits.h>
  *          #include <nfx/serialization/json/extensions/DatatypesTraits.h>
  *
  * @note Each specialization is only enabled if its corresponding header is available.
@@ -64,7 +64,7 @@ namespace nfx::serialization::json
      * @brief Specialization for nfx::datatypes::Int128
      */
     template <>
-    struct SerializationTraits<nfx::datatypes::Int128>
+    struct DocumentTraits<nfx::datatypes::Int128>
     {
         /**
          * @brief Serialize Int128 to JSON document using platform-independent string representation
@@ -74,7 +74,7 @@ namespace nfx::serialization::json
          *          String representation works consistently across GCC/Clang (native __int128)
          *          and MSVC (manual implementation) platforms.
          */
-        static void serialize( const nfx::datatypes::Int128& obj, Document& doc )
+        static void toDocument( const nfx::datatypes::Int128& obj, Document& doc )
         {
             std::string value = obj.toString();
             doc.set<std::string>( "", value );
@@ -87,7 +87,7 @@ namespace nfx::serialization::json
          * @details Uses fromString() method to ensure cross-platform compatibility.
          *          Can deserialize values created on any platform (GCC/Clang/MSVC).
          */
-        static void deserialize( nfx::datatypes::Int128& obj, const Document& doc )
+        static void fromDocument( const Document& doc, nfx::datatypes::Int128& obj )
         {
             if( doc.is<std::string>( "" ) )
             {
@@ -148,7 +148,7 @@ namespace nfx::serialization::json
      * @brief Specialization for nfx::datatypes::Decimal
      */
     template <>
-    struct SerializationTraits<nfx::datatypes::Decimal>
+    struct DocumentTraits<nfx::datatypes::Decimal>
     {
         /**
          * @brief Serialize Decimal to JSON document using platform-independent string representation
@@ -157,7 +157,7 @@ namespace nfx::serialization::json
          * @details Uses toString() method to ensure cross-platform compatibility.
          *          String representation is platform-independent and preserves full precision.
          */
-        static void serialize( const nfx::datatypes::Decimal& obj, Document& doc )
+        static void toDocument( const nfx::datatypes::Decimal& obj, Document& doc )
         {
             std::string value = obj.toString();
             doc.set<std::string>( "", value );
@@ -170,7 +170,7 @@ namespace nfx::serialization::json
          * @details Uses fromString() method to ensure cross-platform compatibility.
          *          Can deserialize values created on any platform (GCC/Clang/MSVC).
          */
-        static void deserialize( nfx::datatypes::Decimal& obj, const Document& doc )
+        static void fromDocument( const Document& doc, nfx::datatypes::Decimal& obj )
         {
             if( doc.is<std::string>( "" ) )
             {

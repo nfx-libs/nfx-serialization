@@ -24,14 +24,14 @@
 
 /**
  * @file DateTimeTraits.h
- * @brief SerializationTraits specializations for nfx-datetime types
+ * @brief DocumentTraits specializations for nfx-datetime types
  * @details This is an optional extension header that provides JSON serialization support
  *          for nfx::time types (DateTime, DateTimeOffset, TimeSpan).
  *
  *          This header is safe to include even if nfx-datetime is not available.
  *          Each datetime type is independently supported - you can use any subset.
  *
- *          #include <nfx/serialization/json/SerializationTraits.h>
+ *          #include <nfx/serialization/json/DocumentTraits.h>
  *          #include <nfx/serialization/json/extensions/DateTimeTraits.h>
  *
  * @note Each specialization is only enabled if its corresponding header is available.
@@ -55,14 +55,14 @@ namespace nfx::serialization::json
      * @brief Specialization for nfx::time::TimeSpan
      */
     template <>
-    struct SerializationTraits<nfx::time::TimeSpan>
+    struct DocumentTraits<nfx::time::TimeSpan>
     {
         /**
          * @brief Serialize TimeSpan to JSON document using platform-optimized methods
          * @param obj The TimeSpan object to serialize
          * @param doc The document to serialize into
          */
-        static void serialize( const nfx::time::TimeSpan& obj, Document& doc )
+        static void toDocument( const nfx::time::TimeSpan& obj, Document& doc )
         {
             doc.set<int64_t>( "", obj.ticks() );
         }
@@ -72,7 +72,7 @@ namespace nfx::serialization::json
          * @param obj The TimeSpan object to deserialize into
          * @param doc The document to deserialize from
          */
-        static void deserialize( nfx::time::TimeSpan& obj, const Document& doc )
+        static void fromDocument( const Document& doc, nfx::time::TimeSpan& obj )
         {
             if( doc.is<int>( "" ) )
             {
@@ -118,14 +118,14 @@ namespace nfx::serialization::json
      * @brief Specialization for nfx::time::DateTime
      */
     template <>
-    struct SerializationTraits<nfx::time::DateTime>
+    struct DocumentTraits<nfx::time::DateTime>
     {
         /**
          * @brief Serialize DateTime to JSON document using platform-optimized methods
          * @param obj The DateTime object to serialize
          * @param doc The document to serialize into
          */
-        static void serialize( const nfx::time::DateTime& obj, Document& doc )
+        static void toDocument( const nfx::time::DateTime& obj, Document& doc )
         {
             std::string value = obj.toString( nfx::time::DateTime::Format::Iso8601Precise );
             doc.set<std::string>( "", value );
@@ -136,7 +136,7 @@ namespace nfx::serialization::json
          * @param obj The DateTime object to deserialize into
          * @param doc The document to deserialize from
          */
-        static void deserialize( nfx::time::DateTime& obj, const Document& doc )
+        static void fromDocument( const Document& doc, nfx::time::DateTime& obj )
         {
             if( doc.is<std::string>( "" ) )
             {
@@ -181,14 +181,14 @@ namespace nfx::serialization::json
      * @brief Specialization for nfx::time::DateTimeOffset
      */
     template <>
-    struct SerializationTraits<nfx::time::DateTimeOffset>
+    struct DocumentTraits<nfx::time::DateTimeOffset>
     {
         /**
          * @brief Serialize DateTimeOffset to JSON document using platform-optimized methods
          * @param obj The DateTimeOffset object to serialize
          * @param doc The document to serialize into
          */
-        static void serialize( const nfx::time::DateTimeOffset& obj, Document& doc )
+        static void toDocument( const nfx::time::DateTimeOffset& obj, Document& doc )
         {
             std::string value = obj.toString( nfx::time::DateTime::Format::Iso8601Precise );
             doc.set<std::string>( "", value );
@@ -199,7 +199,7 @@ namespace nfx::serialization::json
          * @param obj The DateTimeOffset object to deserialize into
          * @param doc The document to deserialize from
          */
-        static void deserialize( nfx::time::DateTimeOffset& obj, const Document& doc )
+        static void fromDocument( const Document& doc, nfx::time::DateTimeOffset& obj )
         {
             if( doc.is<std::string>( "" ) )
             {

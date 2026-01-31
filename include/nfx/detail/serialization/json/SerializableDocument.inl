@@ -224,7 +224,7 @@ namespace nfx::serialization::json
     inline void SerializableDocument::set( std::string_view path, const T& value )
     {
         SerializableDocument temp;
-        SerializationTraits<T>::serialize( value, temp );
+        DocumentTraits<T>::toDocument( value, temp );
         m_doc.set<nfx::json::Document>( path, std::move( static_cast<nfx::json::Document&>( temp ) ) );
     }
 
@@ -234,7 +234,7 @@ namespace nfx::serialization::json
     {
         using CleanT = std::remove_cvref_t<T>;
         SerializableDocument temp;
-        SerializationTraits<CleanT>::serialize( value, temp );
+        DocumentTraits<CleanT>::toDocument( value, temp );
         m_doc.set<nfx::json::Document>( path, std::move( static_cast<nfx::json::Document&>( temp ) ) );
     }
 
@@ -249,7 +249,7 @@ namespace nfx::serialization::json
         }
 
         T result;
-        SerializationTraits<T>::deserialize( result, docOpt.value() );
+        DocumentTraits<T>::fromDocument( result, docOpt.value() );
         return result;
     }
 
@@ -276,7 +276,7 @@ namespace nfx::serialization::json
         try
         {
             T temp;
-            SerializationTraits<T>::deserialize( temp, docOpt.value() );
+            DocumentTraits<T>::fromDocument( temp, docOpt.value() );
             return true;
         }
         catch( ... )

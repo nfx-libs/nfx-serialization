@@ -137,7 +137,7 @@ struct Person
     }
 
     // Custom serialization method - no parameters
-    Document serialize() const
+    Document toDocument() const
     {
         Document doc;
         doc.set<std::string>( "/name", name );
@@ -169,7 +169,7 @@ struct Person
     }
 
     // Serialization with dependency injection
-    void serialize( Serializer<Person>& serializer, Document& doc ) const
+    void toDocument( Serializer<Person>& serializer, Document& doc ) const
     {
         doc.set<std::string>( "/name", name );
         doc.set<int64_t>( "/age", age );
@@ -201,7 +201,7 @@ struct Person
     }
 
     // Custom deserialization method
-    void deserialize( const Serializer<Person>& serializer, const Document& doc )
+    void fromDocument( const Document& doc, const Serializer<Person>& serializer )
     {
         if( auto nameVal = doc.get<std::string>( "/name" ) )
         {
@@ -276,7 +276,7 @@ struct Company
     }
 
     // Custom serialization method - no parameters (simple case)
-    Document serialize() const
+    Document toDocument() const
     {
         Document doc;
         doc.set<std::string>( "/name", name );
@@ -292,7 +292,7 @@ struct Company
             for( const auto& employee : employees )
             {
                 // Use the no-parameter serialize method for simplicity
-                Document employeeDoc = employee.serialize();
+                Document employeeDoc = employee.toDocument();
                 auto employeesArrayWrapper = doc.get<Array>( "/employees" );
                 if( employeesArrayWrapper.has_value() )
                 {
@@ -319,7 +319,7 @@ struct Company
     }
 
     // Custom serialization method - with serializer (for options and cross-type serialization)
-    Document serialize( Serializer<Company>& companySerializer ) const
+    Document toDocument( Serializer<Company>& companySerializer ) const
     {
         Document doc;
         doc.set<std::string>( "/name", name );
@@ -364,13 +364,13 @@ struct Company
     }
 
     // Alternative serialization method - void with document parameter (different API style)
-    void serialize( Serializer<Company>& companySerializer, Document& doc ) const
+    void toDocument( Serializer<Company>& companySerializer, Document& doc ) const
     {
-        doc = serialize( companySerializer ); // Delegate to the Document-returning version
+        doc = toDocument( companySerializer ); // Delegate to the Document-returning version
     }
 
     // Custom deserialization method
-    void deserialize( const Serializer<Company>& serializer, const Document& doc )
+    void fromDocument( const Document& doc, const Serializer<Company>& serializer )
     {
         if( auto nameVal = doc.get<std::string>( "/name" ) )
         {

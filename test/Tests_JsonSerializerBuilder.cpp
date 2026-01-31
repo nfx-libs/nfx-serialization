@@ -347,13 +347,13 @@ namespace nfx::serialization::json::test
             return value == other.value && name == other.name;
         }
 
-        void serialize( const Serializer<SimpleCustomType>& /*serializer*/, Document& doc ) const
+        void toDocument( const Serializer<SimpleCustomType>& /*serializer*/, Document& doc ) const
         {
             doc.set<int64_t>( "/value", value );
             doc.set<std::string>( "/name", name );
         }
 
-        void deserialize( const Serializer<SimpleCustomType>& /*serializer*/, const Document& doc )
+        void fromDocument( const Document& doc, const Serializer<SimpleCustomType>& /*serializer*/ )
         {
             if( auto val = doc.get<int64_t>( "/value" ) )
                 value = static_cast<int>( *val );

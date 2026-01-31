@@ -25,7 +25,7 @@
 /**
  * @file Serialization.h
  * @brief Main umbrella header for nfx-serialization library
- * @details Includes C++ type serialization components: Serializer and SerializationTraits.
+ * @details Includes C++ type serialization components: Serializer and DocumentTraits.
  *          This library provides bidirectional conversion between C++ types and JSON,
  *          built on top of the nfx-json library.
  *          For selective includes, use individual headers from nfx/serialization/json/ subdirectory.
@@ -35,4 +35,4 @@
 
 #include "serialization/json/Serializer.h"
 #include "serialization/json/traits/BuilderTraits.h"
-#include "serialization/json/traits/SerializationTraits.h"
+#include "serialization/json/traits/DocumentTraits.h"
