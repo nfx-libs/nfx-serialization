@@ -308,11 +308,11 @@ namespace nfx::serialization::json
                 builder.writeStartObject();
 
                 // Write key
-                builder.writePropertyName( "key" );
+                builder.writeKey( "key" );
                 Serializer<TKey>{}.serializeValue( pair.first, builder );
 
                 // Write value
-                builder.writePropertyName( "value" );
+                builder.writeKey( "value" );
                 Serializer<TValue>{}.serializeValue( pair.second, builder );
 
                 builder.writeEndObject();
@@ -625,11 +625,11 @@ namespace nfx::serialization::json
                 builder.writeStartObject();
 
                 // Write key
-                builder.writePropertyName( "key" );
+                builder.writeKey( "key" );
                 Serializer<TKey>{}.serializeValue( pair.first, builder );
 
                 // Write value
-                builder.writePropertyName( "value" );
+                builder.writeKey( "value" );
                 Serializer<TValue>{}.serializeValue( pair.second, builder );
 
                 builder.writeEndObject();

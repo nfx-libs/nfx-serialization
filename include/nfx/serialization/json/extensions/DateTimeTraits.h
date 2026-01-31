@@ -97,7 +97,7 @@ namespace nfx::serialization::json
     {
         static void serialize( const nfx::time::TimeSpan& obj, Builder& builder )
         {
-            builder.writeNumberValue( obj.ticks() );
+            builder.write( obj.ticks() );
         }
     };
 } // namespace nfx::serialization::json
@@ -160,7 +160,7 @@ namespace nfx::serialization::json
     {
         static void serialize( const nfx::time::DateTime& obj, Builder& builder )
         {
-            builder.writeStringValue( obj.toString( nfx::time::DateTime::Format::Iso8601Precise ) );
+            builder.write( obj.toString( nfx::time::DateTime::Format::Iso8601Precise ) );
         }
     };
 } // namespace nfx::serialization::json
@@ -223,7 +223,7 @@ namespace nfx::serialization::json
     {
         static void serialize( const nfx::time::DateTimeOffset& obj, Builder& builder )
         {
-            builder.writeStringValue( obj.toString( nfx::time::DateTime::Format::Iso8601Precise ) );
+            builder.write( obj.toString( nfx::time::DateTime::Format::Iso8601Precise ) );
         }
     };
 } // namespace nfx::serialization::json

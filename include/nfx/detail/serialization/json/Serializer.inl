@@ -321,7 +321,7 @@ namespace nfx::serialization::json
     inline std::string Serializer<T>::toString( const T& obj, const Serializer<T>::Options& options )
     {
         Serializer<T> serializer( options );
-        Builder builder( options.prettyPrint ? 2 : 0 );
+        Builder builder( { .indent = options.prettyPrint ? 2 : 0 } );
         serializer.serializeValue( obj, builder );
 
         return builder.toString();
@@ -671,22 +671,22 @@ namespace nfx::serialization::json
         if constexpr( std::is_same_v<U, bool> )
         {
             // Handle bool separately (before is_integral check)
-            builder.writeBooleanValue( obj );
+            builder.write( obj );
         }
         else if constexpr( std::is_integral_v<U> )
         {
             // Handle integral types (int, long, etc.)
-            builder.writeNumberValue( static_cast<int64_t>( obj ) );
+            builder.write( static_cast<int64_t>( obj ) );
         }
         else if constexpr( std::is_floating_point_v<U> )
         {
             // Handle floating point types
-            builder.writeNumberValue( static_cast<double>( obj ) );
+            builder.write( static_cast<double>( obj ) );
         }
         else if constexpr( std::is_same_v<U, std::string> )
         {
             // Handle std::string
-            builder.writeStringValue( obj );
+            builder.write( obj );
         }
         else if constexpr( detail::is_optional<U>::value )
         {
@@ -696,7 +696,7 @@ namespace nfx::serialization::json
             }
             else
             {
-                builder.writeNullValue();
+                builder.write( nullptr );
             }
         }
         else if constexpr( detail::is_smart_pointer<U>::value )
@@ -707,7 +707,7 @@ namespace nfx::serialization::json
             }
             else
             {
-                builder.writeNullValue();
+                builder.write( nullptr );
             }
         }
         else if constexpr( detail::is_container<U>::value )
@@ -737,7 +737,7 @@ namespace nfx::serialization::json
                         key = std::to_string( pair.first );
                     }
 
-                    builder.writePropertyName( key );
+                    builder.writeKey( key );
                     serializeValue( pair.second, builder );
                 }
 

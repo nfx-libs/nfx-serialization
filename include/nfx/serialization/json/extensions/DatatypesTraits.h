@@ -118,7 +118,7 @@ namespace nfx::serialization::json
         static void serialize( const nfx::datatypes::Int128& obj, nfx::json::Builder& builder )
         {
             std::string value = obj.toString();
-            builder.writeStringValue( value );
+            builder.write( value );
         }
     };
 } // namespace nfx::serialization::json
@@ -201,7 +201,7 @@ namespace nfx::serialization::json
         static void serialize( const nfx::datatypes::Decimal& obj, nfx::json::Builder& builder )
         {
             std::string value = obj.toString();
-            builder.writeStringValue( value );
+            builder.write( value );
         }
     };
 } // namespace nfx::serialization::json

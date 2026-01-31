@@ -112,10 +112,8 @@ namespace nfx::serialization::json
      *     static void serialize( const MyType& obj, nfx::json::Builder& builder )
      *     {
      *         builder.writeStartObject();
-     *         builder.writePropertyName( "field1" );
-     *         builder.writeNumberValue( obj.field1 );
-     *         builder.writePropertyName( "field2" );
-     *         builder.writeStringValue( obj.field2 );
+     *         builder.write( "field1", obj.field1 );
+     *         builder.write( "field2", obj.field2 );
      *         builder.writeEndObject();
      *     }
      * };
@@ -161,41 +159,41 @@ namespace nfx::serialization::json
             switch( doc.type() )
             {
                 case Type::Null:
-                    builder.writeNullValue();
+                    builder.write( nullptr );
                     break;
 
                 case Type::Boolean:
                     if( auto val = doc.root<bool>() )
                     {
-                        builder.writeBooleanValue( *val );
+                        builder.write( *val );
                     }
                     break;
 
                 case Type::Integer:
                     if( auto val = doc.root<int64_t>() )
                     {
-                        builder.writeNumberValue( *val );
+                        builder.write( *val );
                     }
                     break;
 
                 case Type::UnsignedInteger:
                     if( auto val = doc.root<uint64_t>() )
                     {
-                        builder.writeNumberValue( *val );
+                        builder.write( *val );
                     }
                     break;
 
                 case Type::Double:
                     if( auto val = doc.root<double>() )
                     {
-                        builder.writeNumberValue( *val );
+                        builder.write( *val );
                     }
                     break;
 
                 case Type::String:
                     if( auto val = doc.root<std::string>() )
                     {
-                        builder.writeStringValue( *val );
+                        builder.write( *val );
                     }
                     break;
 
@@ -229,7 +227,7 @@ namespace nfx::serialization::json
 
             for( const auto& [key, value] : obj )
             {
-                builder.writePropertyName( key );
+                builder.writeKey( key );
                 serializeDocument( value, builder );
             }
 

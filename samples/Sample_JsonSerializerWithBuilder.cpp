@@ -91,7 +91,7 @@ int main()
             builder.writeStartArray();
             for( int num : numbers )
             {
-                builder.writeNumberValue( num );
+                builder.write( num );
             }
             builder.writeEndArray();
             std::string json = builder.toString();
@@ -129,7 +129,7 @@ int main()
             builder.writeStartObject();
             for( const auto& [key, value] : scores )
             {
-                builder.writePropertyName( key ).writeNumberValue( value );
+                builder.write( key, value );
             }
             builder.writeEndObject();
             std::string json = builder.toString();
@@ -162,22 +162,20 @@ int main()
         std::cout << "Builder API (pretty-print):\n";
         {
             Timer timer( "Builder serialization" );
-            Builder builder( 2 ); // 2-space indent
+            Builder builder( { .indent = 2 } ); // 2-space indent
 
             builder.writeStartArray();
             for( const auto& person : people )
             {
                 builder.writeStartObject()
-                    .writePropertyName( "name" )
-                    .writeStringValue( person.name )
-                    .writePropertyName( "age" )
-                    .writeNumberValue( person.age )
-                    .writePropertyName( "hobbies" )
+                    .write( "name", person.name )
+                    .write( "age", person.age )
+                    .writeKey( "hobbies" )
                     .writeStartArray();
 
                 for( const auto& hobby : person.hobbies )
                 {
-                    builder.writeStringValue( hobby );
+                    builder.write( hobby );
                 }
 
                 builder.writeEndArray().writeEndObject();
@@ -224,7 +222,7 @@ int main()
             builder.writeStartArray();
             for( int num : largeData )
             {
-                builder.writeNumberValue( num );
+                builder.write( num );
             }
             builder.writeEndArray();
             builderJson = builder.toString();
