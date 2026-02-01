@@ -57,6 +57,10 @@
   - Serializes as JSON array `[elem0, elem1, ...]` like other sequence containers
   - Supports both dynamic extent (`std::span<T>`) and fixed extent (`std::span<T, N>`)
   - Users should deserialize to `std::vector<T>` and create span from it if needed
+- **Serializer**: Added native JSON serialization support for `std::forward_list<T>`
+  - Singly-linked list serialized as JSON array (forward-only iteration)
+  - Deserialization uses `push_front()` with automatic reversal to preserve order
+  - Supports roundtrip serialization/deserialization like other sequence containers
 
 ### Changed
 

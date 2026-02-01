@@ -30,7 +30,7 @@ nfx-serialization is a modern C++20 library that provides a powerful C++ type se
 ### 📦 Supported Types
 
 - POD types (integers, floats, booleans, strings)
-- STL containers (`vector`, `array`, `list`, `deque`, `set`, `unordered_set`, `map`, `unordered_map`, `multimap`, `unordered_multimap`, `multiset`, `unordered_multiset`)
+- STL containers (`vector`, `array`, `list`, `forward_list`, `deque`, `set`, `unordered_set`, `map`, `unordered_map`, `multimap`, `unordered_multimap`, `multiset`, `unordered_multiset`)
 - Tuple types (`std::tuple`, `std::pair`)
 - Variant types (`std::variant`, `std::monostate`)
 - Smart pointers (`unique_ptr`, `shared_ptr`)

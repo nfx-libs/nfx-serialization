@@ -27,7 +27,7 @@
  * @brief Comprehensive guide to all STL container serialization in nfx-serialization
  * @details Progressive tutorial covering every standard C++ container type:
  *          - Simple types: pair, tuple, optional, variant
- *          - Sequential: array, vector, deque, list
+ *          - Sequential: array, vector, deque, list, forward_list
  *          - Associative: set, multiset, map, multimap
  *          - Unordered: unordered_set, unordered_multiset, unordered_map, unordered_multimap
  *          - Smart pointers: unique_ptr, shared_ptr
@@ -38,6 +38,7 @@
 
 #include <array>
 #include <deque>
+#include <forward_list>
 #include <iomanip>
 #include <iostream>
 #include <list>
@@ -305,10 +306,41 @@ int main()
     }
 
     //=====================================================================
-    // 9. std::set - Ordered unique set serialized as JSON array
+    // 9. std::forward_list - Singly-linked list serialized as JSON array
     //=====================================================================
     {
-        std::cout << "9. std::set<T> - Ordered unique set serialized as JSON array\n";
+        std::cout << "9. std::forward_list<T> - Singly-linked list serialized as JSON array\n";
+        std::cout << "-----------------------------------------------------------------------\n";
+
+        std::forward_list<int> flist{ 10, 20, 30, 40, 50 };
+
+        Serializer<std::forward_list<int>>::Options opts;
+        opts.prettyPrint = true;
+        std::string json = Serializer<std::forward_list<int>>::toString( flist, opts );
+
+        std::cout << "std::forward_list<int>:\n" << json << "\n";
+
+        auto restored = Serializer<std::forward_list<int>>::fromString( json );
+
+        bool success = ( restored == flist );
+        std::cout << "\nDeserialized: [ ";
+        for( auto it = restored.begin(); it != restored.end(); ++it )
+        {
+            std::cout << *it;
+            if( std::next( it ) != restored.end() )
+                std::cout << ", ";
+        }
+        std::cout << " ]\n";
+        std::cout << "\n  " << ( success ? "OK" : "ERROR" ) << ": Forward_list preserves order\n";
+        std::cout << "  Note: Singly-linked (forward-only iteration), no size() method\n";
+        std::cout << "\n";
+    }
+
+    //=====================================================================
+    // 10. std::set - Ordered unique set serialized as JSON array
+    //=====================================================================
+    {
+        std::cout << "10. std::set<T> - Ordered unique set serialized as JSON array\n";
         std::cout << "---------------------------------------------------------------\n";
 
         std::set<int> uniqueNumbers{ 5, 2, 8, 2, 1, 9, 1 }; // Duplicates removed, sorted
@@ -336,11 +368,11 @@ int main()
     }
 
     //=====================================================================
-    // 10. std::multiset - Ordered set allowing duplicates
+    // 11. std::multiset - Ordered set allowing duplicates
     //=====================================================================
     {
-        std::cout << "10. std::multiset<T> - Ordered set allowing duplicates\n";
-        std::cout << "---------------------------------------------------------\n";
+        std::cout << "11. std::multiset<T> - Ordered set allowing duplicates\n";
+        std::cout << "--------------------------------------------------------\n";
 
         std::multiset<int> numbers{ 3, 1, 4, 1, 5, 9, 2, 6, 5, 3 };
 
@@ -367,10 +399,10 @@ int main()
     }
 
     //=====================================================================
-    // 11. std::unordered_set - Hash-based unique set
+    // 12. std::unordered_set - Hash-based unique set
     //=====================================================================
     {
-        std::cout << "11. std::unordered_set<T> - Hash-based unique set\n";
+        std::cout << "12. std::unordered_set<T> - Hash-based unique set\n";
         std::cout << "----------------------------------------------------\n";
 
         std::unordered_set<std::string> tags{ "cpp", "json", "performance", "cpp" }; // Duplicates removed
@@ -391,10 +423,10 @@ int main()
     }
 
     //=====================================================================
-    // 12. std::unordered_multiset - Hash-based set allowing duplicates
+    // 13. std::unordered_multiset - Hash-based set allowing duplicates
     //=====================================================================
     {
-        std::cout << "12. std::unordered_multiset<T> - Hash-based set allowing duplicates\n";
+        std::cout << "13. std::unordered_multiset<T> - Hash-based set allowing duplicates\n";
         std::cout << "----------------------------------------------------------------------\n";
 
         std::unordered_multiset<int> counts{ 1, 2, 2, 3, 3, 3, 4, 4, 4, 4 };
@@ -415,10 +447,10 @@ int main()
     }
 
     //=====================================================================
-    // 13. std::map - Ordered key-value map serialized as JSON object
+    // 14. std::map - Ordered key-value map serialized as JSON object
     //=====================================================================
     {
-        std::cout << "13. std::map<K, V> - Ordered key-value map serialized as JSON object\n";
+        std::cout << "14. std::map<K, V> - Ordered key-value map serialized as JSON object\n";
         std::cout << "-----------------------------------------------------------------------\n";
 
         std::map<std::string, int> scores{ { "Alice", 95 }, { "Bob", 87 }, { "Charlie", 92 } };
@@ -443,10 +475,10 @@ int main()
     }
 
     //=====================================================================
-    // 14. std::multimap - Ordered map allowing duplicate keys
+    // 15. std::multimap - Ordered map allowing duplicate keys
     //=====================================================================
     {
-        std::cout << "14. std::multimap<K, V> - Ordered map allowing duplicate keys\n";
+        std::cout << "15. std::multimap<K, V> - Ordered map allowing duplicate keys\n";
         std::cout << "----------------------------------------------------------------\n";
 
         std::multimap<std::string, int> grades;
@@ -476,10 +508,10 @@ int main()
     }
 
     //=====================================================================
-    // 15. std::unordered_map - Hash-based key-value map
+    // 16. std::unordered_map - Hash-based key-value map
     //=====================================================================
     {
-        std::cout << "15. std::unordered_map<K, V> - Hash-based key-value map\n";
+        std::cout << "16. std::unordered_map<K, V> - Hash-based key-value map\n";
         std::cout << "----------------------------------------------------------\n";
 
         std::unordered_map<std::string, double> prices{ { "apple", 1.99 }, { "banana", 0.59 }, { "orange", 1.29 } };
@@ -505,10 +537,10 @@ int main()
     }
 
     //=====================================================================
-    // 16. std::unordered_multimap - Hash-based map allowing duplicate keys
+    // 17. std::unordered_multimap - Hash-based map allowing duplicate keys
     //=====================================================================
     {
-        std::cout << "16. std::unordered_multimap<K, V> - Hash-based map allowing duplicate keys\n";
+        std::cout << "17. std::unordered_multimap<K, V> - Hash-based map allowing duplicate keys\n";
         std::cout << "-----------------------------------------------------------------------------\n";
 
         std::unordered_multimap<std::string, std::string> phonebook;
@@ -536,10 +568,10 @@ int main()
     }
 
     //=====================================================================
-    // 17. std::unique_ptr - Smart pointer serialized as value or null
+    // 18. std::unique_ptr - Smart pointer serialized as value or null
     //=====================================================================
     {
-        std::cout << "17. std::unique_ptr<T> - Smart pointer serialized as value or null\n";
+        std::cout << "18. std::unique_ptr<T> - Smart pointer serialized as value or null\n";
         std::cout << "---------------------------------------------------------------------\n";
 
         auto ptrWithValue = std::make_unique<int>( 42 );
@@ -565,10 +597,10 @@ int main()
     }
 
     //=====================================================================
-    // 18. std::shared_ptr - Shared smart pointer serialized as value or null
+    // 19. std::shared_ptr - Shared smart pointer serialized as value or null
     //=====================================================================
     {
-        std::cout << "18. std::shared_ptr<T> - Shared smart pointer serialized as value or null\n";
+        std::cout << "19. std::shared_ptr<T> - Shared smart pointer serialized as value or null\n";
         std::cout << "---------------------------------------------------------------------------\n";
 
         auto ptrWithValue = std::make_shared<std::string>( "Shared data" );
@@ -594,10 +626,10 @@ int main()
     }
 
     //=====================================================================
-    // 19. std::span - Non-owning view (serialization only)
+    // 20. std::span - Non-owning view (serialization only)
     //=====================================================================
     {
-        std::cout << "19. std::span<T, Extent> - Non-owning view (serialization only)\n";
+        std::cout << "20. std::span<T, Extent> - Non-owning view (serialization only)\n";
         std::cout << "----------------------------------------------------------------\n";
 
         // std::span is a view over existing data - cannot deserialize into it

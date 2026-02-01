@@ -37,6 +37,7 @@
 
 #include <array>
 #include <deque>
+#include <forward_list>
 #include <list>
 #include <map>
 #include <memory>
@@ -434,6 +435,13 @@ namespace nfx::serialization::json::test
     {
         testRoundTrip( std::list<int>{ 10, 20, 30 } );
         testRoundTrip( std::list<std::string>{ "first", "second", "third" } );
+    }
+
+    TEST_F( JSONSerializerTest, ForwardListTypes )
+    {
+        testRoundTrip( std::forward_list<int>{ 10, 20, 30 } );
+        testRoundTrip( std::forward_list<std::string>{ "first", "second", "third" } );
+        testRoundTrip( std::forward_list<double>{ 1.1, 2.2, 3.3 } );
     }
 
     TEST_F( JSONSerializerTest, DequeTypes )

@@ -32,6 +32,7 @@
 
 #include <array>
 #include <deque>
+#include <forward_list>
 #include <list>
 #include <map>
 #include <memory>
@@ -171,6 +172,12 @@ namespace nfx::serialization::json
         /** @brief Specialization for std::list */
         template <typename T>
         struct is_container<std::list<T>> : std::true_type
+        {
+        };
+
+        /** @brief Specialization for std::forward_list */
+        template <typename T>
+        struct is_container<std::forward_list<T>> : std::true_type
         {
         };
 
@@ -1061,6 +1068,11 @@ namespace nfx::serialization::json
                             {
                                 obj.push_back( std::move( item ) );
                             }
+                            else if constexpr( requires { obj.push_front( std::move( item ) ); } )
+                            {
+                                // forward_list only has push_front - will reverse after loop
+                                obj.push_front( std::move( item ) );
+                            }
                             else if constexpr( requires { obj.insert( std::move( item ) ); } )
                             {
                                 obj.insert( std::move( item ) );
@@ -1080,10 +1092,17 @@ namespace nfx::serialization::json
                             {
                                 static_assert(
                                     std::is_void_v<U>,
-                                    "Container doesn't support push_back, insert, or indexed assignment" );
+                                    "Container doesn't support push_back, push_front, insert, or indexed assignment" );
                             }
 
                             ++arrayIndex;
+                        }
+
+                        // Reverse forward_list since we used push_front (only if no push_back available)
+                        if constexpr( !requires { obj.push_back( typename U::value_type{} ); } &&
+                                      requires { obj.reverse(); } )
+                        {
+                            obj.reverse();
                         }
                     }
                 }
