@@ -37,6 +37,7 @@
 #include <memory>
 #include <optional>
 #include <set>
+#include <span>
 #include <tuple>
 #include <type_traits>
 #include <unordered_map>
@@ -401,6 +402,22 @@ namespace nfx::serialization::json
         struct is_smart_pointer<std::shared_ptr<T>> : std::true_type
         {
         };
+
+        /**
+         * @brief Type trait to detect std::span types
+         * @tparam T The type to check
+         * @details Base template that evaluates to false. Specialized for std::span types.
+         */
+        template <typename T>
+        struct is_span : std::false_type
+        {
+        };
+
+        /** @brief Specialization for std::span */
+        template <typename T, std::size_t Extent>
+        struct is_span<std::span<T, Extent>> : std::true_type
+        {
+        };
     } // namespace detail
 
     //=====================================================================
@@ -548,6 +565,18 @@ namespace nfx::serialization::json
             {
                 builder.write( nullptr );
             }
+        }
+        else if constexpr( detail::is_span<U>::value )
+        {
+            // Handle std::span - serialize as array (serialization only, no deserialization)
+            // Note: std::span is a non-owning view, cannot deserialize into it directly
+            // Users should deserialize to std::vector and create span from it if needed
+            builder.writeStartArray();
+            for( const auto& item : obj )
+            {
+                serializeValue( item, builder );
+            }
+            builder.writeEndArray();
         }
         else if constexpr( detail::is_tuple<U>::value )
         {

@@ -31,6 +31,7 @@
  *          - Associative: set, multiset, map, multimap
  *          - Unordered: unordered_set, unordered_multiset, unordered_map, unordered_multimap
  *          - Smart pointers: unique_ptr, shared_ptr
+ *          - Views: span (C++20, serialization only)
  */
 
 #include <nfx/Serialization.h>
@@ -44,6 +45,7 @@
 #include <memory>
 #include <optional>
 #include <set>
+#include <span>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -588,6 +590,45 @@ int main()
         std::cout << "  Null:       " << ( restoredNull ? *restoredNull : "null" ) << "\n";
         std::cout << "\n  " << ( success ? "OK" : "ERROR" ) << ": Shared_ptr serializes transparently\n";
         std::cout << "  Note: Deserialization creates new shared_ptr (no shared ownership across JSON)\n";
+        std::cout << "\n";
+    }
+
+    //=====================================================================
+    // 19. std::span - Non-owning view (serialization only)
+    //=====================================================================
+    {
+        std::cout << "19. std::span<T, Extent> - Non-owning view (serialization only)\n";
+        std::cout << "----------------------------------------------------------------\n";
+
+        // std::span is a view over existing data - cannot deserialize into it
+        std::vector<int> data = { 10, 20, 30, 40, 50 };
+        std::span<int> fullSpan( data );
+        auto subSpan = fullSpan.subspan( 1, 3 ); // [20, 30, 40]
+
+        std::string jsonFull = Serializer<std::span<int>>::toString( fullSpan );
+        std::string jsonSub = Serializer<std::span<int>>::toString( subSpan );
+
+        std::cout << "Full span:  " << jsonFull << "\n";
+        std::cout << "Subspan:    " << jsonSub << "\n";
+
+        // Deserialize to vector (span cannot own memory)
+        auto restoredVector = Serializer<std::vector<int>>::fromString( jsonFull );
+        std::span<int> newSpan( restoredVector );
+
+        bool success = ( restoredVector.size() == 5 ) && ( restoredVector[0] == 10 );
+
+        std::cout << "\nDeserialized to vector: [";
+        for( size_t i = 0; i < restoredVector.size(); ++i )
+        {
+            std::cout << restoredVector[i];
+            if( i < restoredVector.size() - 1 )
+                std::cout << ", ";
+        }
+        std::cout << "]\n";
+
+        std::cout << "\n  " << ( success ? "OK" : "ERROR" ) << ": Span serializes as array\n";
+        std::cout << "  Note: std::span is serialization-only (non-owning view)\n";
+        std::cout << "        Deserialize to std::vector then create span if needed\n";
         std::cout << "\n";
     }
 

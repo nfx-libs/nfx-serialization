@@ -113,7 +113,7 @@ Demonstrates the extensibility of nfx-serialization through the `SerializationTr
 
 Complete reference covering every standard C++ container supported by nfx-serialization. Progressive tutorial from simple types to complex associative containers.
 
-**18 sections covering:**
+**19 sections covering:**
 1. **std::pair**: Tuple of 2 elements → `[first, second]`
 2. **std::tuple**: Heterogeneous tuple → `[elem0, elem1, ...]`
 3. **std::optional**: Nullable values → value or `null`
@@ -132,6 +132,7 @@ Complete reference covering every standard C++ container supported by nfx-serial
 16. **std::unordered_multimap**: Hash-based map with duplicate keys → `[{"key": K, "value": V}, ...]`
 17. **std::unique_ptr**: Unique smart pointer → value or `null`
 18. **std::shared_ptr**: Shared smart pointer → value or `null`
+19. **std::span**: Non-owning view → JSON array (serialization only)
 
 **Key features demonstrated:**
 - Complete STL container reference in one place
@@ -139,6 +140,7 @@ Complete reference covering every standard C++ container supported by nfx-serial
 - Roundtrip validation for each type
 - Special handling for duplicate keys/values (multimap, multiset)
 - Cross-language compatibility notes (variant, multimap format)
+- std::span serialization-only semantics (cannot deserialize to view)
 - Performance characteristics noted where relevant
 
 **Run:**

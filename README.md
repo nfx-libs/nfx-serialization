@@ -35,6 +35,7 @@ nfx-serialization is a modern C++20 library that provides a powerful C++ type se
 - Variant types (`std::variant`, `std::monostate`)
 - Smart pointers (`unique_ptr`, `shared_ptr`)
 - Optional types (`std::optional`, `std::nullopt`)
+- Views (`std::span` - serialization only, non-owning view)
 - Custom types via `SerializationTraits` specialization
 - Nested structures and containers
 

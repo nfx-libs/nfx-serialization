@@ -42,6 +42,7 @@
 #include <memory>
 #include <optional>
 #include <set>
+#include <span>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -578,6 +579,56 @@ namespace nfx::serialization::json::test
 
             std::variant<std::monostate, int, std::string> vString = "hello";
             testRoundTrip( vString );
+        }
+    }
+
+    //----------------------------------------------
+    // std::span (serialization only)
+    //----------------------------------------------
+
+    TEST_F( JSONSerializerTest, SpanTypes )
+    {
+        // std::span is a non-owning view - serialization only, no deserialization
+        
+        // Test std::span<int>
+        {
+            std::vector<int> data = { 1, 2, 3, 4, 5 };
+            std::span<int> spanInt( data );
+            std::string jsonStr = Serializer<std::span<int>>::toString( spanInt );
+            EXPECT_EQ( jsonStr, "[1,2,3,4,5]" );
+        }
+        
+        // Test std::span<double>
+        {
+            std::vector<double> data = { 1.1, 2.2, 3.3 };
+            std::span<double> spanDouble( data );
+            std::string jsonStr = Serializer<std::span<double>>::toString( spanDouble );
+            EXPECT_EQ( jsonStr, "[1.1,2.2,3.3]" );
+        }
+        
+        // Test std::span<std::string>
+        {
+            std::vector<std::string> data = { "hello", "world" };
+            std::span<std::string> spanString( data );
+            std::string jsonStr = Serializer<std::span<std::string>>::toString( spanString );
+            EXPECT_EQ( jsonStr, R"(["hello","world"])" );
+        }
+        
+        // Test fixed-extent span
+        {
+            std::array<int, 4> data = { 10, 20, 30, 40 };
+            std::span<int, 4> spanFixed( data );
+            std::string jsonStr = Serializer<std::span<int, 4>>::toString( spanFixed );
+            EXPECT_EQ( jsonStr, "[10,20,30,40]" );
+        }
+        
+        // Test subspan
+        {
+            std::vector<int> data = { 1, 2, 3, 4, 5, 6, 7, 8 };
+            std::span<int> fullSpan( data );
+            auto subSpan = fullSpan.subspan( 2, 4 ); // [3, 4, 5, 6]
+            std::string jsonStr = Serializer<std::span<int>>::toString( subSpan );
+            EXPECT_EQ( jsonStr, "[3,4,5,6]" );
         }
     }
 

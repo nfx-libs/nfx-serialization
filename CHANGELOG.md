@@ -52,6 +52,11 @@
 - **SerializationTraits**: Added `std::monostate` specialization
   - Serializes as JSON `null`
   - Enables `std::variant<std::monostate, Ts...>` for nullable variant semantics
+- **Serializer**: Added native JSON serialization support for `std::span<T, Extent>` (C++20)
+  - Serialization-only support (non-owning view cannot be deserialized directly)
+  - Serializes as JSON array `[elem0, elem1, ...]` like other sequence containers
+  - Supports both dynamic extent (`std::span<T>`) and fixed extent (`std::span<T, N>`)
+  - Users should deserialize to `std::vector<T>` and create span from it if needed
 
 ### Changed
 
