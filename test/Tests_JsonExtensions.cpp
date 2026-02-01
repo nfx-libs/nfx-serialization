@@ -26,7 +26,7 @@
  * @file Tests_JsonExtensions.cpp
  * @brief Unit tests for extension traits (nfx-containers, nfx-datatypes, nfx-datetime)
  * @details Tests covering serialization and deserialization of external nfx library types:
- *          - nfx-containers: PerfectHashMap, FastHashMap, FastHashSet
+ *          - nfx-containers: PerfectHashMap, FastHashMap, FastHashSet, OrderedHashMap, OrderedHashSet, SmallVector
  *          - nfx-datatypes: Int128, Decimal
  *          - nfx-datetime: DateTime, DateTimeOffset, TimeSpan
  */
@@ -269,6 +269,259 @@ namespace nfx::serialization::json::test
             ASSERT_NE( restoredPtr, nullptr );
             EXPECT_DOUBLE_EQ( *restoredPtr, it->second );
         }
+    }
+
+    //=====================================================================
+    // nfx-containers: OrderedHashMap tests
+    //=====================================================================
+
+    class OrderedHashMapExtensionTest : public ::testing::Test
+    {
+    protected:
+        void SetUp() override
+        {
+        }
+
+        void TearDown() override
+        {
+        }
+    };
+
+    TEST_F( OrderedHashMapExtensionTest, SerializeEmptyMap )
+    {
+        nfx::containers::OrderedHashMap<std::string, int> map;
+
+        std::string json = Serializer<decltype( map )>::toString( map );
+
+        EXPECT_FALSE( json.empty() );
+        EXPECT_EQ( json, "[]" );
+    }
+
+    TEST_F( OrderedHashMapExtensionTest, SerializeStringIntMap )
+    {
+        nfx::containers::OrderedHashMap<std::string, int> map;
+        map.insertOrAssign( "first", 1 );
+        map.insertOrAssign( "second", 2 );
+        map.insertOrAssign( "third", 3 );
+
+        std::string json = Serializer<decltype( map )>::toString( map );
+
+        EXPECT_FALSE( json.empty() );
+
+        // Deserialize and verify
+        auto restored = Serializer<decltype( map )>::fromString( json );
+        EXPECT_EQ( restored.size(), 3 );
+
+        // Verify values
+        const int* first = restored.find( "first" );
+        ASSERT_NE( first, nullptr );
+        EXPECT_EQ( *first, 1 );
+
+        const int* second = restored.find( "second" );
+        ASSERT_NE( second, nullptr );
+        EXPECT_EQ( *second, 2 );
+
+        const int* third = restored.find( "third" );
+        ASSERT_NE( third, nullptr );
+        EXPECT_EQ( *third, 3 );
+    }
+
+    TEST_F( OrderedHashMapExtensionTest, PreservesInsertionOrder )
+    {
+        nfx::containers::OrderedHashMap<std::string, int> map;
+        map.insertOrAssign( "alpha", 1 );
+        map.insertOrAssign( "beta", 2 );
+        map.insertOrAssign( "gamma", 3 );
+
+        std::string json = Serializer<decltype( map )>::toString( map );
+        auto restored = Serializer<decltype( map )>::fromString( json );
+
+        EXPECT_EQ( restored.size(), 3 );
+
+        // Verify insertion order is preserved
+        auto it = restored.begin();
+        EXPECT_EQ( it->first, "alpha" );
+        EXPECT_EQ( it->second, 1 );
+        ++it;
+        EXPECT_EQ( it->first, "beta" );
+        EXPECT_EQ( it->second, 2 );
+        ++it;
+        EXPECT_EQ( it->first, "gamma" );
+        EXPECT_EQ( it->second, 3 );
+    }
+
+    TEST_F( OrderedHashMapExtensionTest, RoundTripPreservesOrder )
+    {
+        nfx::containers::OrderedHashMap<std::string, double> original;
+        original.insertOrAssign( "pi", 3.14159 );
+        original.insertOrAssign( "e", 2.71828 );
+        original.insertOrAssign( "phi", 1.61803 );
+
+        std::string json = Serializer<decltype( original )>::toString( original );
+        auto restored = Serializer<decltype( original )>::fromString( json );
+
+        EXPECT_EQ( restored.size(), original.size() );
+
+        // Verify order matches
+        auto origIt = original.begin();
+        auto restIt = restored.begin();
+        while( origIt != original.end() )
+        {
+            EXPECT_EQ( restIt->first, origIt->first );
+            EXPECT_DOUBLE_EQ( restIt->second, origIt->second );
+            ++origIt;
+            ++restIt;
+        }
+    }
+
+    TEST_F( OrderedHashMapExtensionTest, SerializeIntStringMap )
+    {
+        nfx::containers::OrderedHashMap<int, std::string> map;
+        map.insertOrAssign( 1, "one" );
+        map.insertOrAssign( 2, "two" );
+        map.insertOrAssign( 3, "three" );
+
+        std::string json = Serializer<decltype( map )>::toString( map );
+
+        EXPECT_FALSE( json.empty() );
+
+        // Deserialize and verify
+        auto restored = Serializer<decltype( map )>::fromString( json );
+        EXPECT_EQ( restored.size(), 3 );
+
+        const std::string* one = restored.find( 1 );
+        ASSERT_NE( one, nullptr );
+        EXPECT_EQ( *one, "one" );
+    }
+
+    //=====================================================================
+    // nfx-containers: OrderedHashSet tests
+    //=====================================================================
+
+    class OrderedHashSetExtensionTest : public ::testing::Test
+    {
+    protected:
+        void SetUp() override
+        {
+        }
+
+        void TearDown() override
+        {
+        }
+    };
+
+    TEST_F( OrderedHashSetExtensionTest, SerializeEmptySet )
+    {
+        nfx::containers::OrderedHashSet<std::string> set;
+
+        std::string json = Serializer<decltype( set )>::toString( set );
+
+        EXPECT_FALSE( json.empty() );
+        EXPECT_EQ( json, "[]" );
+    }
+
+    TEST_F( OrderedHashSetExtensionTest, SerializeStringSet )
+    {
+        nfx::containers::OrderedHashSet<std::string> set;
+        set.insert( "apple" );
+        set.insert( "banana" );
+        set.insert( "cherry" );
+
+        std::string json = Serializer<decltype( set )>::toString( set );
+
+        EXPECT_FALSE( json.empty() );
+
+        // Deserialize and verify
+        auto restored = Serializer<decltype( set )>::fromString( json );
+        EXPECT_EQ( restored.size(), 3 );
+        EXPECT_TRUE( restored.contains( "apple" ) );
+        EXPECT_TRUE( restored.contains( "banana" ) );
+        EXPECT_TRUE( restored.contains( "cherry" ) );
+    }
+
+    TEST_F( OrderedHashSetExtensionTest, PreservesInsertionOrder )
+    {
+        nfx::containers::OrderedHashSet<std::string> set;
+        set.insert( "first" );
+        set.insert( "second" );
+        set.insert( "third" );
+
+        std::string json = Serializer<decltype( set )>::toString( set );
+        auto restored = Serializer<decltype( set )>::fromString( json );
+
+        EXPECT_EQ( restored.size(), 3 );
+
+        // Verify insertion order is preserved
+        auto it = restored.begin();
+        EXPECT_EQ( *it, "first" );
+        ++it;
+        EXPECT_EQ( *it, "second" );
+        ++it;
+        EXPECT_EQ( *it, "third" );
+    }
+
+    TEST_F( OrderedHashSetExtensionTest, SerializeIntSet )
+    {
+        nfx::containers::OrderedHashSet<int> set;
+        set.insert( 10 );
+        set.insert( 20 );
+        set.insert( 30 );
+
+        std::string json = Serializer<decltype( set )>::toString( set );
+
+        EXPECT_FALSE( json.empty() );
+
+        // Deserialize and verify
+        auto restored = Serializer<decltype( set )>::fromString( json );
+        EXPECT_EQ( restored.size(), 3 );
+        EXPECT_TRUE( restored.contains( 10 ) );
+        EXPECT_TRUE( restored.contains( 20 ) );
+        EXPECT_TRUE( restored.contains( 30 ) );
+    }
+
+    TEST_F( OrderedHashSetExtensionTest, RoundTripPreservesOrder )
+    {
+        nfx::containers::OrderedHashSet<std::string> original;
+        original.insert( "red" );
+        original.insert( "green" );
+        original.insert( "blue" );
+
+        std::string json = Serializer<decltype( original )>::toString( original );
+        auto restored = Serializer<decltype( original )>::fromString( json );
+
+        EXPECT_EQ( restored.size(), original.size() );
+
+        // Verify order matches
+        auto origIt = original.begin();
+        auto restIt = restored.begin();
+        while( origIt != original.end() )
+        {
+            EXPECT_EQ( *restIt, *origIt );
+            ++origIt;
+            ++restIt;
+        }
+    }
+
+    TEST_F( OrderedHashSetExtensionTest, DuplicateInsertPreservesFirstOrder )
+    {
+        nfx::containers::OrderedHashSet<int> set;
+        set.insert( 1 );
+        set.insert( 2 );
+        set.insert( 3 );
+        set.insert( 2 ); // Duplicate - should not change order
+
+        std::string json = Serializer<decltype( set )>::toString( set );
+        auto restored = Serializer<decltype( set )>::fromString( json );
+
+        EXPECT_EQ( restored.size(), 3 );
+
+        // Order should be 1, 2, 3 (duplicate insert of 2 doesn't move it)
+        auto it = restored.begin();
+        EXPECT_EQ( *it, 1 );
+        ++it;
+        EXPECT_EQ( *it, 2 );
+        ++it;
+        EXPECT_EQ( *it, 3 );
     }
 
     //=====================================================================

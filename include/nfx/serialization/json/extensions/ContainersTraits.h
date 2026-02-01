@@ -26,7 +26,7 @@
  * @file ContainersTraits.h
  * @brief SerializationTraits specializations for nfx-containers types
  * @details This is an optional extension header that provides JSON serialization support
- *          for nfx::containers types (PerfectHashMap, FastHashMap, FastHashSet).
+ *          for nfx::containers types (PerfectHashMap, FastHashMap, FastHashSet, OrderedHashMap, OrderedHashSet).
  *
  *          This header is safe to include even if nfx-containers is not available.
  *          Each container type is independently supported - you can use any subset.
@@ -560,3 +560,277 @@ namespace nfx::serialization::json
 } // namespace nfx::serialization::json
 
 #endif // __has_include(<nfx/containers/SmallVector.h>)
+
+//=====================================================================
+// OrderedHashMap support - enabled only if header is available
+//=====================================================================
+
+#if __has_include( <nfx/containers/OrderedHashMap.h>)
+
+#    include <nfx/containers/OrderedHashMap.h>
+
+namespace nfx::serialization::json
+{
+    /**
+     * @brief Specialization for nfx::containers::OrderedHashMap
+     */
+    template <typename TKey, typename TValue, typename HashType, HashType Seed, typename Hasher, typename KeyEqual>
+    struct SerializationTraits<nfx::containers::OrderedHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>>
+    {
+        /**
+         * @brief Deserialize OrderedHashMap from JSON document
+         * @param doc The document to deserialize from
+         * @param obj The OrderedHashMap object to deserialize into
+         * @details Expects array format with key-value pair objects. Preserves insertion order.
+         */
+        static void fromDocument(
+            const Document& doc, nfx::containers::OrderedHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>& obj )
+        {
+            if( !doc.is<Array>( "" ) )
+            {
+                throw std::runtime_error{ "Cannot deserialize non-array JSON value into OrderedHashMap" };
+            }
+
+            obj.clear();
+
+            // Get array and iterate using STL iterator
+            auto arrayOpt = doc.get<Array>( "" );
+            if( arrayOpt.has_value() )
+            {
+                for( const auto& pairDoc : arrayOpt.value() )
+                {
+                    // Extract key - try different types
+                    TKey key{};
+                    bool keyFound = false;
+
+                    if( pairDoc.contains( "key" ) )
+                    {
+                        // Try to deserialize key based on its actual JSON type
+                        if constexpr( std::is_same_v<TKey, std::string> )
+                        {
+                            auto keyOpt = pairDoc.get<std::string>( "key" );
+                            if( keyOpt )
+                            {
+                                key = *keyOpt;
+                                keyFound = true;
+                            }
+                        }
+                        else if constexpr( std::is_integral_v<TKey> && !std::is_same_v<TKey, bool> )
+                        {
+                            auto keyOpt = pairDoc.get<int64_t>( "key" );
+                            if( keyOpt )
+                            {
+                                key = static_cast<TKey>( *keyOpt );
+                                keyFound = true;
+                            }
+                        }
+                        else if constexpr( std::is_floating_point_v<TKey> )
+                        {
+                            auto keyOpt = pairDoc.get<double>( "key" );
+                            if( keyOpt )
+                            {
+                                key = static_cast<TKey>( *keyOpt );
+                                keyFound = true;
+                            }
+                        }
+                        else if constexpr( std::is_same_v<TKey, bool> )
+                        {
+                            auto keyOpt = pairDoc.get<bool>( "key" );
+                            if( keyOpt )
+                            {
+                                key = *keyOpt;
+                                keyFound = true;
+                            }
+                        }
+                    }
+
+                    // Extract value - try different types
+                    TValue value{};
+                    bool valueFound = false;
+
+                    if( pairDoc.contains( "value" ) )
+                    {
+                        // Try to deserialize value based on its actual JSON type
+                        if constexpr( std::is_same_v<TValue, std::string> )
+                        {
+                            auto valOpt = pairDoc.get<std::string>( "value" );
+                            if( valOpt )
+                            {
+                                value = *valOpt;
+                                valueFound = true;
+                            }
+                        }
+                        else if constexpr( std::is_integral_v<TValue> && !std::is_same_v<TValue, bool> )
+                        {
+                            auto valOpt = pairDoc.get<int64_t>( "value" );
+                            if( valOpt )
+                            {
+                                value = static_cast<TValue>( *valOpt );
+                                valueFound = true;
+                            }
+                        }
+                        else if constexpr( std::is_floating_point_v<TValue> )
+                        {
+                            auto valOpt = pairDoc.get<double>( "value" );
+                            if( valOpt )
+                            {
+                                value = static_cast<TValue>( *valOpt );
+                                valueFound = true;
+                            }
+                        }
+                        else if constexpr( std::is_same_v<TValue, bool> )
+                        {
+                            auto valOpt = pairDoc.get<bool>( "value" );
+                            if( valOpt )
+                            {
+                                value = *valOpt;
+                                valueFound = true;
+                            }
+                        }
+                    }
+
+                    if( keyFound && valueFound )
+                    {
+                        obj.insertOrAssign( std::move( key ), std::move( value ) );
+                    }
+                }
+            }
+        }
+
+        /**
+         * @brief Serialize OrderedHashMap to Builder
+         * @param obj The OrderedHashMap object to serialize
+         * @param builder The builder to write to
+         * @details Serializes as array of {"key": K, "value": V} objects. Preserves insertion order.
+         */
+        static void serialize(
+            const nfx::containers::OrderedHashMap<TKey, TValue, HashType, Seed, Hasher, KeyEqual>& obj,
+            Builder& builder )
+        {
+            builder.writeStartArray();
+
+            for( const auto& [key, value] : obj )
+            {
+                builder.writeStartObject();
+                builder.write( "key", key );
+                builder.write( "value", value );
+                builder.writeEndObject();
+            }
+
+            builder.writeEndArray();
+        }
+    };
+} // namespace nfx::serialization::json
+
+#endif // __has_include(<nfx/containers/OrderedHashMap.h>)
+
+//=====================================================================
+// OrderedHashSet support - enabled only if header is available
+//=====================================================================
+
+#if __has_include( <nfx/containers/OrderedHashSet.h>)
+
+#    include <nfx/containers/OrderedHashSet.h>
+
+namespace nfx::serialization::json
+{
+    /**
+     * @brief Specialization for nfx::containers::OrderedHashSet
+     */
+    template <typename TKey, typename HashType, HashType Seed, typename Hasher, typename KeyEqual>
+    struct SerializationTraits<nfx::containers::OrderedHashSet<TKey, HashType, Seed, Hasher, KeyEqual>>
+    {
+        /**
+         * @brief Deserialize OrderedHashSet from JSON document
+         * @param doc The document to deserialize from
+         * @param obj The OrderedHashSet object to deserialize into
+         * @details Expects array format. Preserves insertion order.
+         */
+        static void fromDocument(
+            const Document& doc, nfx::containers::OrderedHashSet<TKey, HashType, Seed, Hasher, KeyEqual>& obj )
+        {
+            if( !doc.is<Array>( "" ) )
+            {
+                throw std::runtime_error{ "Cannot deserialize non-array JSON value into OrderedHashSet" };
+            }
+
+            obj.clear();
+
+            // Get array and iterate using STL iterator
+            auto arrayOpt = doc.get<Array>( "" );
+            if( arrayOpt.has_value() )
+            {
+                for( const auto& elementDoc : arrayOpt.value() )
+                {
+                    // Extract element - try different types
+                    TKey element{};
+                    bool elementFound = false;
+
+                    // Try to deserialize element based on its actual JSON type
+                    if constexpr( std::is_same_v<TKey, std::string> )
+                    {
+                        auto elemOpt = elementDoc.get<std::string>( "" );
+                        if( elemOpt )
+                        {
+                            element = *elemOpt;
+                            elementFound = true;
+                        }
+                    }
+                    else if constexpr( std::is_integral_v<TKey> && !std::is_same_v<TKey, bool> )
+                    {
+                        auto elemOpt = elementDoc.get<int64_t>( "" );
+                        if( elemOpt )
+                        {
+                            element = static_cast<TKey>( *elemOpt );
+                            elementFound = true;
+                        }
+                    }
+                    else if constexpr( std::is_floating_point_v<TKey> )
+                    {
+                        auto elemOpt = elementDoc.get<double>( "" );
+                        if( elemOpt )
+                        {
+                            element = static_cast<TKey>( *elemOpt );
+                            elementFound = true;
+                        }
+                    }
+                    else if constexpr( std::is_same_v<TKey, bool> )
+                    {
+                        auto elemOpt = elementDoc.get<bool>( "" );
+                        if( elemOpt )
+                        {
+                            element = *elemOpt;
+                            elementFound = true;
+                        }
+                    }
+
+                    if( elementFound )
+                    {
+                        obj.insert( std::move( element ) );
+                    }
+                }
+            }
+        }
+
+        /**
+         * @brief Serialize OrderedHashSet to Builder
+         * @param obj The OrderedHashSet object to serialize
+         * @param builder The builder to write to
+         * @details Serializes as array. Preserves insertion order.
+         */
+        static void serialize(
+            const nfx::containers::OrderedHashSet<TKey, HashType, Seed, Hasher, KeyEqual>& obj, Builder& builder )
+        {
+            builder.writeStartArray();
+
+            for( const auto& element : obj )
+            {
+                builder.write( element );
+            }
+
+            builder.writeEndArray();
+        }
+    };
+} // namespace nfx::serialization::json
+
+#endif // __has_include(<nfx/containers/OrderedHashSet.h>)
