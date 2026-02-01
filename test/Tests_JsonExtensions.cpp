@@ -853,7 +853,7 @@ namespace nfx::serialization::json::test
 
         std::string json = Serializer<nfx::time::TimeSpan>::toString( value );
 
-        EXPECT_EQ( json, "0" );
+        EXPECT_EQ( json, "\"PT0S\"" );
     }
 
     TEST_F( TimeSpanExtensionTest, SerializePositiveTicks )
@@ -862,7 +862,7 @@ namespace nfx::serialization::json::test
 
         std::string json = Serializer<nfx::time::TimeSpan>::toString( value );
 
-        EXPECT_EQ( json, "10000000" );
+        EXPECT_EQ( json, "\"PT1S\"" );
     }
 
     TEST_F( TimeSpanExtensionTest, SerializeNegativeTicks )
@@ -871,7 +871,7 @@ namespace nfx::serialization::json::test
 
         std::string json = Serializer<nfx::time::TimeSpan>::toString( value );
 
-        EXPECT_EQ( json, "-10000000" );
+        EXPECT_EQ( json, "\"-PT1S\"" );
     }
 
     TEST_F( TimeSpanExtensionTest, SerializeFromHours )

@@ -355,8 +355,8 @@ int main()
 
         bool success = ( restored.ticks() == duration.ticks() );
         std::cout << "\nDeserialized: " << restored.toString() << " (" << restored.ticks() << " ticks)\n";
-        std::cout << "\n  " << ( success ? "OK" : "ERROR" ) << ": TimeSpan serializes as ticks (int64)\n";
-        std::cout << "  Note: Precise duration representation\n";
+        std::cout << "\n  " << ( success ? "OK" : "ERROR" ) << ": TimeSpan serializes as ISO 8601 duration\n";
+        std::cout << "  Note: Human-readable format (e.g., \"PT2H30M\" for 2.5 hours)\n";
         std::cout << "\n";
     }
 #endif

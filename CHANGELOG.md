@@ -20,7 +20,7 @@
 
 ### Fixed
 
-- NIL
+- **DateTimeTraits**: Fixed `TimeSpan` serialization to use ISO 8601 duration format instead of int64 ticks
 
 ### Security
 

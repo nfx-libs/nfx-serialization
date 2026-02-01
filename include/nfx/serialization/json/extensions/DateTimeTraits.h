@@ -61,11 +61,11 @@ namespace nfx::serialization::json
          * @brief High-performance streaming serialization
          * @param obj The TimeSpan object to serialize
          * @param builder The builder to write to
-         * @details Serializes as JSON number (ticks) for compact representation
+         * @details Serializes as ISO 8601 duration string (e.g., "PT1H30M45S")
          */
         static void serialize( const nfx::time::TimeSpan& obj, Builder& builder )
         {
-            builder.write( obj.ticks() );
+            builder.write( obj.toString() );
         }
 
         /**
@@ -75,17 +75,16 @@ namespace nfx::serialization::json
          */
         static void fromDocument( const Document& doc, nfx::time::TimeSpan& obj )
         {
-            if( doc.is<int>( "" ) )
+            if( doc.is<std::string>( "" ) )
             {
-                auto ticksVal = doc.get<int64_t>( "" );
-                if( ticksVal.has_value() )
+                auto val = doc.get<std::string>( "" );
+                if( val.has_value() && !val.value().empty() )
                 {
-                    obj = nfx::time::TimeSpan( ticksVal.value() );
+                    if( !nfx::time::TimeSpan::fromString( val.value(), obj ) )
+                    {
+                        throw std::runtime_error{ "Invalid TimeSpan format: expected ISO 8601 duration string" };
+                    }
                 }
-            }
-            else
-            {
-                throw std::runtime_error{ "Invalid TimeSpan format: expected integer ticks" };
             }
         }
     };
