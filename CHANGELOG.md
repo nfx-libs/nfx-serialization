@@ -4,6 +4,32 @@
 
 ### Added
 
+- NIL
+
+### Changed
+
+- NIL
+
+### Deprecated
+
+- NIL
+
+### Removed
+
+- NIL
+
+### Fixed
+
+- NIL
+
+### Security
+
+- NIL
+
+## [0.7.0] - 2026-02-01
+
+### Added
+
 - **Serializer**: Added high-performance streaming serialization with Builder API
   - SerializationTraits now supports optional `serialize(obj, Builder&)` method for streaming JSON generation
   - Eliminates Document intermediate representation during serialization
@@ -16,20 +42,6 @@
   - Moved from ContainersTraits extension to built-in Serializer functionality
   - Serializes as JSON array `[first, second]` for compact representation
   - Supports nested pairs and containers of pairs
-- **Samples**: Added tutorial samples demonstrating progressive JSON serialization workflows
-  - `Sample_JsonSerializationBasics.cpp` - Fundamental Document and Builder APIs
-  - `Sample_JsonSerializationContainers.cpp` - Automatic STL container serialization
-  - `Sample_JsonSerializationTraits.cpp` - Custom type serialization with SerializationTraits
-  - `Sample_JsonSerializationStlContainers.cpp` - Comprehensive guide to all 20 STL container types
-  - `Sample_JsonSerializationNfxTypes.cpp` - Complete guide to nfx library extension types (11 types from nfx-containers, nfx-datatypes, nfx-datetime)
-- **ContainersTraits**: Added JSON serialization support for `nfx::containers::OrderedHashMap`
-  - Serializes as JSON array of `{"key": K, "value": V}` objects
-  - Preserves insertion order during serialization and deserialization
-  - Supports heterogeneous lookup and all hash types (uint32_t, uint64_t)
-- **ContainersTraits**: Added JSON serialization support for `nfx::containers::OrderedHashSet`
-  - Serializes as JSON array of elements
-  - Preserves insertion order during serialization and deserialization
-  - Supports heterogeneous lookup and all hash types (uint32_t, uint64_t)
 - **Serializer**: Added native JSON serialization support for `std::tuple<Ts...>`
   - Serializes as JSON array `[elem0, elem1, ...]` matching element order
   - Supports arbitrary tuple sizes and nested tuples
@@ -50,9 +62,6 @@
   - Supports arbitrary variant alternatives including nested variants, containers, and custom types
   - Compile-time type dispatch using recursive lambda with if-constexpr
   - Supports `std::monostate` for empty variant state
-- **SerializationTraits**: Added `std::monostate` specialization
-  - Serializes as JSON `null`
-  - Enables `std::variant<std::monostate, Ts...>` for nullable variant semantics
 - **Serializer**: Added native JSON serialization support for `std::span<T, Extent>` (C++20)
   - Serialization-only support (non-owning view cannot be deserialized directly)
   - Serializes as JSON array `[elem0, elem1, ...]` like other sequence containers
@@ -62,6 +71,23 @@
   - Singly-linked list serialized as JSON array (forward-only iteration)
   - Deserialization uses `push_front()` with automatic reversal to preserve order
   - Supports roundtrip serialization/deserialization like other sequence containers
+- **ContainersTraits**: Added JSON serialization support for `nfx::containers::OrderedHashMap`
+  - Serializes as JSON array of `{"key": K, "value": V}` objects
+  - Preserves insertion order during serialization and deserialization
+  - Supports heterogeneous lookup and all hash types (uint32_t, uint64_t)
+- **ContainersTraits**: Added JSON serialization support for `nfx::containers::OrderedHashSet`
+  - Serializes as JSON array of elements
+  - Preserves insertion order during serialization and deserialization
+  - Supports heterogeneous lookup and all hash types (uint32_t, uint64_t)
+- **SerializationTraits**: Added `std::monostate` specialization
+  - Serializes as JSON `null`
+  - Enables `std::variant<std::monostate, Ts...>` for nullable variant semantics
+- **Samples**: Added tutorial samples demonstrating progressive JSON serialization workflows
+  - `Sample_JsonSerializationBasics.cpp` - Fundamental Document and Builder APIs
+  - `Sample_JsonSerializationContainers.cpp` - Automatic STL container serialization
+  - `Sample_JsonSerializationTraits.cpp` - Custom type serialization with SerializationTraits
+  - `Sample_JsonSerializationStlContainers.cpp` - Comprehensive guide to all 20 STL container types
+  - `Sample_JsonSerializationNfxTypes.cpp` - Complete guide to nfx library extension types (11 types from nfx-containers, nfx-datatypes, nfx-datetime)
 
 ### Changed
 
@@ -85,10 +111,6 @@
 - Updated nfx-json dependency from 1.0.3 to 1.1.0 (adds Builder API)
 - Updated nfx-containers dependency from 0.3.0 to 0.3.1 (extension tests)
 
-### Deprecated
-
-- NIL
-
 ### Removed
 
 - **Breaking**: Removed `SerializableDocument` class
@@ -102,10 +124,6 @@
 - **Serializer**: Fixed unreachable dead code in `serializeValue()` fallback path
   - Removed duplicate trait checks that were impossible to reach
   - Simplified final fallback - compilation fails if type has no serialization support
-
-### Security
-
-- NIL
 
 ## [0.6.1] - 2026-01-27
 

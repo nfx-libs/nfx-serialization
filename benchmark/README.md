@@ -23,9 +23,9 @@
 
 | Platform    | OS         | Benchmark Framework     | C++ Compiler           | nfx-serialization Version | nfx-json Version |
 | ----------- | ---------- | ----------------------- | ---------------------- | :-----------------------: | :--------------: |
-| **Linux**   | LMDE 7     | Google Benchmark v1.9.4 | Clang 19.1.7-x64       |          v0.6.1           |      v1.1.0      |
-| **Windows** | Windows 10 | Google Benchmark v1.9.4 | MinGW GCC 14.2.0-x64   |          v0.6.1           |      v1.1.0      |
-| **Windows** | Windows 10 | Google Benchmark v1.9.4 | MSVC 19.44.35217.0-x64 |          v0.6.1           |      v1.1.0      |
+| **Linux**   | LMDE 7     | Google Benchmark v1.9.4 | Clang 19.1.7-x64       |          v0.7.0           |      v1.1.0      |
+| **Windows** | Windows 10 | Google Benchmark v1.9.4 | MinGW GCC 14.2.0-x64   |          v0.7.0           |      v1.1.0      |
+| **Windows** | Windows 10 | Google Benchmark v1.9.4 | MSVC 19.44.35217.0-x64 |          v0.7.0           |      v1.1.0      |
 
 ---
 
