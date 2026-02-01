@@ -472,6 +472,54 @@ namespace nfx::serialization::json::test
         testRoundTrip( mapWithTuples );
     }
 
+    TEST_F( JSONSerializerTest, MultimapTypes )
+    {
+        // std::multimap with duplicate keys
+        std::multimap<std::string, int> stringMultimap;
+        stringMultimap.insert( { "key1", 1 } );
+        stringMultimap.insert( { "key1", 2 } );  // duplicate key
+        stringMultimap.insert( { "key2", 3 } );
+        stringMultimap.insert( { "key1", 4 } );  // another duplicate
+        testRoundTrip( stringMultimap );
+
+        // std::multimap with int keys
+        std::multimap<int, std::string> intMultimap;
+        intMultimap.insert( { 1, "one" } );
+        intMultimap.insert( { 1, "uno" } );  // duplicate key
+        intMultimap.insert( { 2, "two" } );
+        testRoundTrip( intMultimap );
+
+        // std::unordered_multimap
+        std::unordered_multimap<std::string, double> unorderedMultimap;
+        unorderedMultimap.insert( { "pi", 3.14 } );
+        unorderedMultimap.insert( { "pi", 3.14159 } );  // duplicate key
+        unorderedMultimap.insert( { "e", 2.71 } );
+        testRoundTrip( unorderedMultimap );
+
+        // Empty multimap
+        std::multimap<std::string, int> emptyMultimap;
+        testRoundTrip( emptyMultimap );
+    }
+
+    TEST_F( JSONSerializerTest, MultisetTypes )
+    {
+        // std::multiset with duplicates
+        std::multiset<int> intMultiset = { 1, 2, 2, 3, 3, 3, 4 };
+        testRoundTrip( intMultiset );
+
+        // std::multiset with strings
+        std::multiset<std::string> stringMultiset = { "apple", "apple", "banana", "cherry", "cherry" };
+        testRoundTrip( stringMultiset );
+
+        // std::unordered_multiset
+        std::unordered_multiset<int> unorderedMultiset = { 5, 5, 10, 10, 10, 15 };
+        testRoundTrip( unorderedMultiset );
+
+        // Empty multiset
+        std::multiset<int> emptyMultiset;
+        testRoundTrip( emptyMultiset );
+    }
+
     //----------------------------------------------
     // Custom containers with trait specialization
     //----------------------------------------------

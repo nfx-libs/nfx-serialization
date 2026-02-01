@@ -124,9 +124,21 @@ namespace nfx::serialization::json
         {
         };
 
+        /** @brief Specialization for std::multimap */
+        template <typename K, typename V, typename... Args>
+        struct is_container<std::multimap<K, V, Args...>> : std::true_type
+        {
+        };
+
         /** @brief Specialization for std::unordered_map */
         template <typename K, typename V>
         struct is_container<std::unordered_map<K, V>> : std::true_type
+        {
+        };
+
+        /** @brief Specialization for std::unordered_multimap */
+        template <typename K, typename V, typename... Args>
+        struct is_container<std::unordered_multimap<K, V, Args...>> : std::true_type
         {
         };
 
@@ -136,9 +148,21 @@ namespace nfx::serialization::json
         {
         };
 
+        /** @brief Specialization for std::multiset */
+        template <typename T, typename... Args>
+        struct is_container<std::multiset<T, Args...>> : std::true_type
+        {
+        };
+
         /** @brief Specialization for std::unordered_set */
         template <typename T>
         struct is_container<std::unordered_set<T>> : std::true_type
+        {
+        };
+
+        /** @brief Specialization for std::unordered_multiset */
+        template <typename T, typename... Args>
+        struct is_container<std::unordered_multiset<T, Args...>> : std::true_type
         {
         };
 
@@ -189,6 +213,70 @@ namespace nfx::serialization::json
         /** @brief Specialization for std::tuple */
         template <typename... Ts>
         struct is_tuple<std::tuple<Ts...>> : std::true_type
+        {
+        };
+
+        /**
+         * @brief Type trait to detect if a type is std::multimap
+         * @tparam T The type to check
+         * @details Base template that evaluates to false. Specialized for std::multimap<K, V>.
+         */
+        template <typename T>
+        struct is_multimap : std::false_type
+        {
+        };
+
+        /** @brief Specialization for std::multimap */
+        template <typename K, typename V, typename... Args>
+        struct is_multimap<std::multimap<K, V, Args...>> : std::true_type
+        {
+        };
+
+        /**
+         * @brief Type trait to detect if a type is std::unordered_multimap
+         * @tparam T The type to check
+         * @details Base template that evaluates to false. Specialized for std::unordered_multimap<K, V>.
+         */
+        template <typename T>
+        struct is_unordered_multimap : std::false_type
+        {
+        };
+
+        /** @brief Specialization for std::unordered_multimap */
+        template <typename K, typename V, typename... Args>
+        struct is_unordered_multimap<std::unordered_multimap<K, V, Args...>> : std::true_type
+        {
+        };
+
+        /**
+         * @brief Type trait to detect if a type is std::multiset
+         * @tparam T The type to check
+         * @details Base template that evaluates to false. Specialized for std::multiset<T>.
+         */
+        template <typename T>
+        struct is_multiset : std::false_type
+        {
+        };
+
+        /** @brief Specialization for std::multiset */
+        template <typename T, typename... Args>
+        struct is_multiset<std::multiset<T, Args...>> : std::true_type
+        {
+        };
+
+        /**
+         * @brief Type trait to detect if a type is std::unordered_multiset
+         * @tparam T The type to check
+         * @details Base template that evaluates to false. Specialized for std::unordered_multiset<T>.
+         */
+        template <typename T>
+        struct is_unordered_multiset : std::false_type
+        {
+        };
+
+        /** @brief Specialization for std::unordered_multiset */
+        template <typename T, typename... Args>
+        struct is_unordered_multiset<std::unordered_multiset<T, Args...>> : std::true_type
         {
         };
 
@@ -399,6 +487,35 @@ namespace nfx::serialization::json
                 serializeValue( obj.second, builder );
                 builder.writeEndArray();
             }
+            // Handle std::multimap/std::unordered_multimap - serialize as array of {"key": K, "value": V}
+            else if constexpr( detail::is_multimap<U>::value || detail::is_unordered_multimap<U>::value )
+            {
+                builder.writeStartArray();
+
+                for( const auto& pair : obj )
+                {
+                    builder.writeStartObject();
+                    builder.writeKey( "key" );
+                    serializeValue( pair.first, builder );
+                    builder.writeKey( "value" );
+                    serializeValue( pair.second, builder );
+                    builder.writeEndObject();
+                }
+
+                builder.writeEndArray();
+            }
+            // Handle std::multiset/std::unordered_multiset - serialize as array (allows duplicates)
+            else if constexpr( detail::is_multiset<U>::value || detail::is_unordered_multiset<U>::value )
+            {
+                builder.writeStartArray();
+
+                for( const auto& item : obj )
+                {
+                    serializeValue( item, builder );
+                }
+
+                builder.writeEndArray();
+            }
             else if constexpr( requires { typename U::mapped_type; } )
             {
                 // Map-like containers (std::map, std::unordered_map) - serialize as JSON object
@@ -548,12 +665,12 @@ namespace nfx::serialization::json
                 {
                     const auto& arr = arrOpt.value();
                     constexpr std::size_t tupleSize = std::tuple_size_v<U>;
-                    
+
                     if( arr.size() != tupleSize )
                     {
-                        throw std::runtime_error{ "Cannot deserialize array with " + std::to_string( arr.size() )
-                                                  + " elements into std::tuple with " + std::to_string( tupleSize )
-                                                  + " elements" };
+                        throw std::runtime_error{ "Cannot deserialize array with " + std::to_string( arr.size() ) +
+                                                  " elements into std::tuple with " + std::to_string( tupleSize ) +
+                                                  " elements" };
                     }
 
                     // Use index_sequence to deserialize each element
@@ -592,13 +709,109 @@ namespace nfx::serialization::json
                     throw std::runtime_error{ "Cannot deserialize non-array JSON value into std::pair" };
                 }
             }
+            // Handle std::multimap/std::unordered_multimap - expect array of {"key": K, "value": V}
+            else if constexpr( detail::is_multimap<U>::value || detail::is_unordered_multimap<U>::value )
+            {
+                obj.clear();
+
+                if( doc.is<Array>( "" ) )
+                {
+                    auto arrOpt = doc.get<Array>( "" );
+                    if( arrOpt.has_value() )
+                    {
+                        for( const auto& elementDoc : arrOpt.value() )
+                        {
+                            if( elementDoc.is<Object>( "" ) )
+                            {
+                                typename U::key_type key{};
+                                typename U::mapped_type value{};
+
+                                auto keyDoc = elementDoc.get<Document>( "key" );
+                                auto valueDoc = elementDoc.get<Document>( "value" );
+
+                                if( keyDoc && valueDoc )
+                                {
+                                    deserializeValue( *keyDoc, key );
+                                    deserializeValue( *valueDoc, value );
+                                    obj.insert( { std::move( key ), std::move( value ) } );
+                                }
+                            }
+                        }
+                    }
+                }
+                else if( !doc.isNull( "" ) )
+                {
+                    throw std::runtime_error{ "Cannot deserialize non-array JSON value into multimap container" };
+                }
+            }
+            // Handle std::multiset/std::unordered_multiset - expect array (allows duplicates)
+            else if constexpr( detail::is_multiset<U>::value || detail::is_unordered_multiset<U>::value )
+            {
+                obj.clear();
+
+                if( doc.is<Array>( "" ) )
+                {
+                    auto arrOpt = doc.get<Array>( "" );
+                    if( arrOpt.has_value() )
+                    {
+                        for( const auto& elementDoc : arrOpt.value() )
+                        {
+                            typename U::value_type item{};
+                            deserializeValue( elementDoc, item );
+                            obj.insert( std::move( item ) );
+                        }
+                    }
+                }
+                else if( !doc.isNull( "" ) )
+                {
+                    throw std::runtime_error{ "Cannot deserialize non-array JSON value into multiset container" };
+                }
+            }
+            // Handle std::array (fixed-size, no .clear() method) - special case
+            else if constexpr(
+                requires {
+                    typename U::value_type;
+                    std::tuple_size<U>::value;
+                } && !requires { obj.clear(); } && !detail::is_tuple<U>::value )
+            {
+                // std::array deserialization
+                if( doc.is<Array>( "" ) )
+                {
+                    auto arrOpt = doc.get<Array>( "" );
+                    if( arrOpt.has_value() )
+                    {
+                        const auto& arr = arrOpt.value();
+                        constexpr std::size_t arraySize = std::tuple_size_v<U>;
+
+                        if( arr.size() != arraySize )
+                        {
+                            throw std::runtime_error{ "Cannot deserialize array with " + std::to_string( arr.size() ) +
+                                                      " elements into std::array with " + std::to_string( arraySize ) +
+                                                      " elements" };
+                        }
+
+                        for( std::size_t i = 0; i < arraySize; ++i )
+                        {
+                            deserializeValue( arr[i], obj[i] );
+                        }
+                    }
+                }
+                else if( !doc.isNull( "" ) )
+                {
+                    throw std::runtime_error{ "Cannot deserialize non-array JSON value into std::array" };
+                }
+            }
             // Handle STL containers with flexible JSON input types
+            // (Skip for multimap/multiset which were already handled above)
             else if constexpr( requires { obj.clear(); } )
             {
                 obj.clear();
             }
 
-            if constexpr( requires { typename U::mapped_type; } )
+            // Regular map-like containers (NOT multimap) - only accept JSON objects
+            if constexpr( !detail::is_multimap<U>::value && !detail::is_unordered_multimap<U>::value && requires {
+                              typename U::mapped_type;
+                          } )
             {
                 // Map-like containers: only accept JSON objects
                 if( doc.is<Object>( "" ) )
@@ -617,14 +830,19 @@ namespace nfx::serialization::json
                 }
                 else if( doc.isNull( "" ) )
                 {
-                    // Handle null → empty map (obj.clear() already called above)
+                    // Handle null → empty map
                 }
                 else
                 {
                     throw std::runtime_error{ "Cannot deserialize non-object JSON value into map container" };
                 }
             }
-            else
+
+            // Non-map, non-multimap/multiset, non-pair containers: accept arrays and single values
+            if constexpr(
+                !detail::is_pair<U>::value && !detail::is_multimap<U>::value &&
+                !detail::is_unordered_multimap<U>::value && !detail::is_multiset<U>::value &&
+                !detail::is_unordered_multiset<U>::value && !requires { typename U::mapped_type; } )
             {
                 // Non-map containers: accept arrays and single values
                 if( doc.is<Array>( "" ) )

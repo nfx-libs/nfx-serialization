@@ -30,7 +30,8 @@ nfx-serialization is a modern C++20 library that provides a powerful C++ type se
 ### 📦 Supported Types
 
 - POD types (integers, floats, booleans, strings)
-- STL containers (`vector`, `array`, `list`, `deque`, `set`, `unordered_set`, `map`, `unordered_map`)
+- STL containers (`vector`, `array`, `list`, `deque`, `set`, `unordered_set`, `map`, `unordered_map`, `multimap`, `unordered_multimap`, `multiset`, `unordered_multiset`)
+- Tuple types (`std::tuple`, `std::pair`)
 - Smart pointers (`unique_ptr`, `shared_ptr`)
 - Optional types (`std::optional`, `std::nullopt`)
 - Custom types via `SerializationTraits` specialization
@@ -38,7 +39,7 @@ nfx-serialization is a modern C++20 library that provides a powerful C++ type se
 
 ### 🔌 Optional nfx Library Extensions
 
-- **nfx-containers**: `FastHashMap`, `FastHashSet`, `PerfectHashMap`
+- **nfx-containers**: `FastHashMap`, `FastHashSet`, `PerfectHashMap`, `OrderedHashMap`, `OrderedHashSet`, `SmallVector`
 - **nfx-datatypes**: `Int128`, `Decimal`
 - **nfx-datetime**: `DateTime`, `DateTimeOffset`, `TimeSpan`
 
@@ -245,6 +246,19 @@ scores["Alice"] = 95;
 scores["Bob"] = 87;
 std::string scoresJson = Serializer<decltype(scores)>::toString(scores);
 // Result: {"Alice":95,"Bob":87}
+
+// Multimap example (preserves duplicate keys)
+std::multimap<std::string, int> grades;
+grades.insert({"Alice", 95});
+grades.insert({"Alice", 92});  // Duplicate key
+grades.insert({"Bob", 87});
+std::string gradesJson = Serializer<decltype(grades)>::toString(grades);
+// Result: [{"key":"Alice","value":95},{"key":"Alice","value":92},{"key":"Bob","value":87}]
+
+// Multiset example (preserves duplicates)
+std::multiset<int> numbers = {1, 2, 2, 3, 3, 3};
+std::string numbersJson = Serializer<decltype(numbers)>::toString(numbers);
+// Result: [1,2,2,3,3,3]
 
 // Pretty-print with options
 Serializer<std::vector<int>>::Options opts;
@@ -540,6 +554,9 @@ nfx-serialization provides optional integration headers for other nfx libraries.
   - `nfx::containers::PerfectHashMap` - Compile-time perfect hash map
   - `nfx::containers::FastHashMap`    - Runtime open-addressing hash map
   - `nfx::containers::FastHashSet`    - Runtime open-addressing hash set
+  - `nfx::containers::OrderedHashMap` - Hash map with insertion order preservation
+  - `nfx::containers::OrderedHashSet` - Hash set with insertion order preservation
+  - `nfx::containers::SmallVector`    - Small vector optimization (stack/heap storage)
 - **`extensions/DatatypesTraits.h`**  - Serialization support for nfx-datatypes types
   - `nfx::datatypes::Int128`          - 128-bit integer (cross-platform)
   - `nfx::datatypes::Decimal`         - Fixed-point decimal arithmetic

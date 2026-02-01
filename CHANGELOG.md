@@ -33,6 +33,14 @@
   - Supports arbitrary tuple sizes and nested tuples
   - Enables type-safe heterogeneous collections (e.g., `tuple<int, string, double>`)
   - Zero-overhead compile-time recursion using fold expressions and `std::apply`
+- **Serializer**: Added native JSON serialization support for `std::multimap` and `std::unordered_multimap`
+  - Serializes as JSON array of objects `[{"key": K, "value": V}, ...]` to preserve duplicate keys
+  - Supports heterogeneous key/value types and nested containers
+  - Deserialization preserves all duplicate key-value pairs
+- **Serializer**: Added native JSON serialization support for `std::multiset` and `std::unordered_multiset`
+  - Serializes as JSON array `[elem0, elem1, elem2, ...]` allowing duplicate elements
+  - Supports arbitrary element types and nested containers
+  - Deserialization preserves all duplicate elements with correct multiplicity
 
 ### Changed
 
