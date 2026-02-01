@@ -48,6 +48,7 @@
 #include <nfx/json/Document.h>
 
 #include <stdexcept>
+#include <variant>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -132,7 +133,7 @@ namespace nfx::serialization::json
      *         builder.write( "field2", obj.field2 );
      *         builder.writeEndObject();
      *     }
-     *     
+     *
      *     static void fromDocument( const Document& doc, MyType& obj )
      *     {
      *         obj.field1 = doc.get<int>("field1").value();
@@ -158,5 +159,39 @@ namespace nfx::serialization::json
 
         // No default implementation for serialize() - must be specialized if needed
         // SFINAE detector will check if serialize() is available
+    };
+
+    /**
+     * @brief Specialization for std::monostate (empty variant alternative)
+     * @details Serializes as null, deserializes from null.
+     *          std::monostate is used as the first alternative in std::variant
+     *          to represent an empty state (similar to std::optional).
+     */
+    template <>
+    struct SerializationTraits<std::monostate>
+    {
+        /**
+         * @brief Serialize std::monostate to JSON null
+         * @param builder JSON builder to write to
+         */
+        static void serialize( const std::monostate&, Builder& builder )
+        {
+            builder.write( nullptr );
+        }
+
+        /**
+         * @brief Deserialize std::monostate from JSON null
+         * @param doc JSON document to read from
+         * @throws std::runtime_error if JSON is not null
+         */
+        static void fromDocument( const Document& doc, std::monostate& )
+        {
+            // monostate is always empty - no data to deserialize
+            // Just verify the JSON is null
+            if( !doc.isNull( "" ) )
+            {
+                throw std::runtime_error{ "Expected null for std::monostate" };
+            }
+        }
     };
 } // namespace nfx::serialization::json

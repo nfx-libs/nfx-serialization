@@ -32,6 +32,7 @@ nfx-serialization is a modern C++20 library that provides a powerful C++ type se
 - POD types (integers, floats, booleans, strings)
 - STL containers (`vector`, `array`, `list`, `deque`, `set`, `unordered_set`, `map`, `unordered_map`, `multimap`, `unordered_multimap`, `multiset`, `unordered_multiset`)
 - Tuple types (`std::tuple`, `std::pair`)
+- Variant types (`std::variant`, `std::monostate`)
 - Smart pointers (`unique_ptr`, `shared_ptr`)
 - Optional types (`std::optional`, `std::nullopt`)
 - Custom types via `SerializationTraits` specialization
@@ -259,6 +260,19 @@ std::string gradesJson = Serializer<decltype(grades)>::toString(grades);
 std::multiset<int> numbers = {1, 2, 2, 3, 3, 3};
 std::string numbersJson = Serializer<decltype(numbers)>::toString(numbers);
 // Result: [1,2,2,3,3,3]
+
+// Variant example (type-safe union with tag/data format)
+std::variant<int, std::string, double> value = 42;
+std::string variantJson = Serializer<decltype(value)>::toString(value);
+// Result: {"tag":"int","data":42}
+
+value = std::string("hello");
+variantJson = Serializer<decltype(value)>::toString(value);
+// Result: {"tag":"string","data":"hello"}
+
+// Deserialize variant
+auto restored = Serializer<std::variant<int, std::string, double>>::fromString(variantJson);
+// restored holds std::string("hello")
 
 // Pretty-print with options
 Serializer<std::vector<int>>::Options opts;

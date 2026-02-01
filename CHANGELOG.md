@@ -41,6 +41,16 @@
   - Serializes as JSON array `[elem0, elem1, elem2, ...]` allowing duplicate elements
   - Supports arbitrary element types and nested containers
   - Deserialization preserves all duplicate elements with correct multiplicity
+- **Serializer**: Added native JSON serialization support for `std::variant<Ts...>`
+  - Serializes as JSON object `{"tag": "TypeName", "data": value}` for cross-language interoperability
+  - Type names extracted via compiler intrinsics (`__PRETTY_FUNCTION__`, `__FUNCSIG__`)
+  - Added platform-specific parsing for MSVC: `"type_name<TypeName>(void)"` format
+  - Supports arbitrary variant alternatives including nested variants, containers, and custom types
+  - Compile-time type dispatch using recursive lambda with if-constexpr
+  - Supports `std::monostate` for empty variant state
+- **SerializationTraits**: Added `std::monostate` specialization
+  - Serializes as JSON `null`
+  - Enables `std::variant<std::monostate, Ts...>` for nullable variant semantics
 
 ### Changed
 

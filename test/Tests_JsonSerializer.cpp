@@ -477,22 +477,22 @@ namespace nfx::serialization::json::test
         // std::multimap with duplicate keys
         std::multimap<std::string, int> stringMultimap;
         stringMultimap.insert( { "key1", 1 } );
-        stringMultimap.insert( { "key1", 2 } );  // duplicate key
+        stringMultimap.insert( { "key1", 2 } ); // duplicate key
         stringMultimap.insert( { "key2", 3 } );
-        stringMultimap.insert( { "key1", 4 } );  // another duplicate
+        stringMultimap.insert( { "key1", 4 } ); // another duplicate
         testRoundTrip( stringMultimap );
 
         // std::multimap with int keys
         std::multimap<int, std::string> intMultimap;
         intMultimap.insert( { 1, "one" } );
-        intMultimap.insert( { 1, "uno" } );  // duplicate key
+        intMultimap.insert( { 1, "uno" } ); // duplicate key
         intMultimap.insert( { 2, "two" } );
         testRoundTrip( intMultimap );
 
         // std::unordered_multimap
         std::unordered_multimap<std::string, double> unorderedMultimap;
         unorderedMultimap.insert( { "pi", 3.14 } );
-        unorderedMultimap.insert( { "pi", 3.14159 } );  // duplicate key
+        unorderedMultimap.insert( { "pi", 3.14159 } ); // duplicate key
         unorderedMultimap.insert( { "e", 2.71 } );
         testRoundTrip( unorderedMultimap );
 
@@ -518,6 +518,67 @@ namespace nfx::serialization::json::test
         // Empty multiset
         std::multiset<int> emptyMultiset;
         testRoundTrip( emptyMultiset );
+    }
+
+    TEST_F( JSONSerializerTest, VariantTypes )
+    {
+        // Basic variant with primitives
+        {
+            std::variant<int, std::string, double> v1 = 42;
+            testRoundTrip( v1 );
+
+            std::variant<int, std::string, double> v2 = "hello";
+            testRoundTrip( v2 );
+
+            std::variant<int, std::string, double> v3 = 3.14;
+            testRoundTrip( v3 );
+        }
+
+        // Variant with containers
+        {
+            std::variant<std::vector<int>, std::map<std::string, int>> v1 = std::vector<int>{ 1, 2, 3 };
+            testRoundTrip( v1 );
+
+            std::variant<std::vector<int>, std::map<std::string, int>> v2 =
+                std::map<std::string, int>{ { "one", 1 }, { "two", 2 } };
+            testRoundTrip( v2 );
+        }
+
+        // Variant with bool (edge case - ensure it's not confused with int)
+        {
+            std::variant<bool, int, std::string> vBool = true;
+            testRoundTrip( vBool );
+
+            std::variant<bool, int, std::string> vInt = 1;
+            testRoundTrip( vInt );
+        }
+
+        // Variant with nested variant
+        {
+            using InnerVariant = std::variant<int, std::string>;
+            using OuterVariant = std::variant<InnerVariant, double>;
+
+            OuterVariant v1 = InnerVariant{ 42 };
+            testRoundTrip( v1 );
+
+            OuterVariant v2 = InnerVariant{ "nested" };
+            testRoundTrip( v2 );
+
+            OuterVariant v3 = 3.14;
+            testRoundTrip( v3 );
+        }
+
+        // Variant with monostate (empty state)
+        {
+            std::variant<std::monostate, int, std::string> vEmpty = std::monostate{};
+            testRoundTrip( vEmpty );
+
+            std::variant<std::monostate, int, std::string> vInt = 42;
+            testRoundTrip( vInt );
+
+            std::variant<std::monostate, int, std::string> vString = "hello";
+            testRoundTrip( vString );
+        }
     }
 
     //----------------------------------------------

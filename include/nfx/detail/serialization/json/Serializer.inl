@@ -41,6 +41,7 @@
 #include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
+#include <variant>
 #include <vector>
 
 namespace nfx::serialization::json
@@ -281,6 +282,88 @@ namespace nfx::serialization::json
         };
 
         /**
+         * @brief Type trait to detect if a type is std::variant
+         * @tparam T The type to check
+         * @details Base template that evaluates to false. Specialized for std::variant<Ts...>.
+         */
+        template <typename T>
+        struct is_variant : std::false_type
+        {
+        };
+
+        /** @brief Specialization for std::variant */
+        template <typename... Ts>
+        struct is_variant<std::variant<Ts...>> : std::true_type
+        {
+        };
+
+        /**
+         * @brief Extract type name from template instantiation
+         * @tparam T The type to extract name from
+         * @details Uses compiler-specific intrinsics to extract type name at compile-time.
+         *          Returns a simplified name (e.g., "string" instead of "std::basic_string<...>")
+         */
+        template <typename T>
+        constexpr std::string_view type_name() noexcept
+        {
+            constexpr std::string_view full_name =
+#if defined( __clang__ ) || defined( __GNUC__ )
+                __PRETTY_FUNCTION__;
+#elif defined( _MSC_VER )
+                __FUNCSIG__;
+#endif
+
+            // Extract the type name from the function signature
+            // GCC/Clang format: "... type_name() [with T = TypeName]" or "... type_name() [T = TypeName]"
+            // MSVC format: "... type_name<TypeName>(void)"
+
+#if defined( _MSC_VER )
+            // MSVC: Extract from "type_name<TypeName>(void)"
+            constexpr std::string_view prefix = "type_name<";
+            constexpr auto prefix_pos = full_name.find( prefix );
+
+            if constexpr( prefix_pos == std::string_view::npos )
+            {
+                return "unknown";
+            }
+
+            constexpr auto start = prefix_pos + prefix.size();
+            constexpr auto end = full_name.find_first_of( '>', start );
+            constexpr auto type_full = full_name.substr( start, end - start );
+#else
+            // GCC/Clang: Extract from "[T = TypeName]"
+            constexpr std::string_view prefix = "T = ";
+            constexpr auto prefix_pos = full_name.find( prefix );
+
+            if constexpr( prefix_pos == std::string_view::npos )
+            {
+                return "unknown";
+            }
+
+            constexpr auto start = prefix_pos + prefix.size();
+            constexpr auto end = full_name.find_first_of( "];>", start );
+            constexpr auto type_full = full_name.substr( start, end - start );
+#endif
+
+            // Simplify common types (remove std:: prefix and template params)
+            // For std::string, std::vector, etc.
+            constexpr auto last_colon = type_full.rfind( "::" );
+            if constexpr( last_colon != std::string_view::npos )
+            {
+                constexpr auto simplified = type_full.substr( last_colon + 2 );
+                // Remove template parameters for readability
+                constexpr auto template_start = simplified.find( '<' );
+                if constexpr( template_start != std::string_view::npos )
+                {
+                    return simplified.substr( 0, template_start );
+                }
+                return simplified;
+            }
+
+            return type_full;
+        }
+
+        /**
          * @brief Type trait to detect if a type is std::optional
          * @tparam T The type to check
          * @details Base template that evaluates to false. Specialized for std::optional<T>.
@@ -476,6 +559,28 @@ namespace nfx::serialization::json
                 },
                 obj );
             builder.writeEndArray();
+        }
+        else if constexpr( detail::is_variant<U>::value )
+        {
+            // Handle std::variant - serialize as {"tag": "TypeName", "data": value}
+            // Uses std::visit to dispatch to the active alternative
+            std::visit(
+                [&]( const auto& value ) {
+                    using ActiveType = std::decay_t<decltype( value )>;
+
+                    builder.writeStartObject();
+
+                    // Write the type tag for deserialization
+                    builder.writeKey( "tag" );
+                    builder.write( std::string( detail::type_name<ActiveType>() ) );
+
+                    // Write the actual value
+                    builder.writeKey( "data" );
+                    serializeValue( value, builder );
+
+                    builder.writeEndObject();
+                },
+                obj );
         }
         else if constexpr( detail::is_container<U>::value )
         {
@@ -682,6 +787,63 @@ namespace nfx::serialization::json
             else if( !doc.isNull( "" ) )
             {
                 throw std::runtime_error{ "Cannot deserialize non-array JSON value into std::tuple" };
+            }
+        }
+
+        else if constexpr( detail::is_variant<U>::value )
+        {
+            // Handle std::variant - expect {"tag": "TypeName", "data": value}
+            if( doc.is<Object>( "" ) )
+            {
+                auto tagOpt = doc.get<std::string>( "/tag" );
+                if( !tagOpt )
+                {
+                    throw std::runtime_error{ "Variant JSON object missing 'tag' field" };
+                }
+
+                auto dataDocOpt = doc.get<Document>( "/data" );
+                if( !dataDocOpt )
+                {
+                    throw std::runtime_error{ "Variant JSON object missing 'data' field" };
+                }
+
+                const std::string& tag = *tagOpt;
+                const Document& dataDoc = *dataDocOpt;
+
+                // Try to deserialize into each variant alternative
+                bool found = false;
+                constexpr std::size_t variantSize = std::variant_size_v<U>;
+
+                // Helper lambda to try alternatives recursively
+                auto tryAlternative = [&]<std::size_t I>( auto&& self ) -> void {
+                    if constexpr( I < variantSize )
+                    {
+                        using AltType = std::variant_alternative_t<I, U>;
+                        if( tag == detail::type_name<AltType>() )
+                        {
+                            AltType value{};
+                            deserializeValue( dataDoc, value );
+                            obj = std::move( value );
+                            found = true;
+                        }
+                        else
+                        {
+                            // Try next alternative
+                            self.template operator()<I + 1>( self );
+                        }
+                    }
+                };
+
+                tryAlternative.template operator()<0>( tryAlternative );
+
+                if( !found )
+                {
+                    throw std::runtime_error{ "Unknown variant tag: '" + tag + "'" };
+                }
+            }
+            else if( !doc.isNull( "" ) )
+            {
+                throw std::runtime_error{ "Cannot deserialize non-object JSON value into std::variant" };
             }
         }
 
