@@ -441,6 +441,37 @@ namespace nfx::serialization::json::test
         testRoundTrip( std::deque<double>{ 1.1, 2.2, 3.3 } );
     }
 
+    TEST_F( JSONSerializerTest, TupleTypes )
+    {
+        testRoundTrip( std::make_tuple( 42, std::string( "hello" ) ) );
+
+        testRoundTrip( std::make_tuple( 1, 2.5, std::string( "test" ) ) );
+
+        testRoundTrip( std::make_tuple( std::string( "data" ), 100, true, 3.14 ) );
+
+        testRoundTrip( std::tuple<>{} );
+
+        testRoundTrip( std::make_tuple( 42 ) );
+
+        testRoundTrip( std::make_tuple( std::vector<int>{ 1, 2, 3 }, std::string( "vec" ) ) );
+    }
+
+    TEST_F( JSONSerializerTest, TupleNested )
+    {
+        auto nested =
+            std::make_tuple( std::make_tuple( 1, 2 ), std::make_tuple( std::string( "a" ), std::string( "b" ) ) );
+        testRoundTrip( nested );
+
+        std::vector<std::tuple<int, std::string>> vecOfTuples = { std::make_tuple( 1, std::string( "one" ) ),
+                                                                  std::make_tuple( 2, std::string( "two" ) ),
+                                                                  std::make_tuple( 3, std::string( "three" ) ) };
+        testRoundTrip( vecOfTuples );
+
+        std::map<std::string, std::tuple<int, double>> mapWithTuples = { { "first", std::make_tuple( 1, 1.1 ) },
+                                                                         { "second", std::make_tuple( 2, 2.2 ) } };
+        testRoundTrip( mapWithTuples );
+    }
+
     //----------------------------------------------
     // Custom containers with trait specialization
     //----------------------------------------------

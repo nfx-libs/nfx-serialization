@@ -37,6 +37,7 @@
 #include <memory>
 #include <optional>
 #include <set>
+#include <tuple>
 #include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
@@ -172,6 +173,22 @@ namespace nfx::serialization::json
         /** @brief Specialization for std::pair */
         template <typename TFirst, typename TSecond>
         struct is_pair<std::pair<TFirst, TSecond>> : std::true_type
+        {
+        };
+
+        /**
+         * @brief Type trait to detect if a type is std::tuple
+         * @tparam T The type to check
+         * @details Base template that evaluates to false. Specialized for std::tuple<Ts...>.
+         */
+        template <typename T>
+        struct is_tuple : std::false_type
+        {
+        };
+
+        /** @brief Specialization for std::tuple */
+        template <typename... Ts>
+        struct is_tuple<std::tuple<Ts...>> : std::true_type
         {
         };
 
@@ -361,6 +378,17 @@ namespace nfx::serialization::json
                 builder.write( nullptr );
             }
         }
+        else if constexpr( detail::is_tuple<U>::value )
+        {
+            // Handle std::tuple - serialize as array [elem0, elem1, ...]
+            builder.writeStartArray();
+            std::apply(
+                [&]( const auto&... elems ) {
+                    ( serializeValue( elems, builder ), ... ); // fold expression
+                },
+                obj );
+            builder.writeEndArray();
+        }
         else if constexpr( detail::is_container<U>::value )
         {
             // Handle std::pair - serialize as array [first, second]
@@ -507,6 +535,36 @@ namespace nfx::serialization::json
                 {
                     obj = std::shared_ptr<typename U::element_type>( value.release() );
                 }
+            }
+        }
+
+        else if constexpr( detail::is_tuple<U>::value )
+        {
+            // Handle std::tuple - expect array [elem0, elem1, ...]
+            if( doc.is<Array>( "" ) )
+            {
+                auto arrOpt = doc.get<Array>( "" );
+                if( arrOpt.has_value() )
+                {
+                    const auto& arr = arrOpt.value();
+                    constexpr std::size_t tupleSize = std::tuple_size_v<U>;
+                    
+                    if( arr.size() != tupleSize )
+                    {
+                        throw std::runtime_error{ "Cannot deserialize array with " + std::to_string( arr.size() )
+                                                  + " elements into std::tuple with " + std::to_string( tupleSize )
+                                                  + " elements" };
+                    }
+
+                    // Use index_sequence to deserialize each element
+                    [&]<std::size_t... Indices>( std::index_sequence<Indices...> ) {
+                        ( deserializeValue( arr[Indices], std::get<Indices>( obj ) ), ... );
+                    }( std::make_index_sequence<tupleSize>{} );
+                }
+            }
+            else if( !doc.isNull( "" ) )
+            {
+                throw std::runtime_error{ "Cannot deserialize non-array JSON value into std::tuple" };
             }
         }
 

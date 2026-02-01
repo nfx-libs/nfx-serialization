@@ -28,6 +28,11 @@
   - Serializes as JSON array of elements
   - Preserves insertion order during serialization and deserialization
   - Supports heterogeneous lookup and all hash types (uint32_t, uint64_t)
+- **Serializer**: Added native JSON serialization support for `std::tuple<Ts...>`
+  - Serializes as JSON array `[elem0, elem1, ...]` matching element order
+  - Supports arbitrary tuple sizes and nested tuples
+  - Enables type-safe heterogeneous collections (e.g., `tuple<int, string, double>`)
+  - Zero-overhead compile-time recursion using fold expressions and `std::apply`
 
 ### Changed
 
