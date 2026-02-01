@@ -21,9 +21,11 @@ nfx-serialization is a modern C++20 library that provides a powerful C++ type se
 ### 🔄 C++ Type Serialization
 
 - **Serializer<T>**: Template-based automatic serialization/deserialization with compile-time type detection
-- **SerializationTraits**: Extensible trait system for custom type support
+- **SerializationTraits**: Extensible trait system for custom type support with asymmetric read/write
+  - **Write (serialize)**: Streaming JSON generation via Builder API (zero DOM overhead)
+  - **Read (fromDocument)**: DOM-based deserialization via Document API (type-safe navigation)
 - **Type-safe**: Automatic type mapping with compile-time verification
-- **Zero-overhead**: Header-only template implementations with inline expansion
+- **Zero-overhead**: Header-only template implementations with inline expansion and SFINAE-based dispatch
 
 ### 📦 Supported Types
 
@@ -44,6 +46,7 @@ nfx-serialization is a modern C++20 library that provides a powerful C++ type se
 
 nfx-serialization is built on [nfx-json](https://github.com/nfx-libs/nfx-json), which provides:
 - **Document**: Variant-based JSON document with type-safe manipulation
+- **Builder**: Streaming JSON generation API (SAX-like, single-pass, optimal performance)
 - **SchemaValidator**: JSON Schema Draft 2020-12 validation
 - **SchemaGenerator**: Automatic schema inference from samples
 - **PathView**: Zero-copy traversal with JSON Pointer support
@@ -190,6 +193,32 @@ cmake --build . --target nfx-serialization-documentation
 
 After building, open `./build/doc/html/index.html` in your web browser.
 
+### Sample Programs
+
+nfx-serialization includes tutorial samples demonstrating progressive JSON serialization workflows. Each sample is self-contained and follows a consistent educational format with numbered sections, inline validation, and formatted output.
+
+**Available samples:**
+- **Sample_JsonSerializationBasics.cpp** - Document and Builder API fundamentals
+- **Sample_JsonSerializationContainers.cpp** - Automatic STL container serialization
+- **Sample_JsonSerializationTraits.cpp** - Custom type serialization with SerializationTraits
+
+See [samples/README.md](samples/README.md) for detailed descriptions and learning path.
+
+**Building and running samples:**
+
+```bash
+# Configure with samples enabled
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DNFX_SERIALIZATION_BUILD_SAMPLES=ON
+
+# Build all samples
+cmake --build build --config Release
+
+# Run samples
+./build/bin/Sample_JsonSerializationBasics
+./build/bin/Sample_JsonSerializationContainers
+./build/bin/Sample_JsonSerializationTraits
+```
+
 ## Usage Examples
 
 ### Basic Serialization - STL Containers
@@ -273,19 +302,27 @@ struct Person {
     std::vector<std::string> hobbies;
 };
 
-// Define serialization traits
+// Define serialization traits with asymmetric read/write
 template<>
 struct SerializationTraits<Person> {
-    static void serialize(const Person& person, Document& doc) {
-        doc.set<std::string>("/name", person.name);
-        doc.set<int64_t>("/age", person.age);
+    // Streaming serialization (write) - uses Builder API for optimal performance
+    static void serialize(const Person& person, Builder& builder) {
+        builder.startObject();
         
-        // Serialize hobbies vector
-        auto hobbiesDoc = Serializer<std::vector<std::string>>().serialize(person.hobbies);
-        doc.set<Document>("/hobbies", hobbiesDoc);
+        builder.key("name");
+        builder.string(person.name);
+        
+        builder.key("age");
+        builder.number(person.age);
+        
+        builder.key("hobbies");
+        Serializer<std::vector<std::string>>::serializeValue(person.hobbies, builder);
+        
+        builder.endObject();
     }
 
-    static void deserialize(Person& person, const Document& doc) {
+    // DOM-based deserialization (read) - uses Document API for type-safe navigation
+    static void fromDocument(const Document& doc, Person& person) {
         person.name = doc.get<std::string>("/name").value_or("");
         person.age = static_cast<int>(doc.get<int64_t>("/age").value_or(0));
         
@@ -301,9 +338,12 @@ Person alice;
 alice.name = "Alice";
 alice.age = 30;
 alice.hobbies = {"reading", "coding"};
+
+// Serialization uses streaming Builder
 std::string json = Serializer<Person>::toString(alice);
 // Result: {"name":"Alice","age":30,"hobbies":["reading","coding"]}
 
+// Deserialization uses Document for type-safe navigation
 Person restored = Serializer<Person>::fromString(json);
 // restored == alice
 ```
@@ -398,7 +438,7 @@ nfx-serialization provides two approaches for integrating custom types:
 
 #### Approach 1: SerializationTraits for Custom Objects
 
-For types that need custom JSON representation, implement `SerializationTraits`:
+For types that need custom JSON representation, implement `SerializationTraits` with asymmetric read/write:
 
 ```cpp
 #include <nfx/Serialization.h>
@@ -410,16 +450,23 @@ struct Point3D {
     double x, y, z;
 };
 
-// Define how Point3D serializes
+// Define how Point3D serializes (asymmetric read/write architecture)
 template<>
 struct SerializationTraits<Point3D> {
-    static void serialize(const Point3D& point, Document& doc) {
-        doc.set<double>("/x", point.x);
-        doc.set<double>("/y", point.y);
-        doc.set<double>("/z", point.z);
+    // Streaming serialization - uses Builder for optimal performance
+    static void serialize(const Point3D& point, Builder& builder) {
+        builder.startObject();
+        builder.key("x");
+        builder.number(point.x);
+        builder.key("y");
+        builder.number(point.y);
+        builder.key("z");
+        builder.number(point.z);
+        builder.endObject();
     }
 
-    static void deserialize(Point3D& point, const Document& doc) {
+    // DOM-based deserialization - uses Document for type-safe navigation
+    static void fromDocument(const Document& doc, Point3D& point) {
         point.x = doc.get<double>("/x").value_or(0.0);
         point.y = doc.get<double>("/y").value_or(0.0);
         point.z = doc.get<double>("/z").value_or(0.0);
@@ -585,13 +632,12 @@ nfx-serialization/
 ├── include/nfx/
 │   └── serialization/json/
 │       ├── Serializer.h           # Main serializer class
-│       ├── SerializableDocument.h # Document wrapper for serialization
-│       ├── SerializationTraits.h  # Trait specialization interface
+│       ├── SerializationTraits.h  # Trait specialization interface (asymmetric read/write)
 │       ├── Concepts.h             # C++20 concepts and type traits
 │       └── extensions/            # Optional nfx library integrations
-│           ├── ContainersTraits.h # nfx-containers support
-│           ├── DatatypesTraits.h  # nfx-datatypes support
-│           └── DateTimeTraits.h   # nfx-datetime support
+│           ├── ContainersTraits.h # nfx-containers support (FastHashMap, etc.)
+│           ├── DatatypesTraits.h  # nfx-datatypes support (Int128, Decimal)
+│           └── DateTimeTraits.h   # nfx-datetime support (DateTime, DateTimeOffset, TimeSpan)
 ├── samples/                       # Example code and demonstrations
 └── test/                          # Unit tests with GoogleTest
 ```
@@ -629,4 +675,4 @@ All dependencies are automatically fetched via CMake FetchContent when building 
 
 ---
 
-_Updated on January 25, 2026_
+_Updated on February 01, 2026_

@@ -204,8 +204,8 @@ namespace nfx::serialization::json::test
             return name == other.name && age == other.age && email == other.email && hobbies == other.hobbies;
         }
 
-        // Custom serialization method (void return, takes Document&)
-        void serialize( const Serializer<Person>& serializer, Document& doc ) const
+        // Custom toDocument method
+        void toDocument( const Serializer<Person>& serializer, Document& doc ) const
         {
             doc.set<std::string>( "/name", name );
             doc.set<int64_t>( "/age", age );
@@ -220,14 +220,20 @@ namespace nfx::serialization::json::test
                 doc.set<std::string>( "/email", "" );
             }
 
-            // Serialize hobbies vector using Serializer
-            Serializer<std::vector<std::string>> hobbiesSerializer;
-            Document hobbiesDoc = hobbiesSerializer.serialize( hobbies );
-            doc.set<Document>( "/hobbies", hobbiesDoc );
+            // Serialize hobbies array
+            if( !hobbies.empty() )
+            {
+                Array hobbiesArray;
+                for( const auto& hobby : hobbies )
+                {
+                    hobbiesArray.push_back( Document( hobby ) );
+                }
+                doc.set<Array>( "/hobbies", hobbiesArray );
+            }
         }
 
-        // Custom deserialization method
-        void deserialize( const Serializer<Person>& serializer, const Document& doc )
+        // Custom fromDocument method
+        void fromDocument( const Document& doc, const Serializer<Person>& serializer )
         {
             if( auto nameVal = doc.get<std::string>( "/name" ) )
             {
@@ -248,10 +254,20 @@ namespace nfx::serialization::json::test
                 email = std::nullopt;
             }
 
-            if( auto hobbiesDocOpt = doc.get<Document>( "/hobbies" ) )
+            // Deserialize hobbies array directly
+            hobbies.clear();
+            if( auto hobbiesDoc = doc.get<Document>( "/hobbies" ) )
             {
-                Serializer<std::vector<std::string>> hobbiesSerializer;
-                hobbies = hobbiesSerializer.deserialize( *hobbiesDocOpt );
+                if( auto arrRef = hobbiesDoc->rootRef<Array>() )
+                {
+                    for( const auto& hobbyDoc : arrRef->get() )
+                    {
+                        if( auto hobbyStr = hobbyDoc.root<std::string>() )
+                        {
+                            hobbies.push_back( *hobbyStr );
+                        }
+                    }
+                }
             }
 
             if( serializer.options().validateOnDeserialize )
@@ -284,19 +300,17 @@ namespace nfx::serialization::json::test
                    quantity == other.quantity;
         }
 
-        // Custom serialization method (returns Document)
-        Document serialize( const Serializer<Product>& ) const
+        // Custom toDocument method
+        void toDocument( const Serializer<Product>&, Document& doc ) const
         {
-            Document doc;
             doc.set<std::string>( "/id", id );
             doc.set<std::string>( "/name", name );
             doc.set<double>( "/price", price );
             doc.set<int64_t>( "/quantity", quantity );
-            return doc;
         }
 
-        // Custom deserialization method
-        void deserialize( const Serializer<Product>&, const Document& doc )
+        // Custom fromDocument method
+        void fromDocument( const Document& doc, const Serializer<Product>& )
         {
             if( auto idVal = doc.get<std::string>( "/id" ) )
                 id = *idVal;

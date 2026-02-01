@@ -4,12 +4,44 @@
 
 ### Added
 
-- NIL
+- **Serializer**: Added high-performance streaming serialization with Builder API
+  - SerializationTraits now supports optional `serialize(obj, Builder&)` method for streaming JSON generation
+  - Eliminates Document intermediate representation during serialization
+  - SFINAE-based automatic detection via `has_streaming_serialization_v<T>` trait
+  - 3-tier dispatch priority: 1. streaming `serialize()`, 2. built-in types, 3. legacy `toDocument()`
+  - All extension traits updated with streaming support (ContainersTraits, DatatypesTraits, DateTimeTraits)
+  - New sample: `Sample_JsonSerializerWithBuilder.cpp` demonstrating Builder API usage and performance
+  - New tests: `Tests_JsonSerializerBuilder.cpp`
+- **Serializer**: Added native `std::pair<TFirst, TSecond>` support in core serializer
+  - Moved from ContainersTraits extension to built-in Serializer functionality
+  - Serializes as JSON array `[first, second]` for compact representation
+  - Supports nested pairs and containers of pairs
+- **Samples**: Added tutorial samples demonstrating progressive JSON serialization workflows
+  - `Sample_JsonSerializationBasics.cpp` - Fundamental Document and Builder APIs
+  - `Sample_JsonSerializationContainers.cpp` - Automatic STL container serialization
+  - `Sample_JsonSerializationTraits.cpp` - Custom type serialization with SerializationTraits
 
 ### Changed
 
+- **Architecture**: Unified SerializationTraits with asymmetric read/write pattern
+  - Write method: `serialize(const T&, Builder&)` - optional streaming serialization (SFINAE-detected)
+  - Read method: `fromDocument(const Document&, T&)` - required DOM-based deserialization
+  - Builder streaming avoids Document overhead
+  - Legacy `toDocument()` method still supported as fallback for compatibility
+- **Breaking**: `SerializationTraits` method signature changes
+  - Deserialization: renamed `deserialize(T&, const Document&)` → `fromDocument(const Document&, T&)`
+  - Parameter order: document now comes first for consistency with other APIs
+  - Affects all custom types and extension traits (ContainersTraits, DatatypesTraits, DateTimeTraits)
+- **Breaking**: Removed `toDocument()` and `fromDocument()` from public Serializer API
+  - Serializer now uses **only** `toString()` and `fromString()` static methods
+  - Internal serialization streams directly to Builder (no intermediate Document)
+  - SerializationTraits::fromDocument() still used internally for deserialization
 - **Refactor**: Moved `SerializationTraits.h` into `traits/` subfolder
-- Updated nfx-json dependency from 1.0.3 to 1.1.0
+- **Performance**: Optimized type resolution order in `serializeValue()` for better dispatch
+  - Priority: SerializationTraits::serialize() → Built-in types → Custom toDocument()
+  - Built-in types (bool, int, string, containers) bypass Document intermediate representation
+- Updated nfx-json dependency from 1.0.3 to 1.1.0 (adds Builder API)
+- Updated nfx-containers dependency from 0.3.0 to 0.3.1 (extension tests)
 
 ### Deprecated
 
@@ -17,11 +49,17 @@
 
 ### Removed
 
-- NIL
+- **Breaking**: Removed `SerializableDocument` class
+  - Replaced by direct `Serializer<T>::toString()` using Builder internally
+  - Deserialization works directly with nfx::json::Document
+- **Breaking**: Removed `std::pair` support from ContainersTraits extension
+  - `std::pair` is now a built-in type in core Serializer (see Added section)
 
 ### Fixed
 
-- NIL
+- **Serializer**: Fixed unreachable dead code in `serializeValue()` fallback path
+  - Removed duplicate trait checks that were impossible to reach
+  - Simplified final fallback - compilation fails if type has no serialization support
 
 ### Security
 

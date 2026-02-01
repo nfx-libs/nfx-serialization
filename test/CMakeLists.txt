@@ -58,7 +58,7 @@ if(NFX_SERIALIZATION_BUILD_EXTENSION_TESTS)
     include(FetchContent)
 
     # Try to find libraries first, then fetch if not found
-    find_package(nfx-containers 0.3.0 QUIET)
+    find_package(nfx-containers 0.3.1 QUIET)
     find_package(nfx-datatypes  0.2.0 QUIET)
     find_package(nfx-datetime   0.3.0 QUIET)
 
@@ -129,6 +129,7 @@ if(NFX_SERIALIZATION_WITH_JSON)
 
     list(APPEND test_sources
         Tests_JsonSerializer.cpp
+        Tests_JsonSerializerBuilder.cpp
     )
 endif()
 

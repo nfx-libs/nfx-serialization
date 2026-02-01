@@ -37,15 +37,10 @@
 namespace nfx::serialization::json
 {
     //=====================================================================
-    // Forward declarations
-    //=====================================================================
-
-    class SerializableDocument; // Extended Document with serialization support
-
-    //=====================================================================
     // Import types from nfx::json
     //=====================================================================
 
+    using nfx::json::Document;
     using nfx::json::Array;
     using nfx::json::Object;
     using nfx::json::Type;
@@ -57,6 +52,11 @@ namespace nfx::serialization::json
     // Forward declarations
     //=====================================================================
 
+    /**
+     * @brief Serialization traits template (forward declaration)
+     * @tparam T The type to serialize/deserialize
+     * @see SerializationTraits in traits/SerializationTraits.h for full definition
+     */
     template <typename T>
     struct SerializationTraits;
 
@@ -70,7 +70,7 @@ namespace nfx::serialization::json
 
         /**
          * @brief Detect if a type has a custom SerializationTraits specialization
-         * @details Uses SFINAE to detect if SerializationTraits<T>::serialize is available
+         * @details Uses SFINAE to detect if SerializationTraits<T>::toDocument is available
          *          and is not the default implementation (which requires member methods).
          *          This allows conditional support for extension types only when their
          *          trait headers are included.
@@ -83,7 +83,7 @@ namespace nfx::serialization::json
         template <typename T>
         struct has_serialization_traits<
             T,
-            std::void_t<decltype( SerializationTraits<std::decay_t<T>>::serialize(
+            std::void_t<decltype( SerializationTraits<std::decay_t<T>>::toDocument(
                 std::declval<const std::decay_t<T>&>(), std::declval<Document&>() ) )>> : std::true_type
         {
         };
@@ -132,13 +132,10 @@ namespace nfx::serialization::json
      *          - nfx extension types (use SerializationTraits)
      *          - Primitives (delegated to base Document)
      *          - JSON containers (delegated to base Document)
-     *          - SerializableDocument itself (avoid recursion)
-     *          - Document derivatives (avoid confusion)
      */
     template <typename T>
     concept StlSerializable =
         !detail::is_nfx_extension_type_v<T> && !nfx::json::Primitive<T> && !is_json_container_v<T> &&
-        !std::is_same_v<std::remove_cvref_t<T>, SerializableDocument> &&
         !std::is_base_of_v<nfx::json::Document, std::remove_cvref_t<T>>;
 
     /**
@@ -146,12 +143,9 @@ namespace nfx::serialization::json
      * @details Matches types that ARE nfx extensions but NOT:
      *          - Primitives (delegated to base Document)
      *          - JSON containers (delegated to base Document)
-     *          - SerializableDocument itself (avoid recursion)
-     *          - Document derivatives (avoid confusion)
      */
     template <typename T>
     concept NfxSerializable =
         detail::is_nfx_extension_type_v<T> && !nfx::json::Primitive<T> && !is_json_container_v<T> &&
-        !std::is_same_v<std::remove_cvref_t<T>, SerializableDocument> &&
         !std::is_base_of_v<nfx::json::Document, std::remove_cvref_t<T>>;
 } // namespace nfx::serialization::json

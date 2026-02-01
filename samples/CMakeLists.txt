@@ -18,7 +18,9 @@ set(sample_sources "")
 
 if(NFX_SERIALIZATION_WITH_JSON)
     list(APPEND sample_sources
-        Sample_JsonSerializer.cpp
+        Sample_JsonSerializationBasics.cpp
+        Sample_JsonSerializationContainers.cpp
+        Sample_JsonSerializationTraits.cpp
     )
 endif()
 

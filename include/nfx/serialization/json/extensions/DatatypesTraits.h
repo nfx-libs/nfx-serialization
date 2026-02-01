@@ -67,27 +67,25 @@ namespace nfx::serialization::json
     struct SerializationTraits<nfx::datatypes::Int128>
     {
         /**
-         * @brief Serialize Int128 to JSON document using platform-independent string representation
+         * @brief High-performance streaming serialization
          * @param obj The Int128 object to serialize
-         * @param doc The document to serialize into
-         * @details Uses toString() method to ensure cross-platform compatibility.
-         *          String representation works consistently across GCC/Clang (native __int128)
-         *          and MSVC (manual implementation) platforms.
+         * @param builder The builder to write to
+         * @details Serializes as JSON string representation for cross-platform compatibility
          */
-        static void serialize( const nfx::datatypes::Int128& obj, Document& doc )
+        static void serialize( const nfx::datatypes::Int128& obj, nfx::json::Builder& builder )
         {
             std::string value = obj.toString();
-            doc.set<std::string>( "", value );
+            builder.write( value );
         }
 
         /**
-         * @brief Deserialize Int128 from JSON document using platform-independent string parsing
-         * @param obj The Int128 object to deserialize into
+         * @brief Deserialize Int128 from JSON document
          * @param doc The document to deserialize from
+         * @param obj The Int128 object to deserialize into
          * @details Uses fromString() method to ensure cross-platform compatibility.
          *          Can deserialize values created on any platform (GCC/Clang/MSVC).
          */
-        static void deserialize( nfx::datatypes::Int128& obj, const Document& doc )
+        static void fromDocument( const Document& doc, nfx::datatypes::Int128& obj )
         {
             if( doc.is<std::string>( "" ) )
             {
@@ -132,26 +130,25 @@ namespace nfx::serialization::json
     struct SerializationTraits<nfx::datatypes::Decimal>
     {
         /**
-         * @brief Serialize Decimal to JSON document using platform-independent string representation
+         * @brief High-performance streaming serialization
          * @param obj The Decimal object to serialize
-         * @param doc The document to serialize into
-         * @details Uses toString() method to ensure cross-platform compatibility.
-         *          String representation is platform-independent and preserves full precision.
+         * @param builder The builder to write to
+         * @details Serializes as JSON string representation for precision preservation
          */
-        static void serialize( const nfx::datatypes::Decimal& obj, Document& doc )
+        static void serialize( const nfx::datatypes::Decimal& obj, nfx::json::Builder& builder )
         {
             std::string value = obj.toString();
-            doc.set<std::string>( "", value );
+            builder.write( value );
         }
 
         /**
-         * @brief Deserialize Decimal from JSON document using platform-independent string parsing
-         * @param obj The Decimal object to deserialize into
+         * @brief Deserialize Decimal from JSON document
          * @param doc The document to deserialize from
+         * @param obj The Decimal object to deserialize into
          * @details Uses fromString() method to ensure cross-platform compatibility.
          *          Can deserialize values created on any platform (GCC/Clang/MSVC).
          */
-        static void deserialize( nfx::datatypes::Decimal& obj, const Document& doc )
+        static void fromDocument( const Document& doc, nfx::datatypes::Decimal& obj )
         {
             if( doc.is<std::string>( "" ) )
             {

@@ -230,6 +230,7 @@ if(Doxygen_FOUND)
     doxygen_add_docs(nfx-serialization-documentation
         ${NFX_SERIALIZATION_INCLUDE_DIR}/nfx
         ${NFX_SERIALIZATION_DIR}/benchmark/README.md
+        ${NFX_SERIALIZATION_DIR}/samples/README.md
         ${NFX_SERIALIZATION_DIR}/CHANGELOG.md
         ${NFX_SERIALIZATION_DIR}/README.md
         ${NFX_SERIALIZATION_DIR}/TODO.md

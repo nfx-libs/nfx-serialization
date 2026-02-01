@@ -32,10 +32,11 @@
 
 #pragma once
 
+#include "Concepts.h"
 #include "traits/SerializationTraits.h"
-#include "SerializableDocument.h"
 
 #include <nfx/json/Document.h>
+#include <nfx/json/Builder.h>
 
 namespace nfx::serialization::json
 {
@@ -52,6 +53,9 @@ namespace nfx::serialization::json
     template <typename T>
     class Serializer final
     {
+        template <typename U>
+        friend struct SerializationTraits;
+
     public:
         //----------------------------------------------
         // Serialization options and context
@@ -63,7 +67,7 @@ namespace nfx::serialization::json
         struct Options
         {
             bool includeNullFields = false;    ///< Include fields with null values in output
-            bool prettyPrint = false;          ///< Format output with indentation (2 spaces per level)
+            bool prettyPrint = false;          ///< Format output with indentation
             bool validateOnDeserialize = true; ///< Validate data during deserialization
 
             /**
@@ -149,48 +153,28 @@ namespace nfx::serialization::json
          */
         inline static T fromString( std::string_view jsonStr, const Options& options = {} );
 
-        //----------------------------------------------
-        // Instance serialization methods
-        //----------------------------------------------
-
-        /**
-         * @brief Serialize object to JSON document
-         * @param obj The object to serialize
-         * @return SerializableDocument containing the serialized JSON
-         * @throws std::runtime_error if serialization fails
-         */
-        inline SerializableDocument serialize( const T& obj ) const;
-
-        /**
-         * @brief Deserialize object from JSON document
-         * @param doc The document to deserialize from
-         * @return Deserialized object
-         * @throws std::runtime_error if deserialization fails
-         */
-        inline T deserialize( const SerializableDocument& doc ) const;
-
     private:
         //----------------------------------------------
         // Private methods
         //----------------------------------------------
 
         /**
-         * @brief Unified templated serialization method
+         * @brief High-performance serialization directly to Builder
          * @tparam U The type to serialize (deduced from parameter)
          * @param obj Object to serialize
-         * @param doc SerializableDocument to serialize into
+         * @param builder Builder to write JSON into
          */
         template <typename U>
-        inline void serializeValue( const U& obj, SerializableDocument& doc ) const;
+        inline void serializeValue( const U& obj, nfx::json::Builder& builder ) const;
 
         /**
          * @brief Unified templated deserialization method
          * @tparam U The type to deserialize (deduced from parameter)
-         * @param doc SerializableDocument to deserialize from
+         * @param doc Document to deserialize from
          * @param obj Object to deserialize into
          */
         template <typename U>
-        inline void deserializeValue( const SerializableDocument& doc, U& obj ) const;
+        inline void deserializeValue( const nfx::json::Document& doc, U& obj ) const;
 
         //----------------------------------------------
         // Member variables

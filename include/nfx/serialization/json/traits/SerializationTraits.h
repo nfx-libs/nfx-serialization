@@ -24,12 +24,16 @@
 
 /**
  * @file SerializationTraits.h
- * @brief Serialization traits and type specializations for JSON serialization
- * @details Contains the SerializationTraits template that provides the extensible
+ * @brief Unified serialization traits for JSON serialization/deserialization
+ * @details Contains SerializationTraits template that provides the extensible
  *          serialization framework for nfx-serialization library.
  *
- *          This file provides the base template that allows users to customize
- *          serialization behavior for their own types by specializing SerializationTraits.
+ *          SerializationTraits provides two complementary methods:
+ *          - **serialize()**: High-performance streaming serialization (write)
+ *          - **fromDocument()**: DOM-based deserialization (read)
+ *
+ *          Users can specialize this trait to customize serialization behavior
+ *          for their own types.
  *
  *          For serialization support of nfx framework types (datetime, datatypes, containers),
  *          include the appropriate extension headers:
@@ -40,10 +44,12 @@
 
 #pragma once
 
+#include <nfx/json/Builder.h>
 #include <nfx/json/Document.h>
 
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 using namespace nfx::json;
@@ -57,88 +63,100 @@ namespace nfx::serialization::json
     template <typename T>
     class Serializer;
 
+    template <typename T>
+    struct SerializationTraits;
+
+    //=====================================================================
+    // SFINAE detectors
+    //=====================================================================
+
     namespace detail
     {
-        template <typename T>
-        struct has_serialize_method;
+        /**
+         * @brief SFINAE detector for streaming serialization
+         * @tparam T Type to check
+         */
+        template <typename T, typename = void>
+        struct has_streaming_serialization : std::false_type
+        {
+        };
 
+        /**
+         * @brief SFINAE detector for streaming serialization (specialized version)
+         * @tparam T Type to check
+         * @details Checks if SerializationTraits<T>::serialize(const T&, Builder&) is valid
+         */
         template <typename T>
-        struct has_serialize_method_returning_document;
+        struct has_streaming_serialization<
+            T,
+            std::void_t<decltype( SerializationTraits<T>::serialize(
+                std::declval<const T&>(), std::declval<nfx::json::Builder&>() ) )>> : std::true_type
+        {
+        };
 
+        /**
+         * @brief Helper variable template for has_streaming_serialization
+         */
         template <typename T>
-        struct has_serialize_method_no_params;
-
-        template <typename T>
-        struct has_deserialize_method;
+        inline constexpr bool has_streaming_serialization_v = has_streaming_serialization<T>::value;
     } // namespace detail
 
     //=====================================================================
-    // Serialization Traits (extensible by users)
+    // SerializationTraits - Read/Write serialization interface
     //=====================================================================
 
     /**
-     * @brief Default serialization traits - users can specialize this
+     * @brief Unified serialization traits for JSON serialization/deserialization
      * @tparam T The type to serialize/deserialize
      * @details This is the extension point for users to define custom serialization.
-     *          Users can specialize this template for their types or even override
-     *          library types with custom serialization logic.
+     *          Users can specialize this template for their types with one or both methods:
+     *
+     *          1. **serialize()** - High-performance streaming (write, no DOM overhead)
+     *          2. **fromDocument()** - DOM-based deserialization (read)
+     *
+     *          The serializer will prefer serialize() when available (detected via SFINAE),
+     *          falling back to user types with member method fromDocument().
+     *
+     *          User types can provide member method with this signature:
+     *          - void fromDocument(const Document&, const Serializer<T>&)
+     *
+     * **Example: High-performance streaming serialization**
+     * ```cpp
+     * template <>
+     * struct SerializationTraits<MyType>
+     * {
+     *     static void serialize( const MyType& obj, nfx::json::Builder& builder )
+     *     {
+     *         builder.writeStartObject();
+     *         builder.write( "field1", obj.field1 );
+     *         builder.write( "field2", obj.field2 );
+     *         builder.writeEndObject();
+     *     }
+     *     
+     *     static void fromDocument( const Document& doc, MyType& obj )
+     *     {
+     *         obj.field1 = doc.get<int>("field1").value();
+     *         obj.field2 = doc.get<string>("field2").value();
+     *     }
+     * };
+     * ```
      */
     template <typename T>
     struct SerializationTraits
     {
         /**
-         * @brief Default serialize implementation - delegates to member method
-         * @param obj Object to serialize
-         * @param doc Document to serialize into
+         * @brief Convert Document to object (deserialization)
+         * @param doc Document to read from (source)
+         * @param obj Object to populate (destination)
+         * @details Default implementation calls member method fromDocument()
          */
-        static void serialize( const T& obj, Document& doc )
+        static void fromDocument( const Document& doc, T& obj )
         {
-            // Look for serialize method with no parameters
-            if constexpr( detail::has_serialize_method_no_params<T>::value )
-            {
-                doc = obj.serialize();
-            }
-            // Look for serialize method returning Document with serializer parameter
-            else if constexpr( detail::has_serialize_method_returning_document<T>::value )
-            {
-                Serializer<T> serializer;
-                doc = obj.serialize( serializer );
-            }
-            // Look for traditional serialize method with serializer and document parameters
-            else if constexpr( detail::has_serialize_method<T>::value )
-            {
-                Serializer<T> serializer;
-                obj.serialize( serializer, doc );
-            }
-            else
-            {
-                static_assert(
-                    detail::has_serialize_method<T>::value ||
-                        detail::has_serialize_method_returning_document<T>::value ||
-                        detail::has_serialize_method_no_params<T>::value,
-                    "Type must either specialize SerializationTraits or have a serialize() member method" );
-            }
+            Serializer<T> serializer;
+            obj.fromDocument( doc, serializer );
         }
 
-        /**
-         * @brief Default deserialize implementation - delegates to member method
-         * @param obj Object to deserialize into
-         * @param doc Document to deserialize from
-         */
-        static void deserialize( T& obj, const Document& doc )
-        {
-            // Look for member deserialize method
-            if constexpr( detail::has_deserialize_method<T>::value )
-            {
-                Serializer<T> serializer;
-                obj.deserialize( serializer, doc );
-            }
-            else
-            {
-                static_assert(
-                    detail::has_deserialize_method<T>::value,
-                    "Type must either specialize SerializationTraits or have a deserialize() member method" );
-            }
-        }
+        // No default implementation for serialize() - must be specialized if needed
+        // SFINAE detector will check if serialize() is available
     };
 } // namespace nfx::serialization::json

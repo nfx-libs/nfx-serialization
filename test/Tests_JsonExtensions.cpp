@@ -33,15 +33,11 @@
 
 #include <gtest/gtest.h>
 
+#include <nfx/Serialization.h>
 #include <nfx/serialization/json/extensions/ContainersTraits.h>
 #include <nfx/serialization/json/extensions/DatatypesTraits.h>
 #include <nfx/serialization/json/extensions/DateTimeTraits.h>
-
-#include <nfx/Serialization.h>
-
-#include <nfx/Containers.h>
-#include <nfx/DataTypes.h>
-#include <nfx/DateTime.h>
+#include <nfx/json/Document.h>
 
 using namespace nfx::serialization::json;
 
@@ -142,36 +138,6 @@ namespace nfx::serialization::json::test
         }
     }
 
-    TEST_F( FastHashMapExtensionTest, DirectDocumentSetGet )
-    {
-        SerializableDocument doc;
-        nfx::containers::FastHashMap<std::string, int> scores;
-        scores.insertOrAssign( "Alice", 95 );
-        scores.insertOrAssign( "Bob", 87 );
-
-        doc.set<decltype( scores )>( "scores", scores );
-
-        auto retrieved = doc.get<decltype( scores )>( "scores" );
-        ASSERT_TRUE( retrieved.has_value() );
-        EXPECT_EQ( retrieved.value().size(), 2 );
-
-        const int* alice = retrieved.value().find( "Alice" );
-        ASSERT_NE( alice, nullptr );
-        EXPECT_EQ( *alice, 95 );
-    }
-
-    TEST_F( FastHashMapExtensionTest, DirectDocumentIsCheck )
-    {
-        SerializableDocument doc;
-        nfx::containers::FastHashMap<std::string, int> data;
-        data.insertOrAssign( "key", 42 );
-
-        doc.set<decltype( data )>( "map", data );
-
-        EXPECT_TRUE( doc.is<decltype( data )>( "map" ) );
-        EXPECT_FALSE( doc.is<decltype( data )>( "missing" ) );
-    }
-
     //=====================================================================
     // nfx-containers: FastHashSet tests
     //=====================================================================
@@ -254,36 +220,6 @@ namespace nfx::serialization::json::test
         }
     }
 
-    TEST_F( FastHashSetExtensionTest, DirectDocumentSetGet )
-    {
-        SerializableDocument doc;
-        nfx::containers::FastHashSet<std::string> tags;
-        tags.insert( "cpp" );
-        tags.insert( "json" );
-        tags.insert( "serialization" );
-
-        doc.set<decltype( tags )>( "tags", tags );
-
-        auto retrieved = doc.get<decltype( tags )>( "tags" );
-        ASSERT_TRUE( retrieved.has_value() );
-        EXPECT_EQ( retrieved.value().size(), 3 );
-        EXPECT_TRUE( retrieved.value().contains( "cpp" ) );
-    }
-
-    TEST_F( FastHashSetExtensionTest, DirectDocumentIsCheck )
-    {
-        SerializableDocument doc;
-        nfx::containers::FastHashSet<int> numbers;
-        numbers.insert( 1 );
-        numbers.insert( 2 );
-        numbers.insert( 3 );
-
-        doc.set<decltype( numbers )>( "numbers", numbers );
-
-        EXPECT_TRUE( doc.is<decltype( numbers )>( "numbers" ) );
-        EXPECT_FALSE( doc.is<decltype( numbers )>( "notHere" ) );
-    }
-
     //=====================================================================
     // nfx-containers: PerfectHashMap tests
     //=====================================================================
@@ -333,35 +269,6 @@ namespace nfx::serialization::json::test
             ASSERT_NE( restoredPtr, nullptr );
             EXPECT_DOUBLE_EQ( *restoredPtr, it->second );
         }
-    }
-
-    TEST_F( PerfectHashMapExtensionTest, DirectDocumentSetGet )
-    {
-        SerializableDocument doc;
-        std::vector<std::pair<std::string, int>> data = { { "alpha", 1 }, { "beta", 2 }, { "gamma", 3 } };
-        nfx::containers::PerfectHashMap<std::string, int> map( std::move( data ) );
-
-        doc.set<decltype( map )>( "perfectMap", map );
-
-        auto retrieved = doc.get<decltype( map )>( "perfectMap" );
-        ASSERT_TRUE( retrieved.has_value() );
-        EXPECT_EQ( retrieved.value().count(), 3 );
-
-        const int* alpha = retrieved.value().find( "alpha" );
-        ASSERT_NE( alpha, nullptr );
-        EXPECT_EQ( *alpha, 1 );
-    }
-
-    TEST_F( PerfectHashMapExtensionTest, DirectDocumentIsCheck )
-    {
-        SerializableDocument doc;
-        std::vector<std::pair<int, std::string>> data = { { 1, "one" }, { 2, "two" } };
-        nfx::containers::PerfectHashMap<int, std::string> map( std::move( data ) );
-
-        doc.set<decltype( map )>( "lookup", map );
-
-        EXPECT_TRUE( doc.is<decltype( map )>( "lookup" ) );
-        EXPECT_FALSE( doc.is<decltype( map )>( "nowhere" ) );
     }
 
     //=====================================================================
@@ -504,41 +411,9 @@ namespace nfx::serialization::json::test
         }
     }
 
-    TEST_F( SmallVectorExtensionTest, DirectDocumentSetGet )
-    {
-        SerializableDocument doc;
-        nfx::containers::SmallVector<std::string, 4> tags;
-        tags.push_back( "cpp" );
-        tags.push_back( "json" );
-        tags.push_back( "serialization" );
-
-        doc.set<decltype( tags )>( "tags", tags );
-
-        auto retrieved = doc.get<decltype( tags )>( "tags" );
-        ASSERT_TRUE( retrieved.has_value() );
-        EXPECT_EQ( retrieved.value().size(), 3 );
-        EXPECT_EQ( retrieved.value()[0], "cpp" );
-        EXPECT_EQ( retrieved.value()[1], "json" );
-        EXPECT_EQ( retrieved.value()[2], "serialization" );
-    }
-
-    TEST_F( SmallVectorExtensionTest, DirectDocumentIsCheck )
-    {
-        SerializableDocument doc;
-        nfx::containers::SmallVector<int, 8> numbers;
-        numbers.push_back( 1 );
-        numbers.push_back( 2 );
-        numbers.push_back( 3 );
-
-        doc.set<decltype( numbers )>( "numbers", numbers );
-
-        EXPECT_TRUE( doc.is<decltype( numbers )>( "numbers" ) );
-        EXPECT_FALSE( doc.is<decltype( numbers )>( "notHere" ) );
-    }
-
     TEST_F( SmallVectorExtensionTest, NestedSmallVectors )
     {
-        SerializableDocument doc;
+        // Round-trip test for nested SmallVectors
         nfx::containers::SmallVector<nfx::containers::SmallVector<int, 4>, 4> nested;
 
         nfx::containers::SmallVector<int, 4> row1;
@@ -551,16 +426,16 @@ namespace nfx::serialization::json::test
         row2.push_back( 4 );
         nested.push_back( row2 );
 
-        doc.set<decltype( nested )>( "matrix", nested );
+        // Serialize and deserialize
+        std::string json = Serializer<decltype( nested )>::toString( nested );
+        auto retrieved = Serializer<decltype( nested )>::fromString( json );
 
-        auto retrieved = doc.get<decltype( nested )>( "matrix" );
-        ASSERT_TRUE( retrieved.has_value() );
-        EXPECT_EQ( retrieved.value().size(), 2 );
-        EXPECT_EQ( retrieved.value()[0].size(), 2 );
-        EXPECT_EQ( retrieved.value()[0][0], 1 );
-        EXPECT_EQ( retrieved.value()[0][1], 2 );
-        EXPECT_EQ( retrieved.value()[1][0], 3 );
-        EXPECT_EQ( retrieved.value()[1][1], 4 );
+        EXPECT_EQ( retrieved.size(), 2 );
+        EXPECT_EQ( retrieved[0].size(), 2 );
+        EXPECT_EQ( retrieved[0][0], 1 );
+        EXPECT_EQ( retrieved[0][1], 2 );
+        EXPECT_EQ( retrieved[1][0], 3 );
+        EXPECT_EQ( retrieved[1][1], 4 );
     }
 
     //=====================================================================
@@ -640,29 +515,6 @@ namespace nfx::serialization::json::test
         EXPECT_EQ( restored, original );
     }
 
-    TEST_F( Int128ExtensionTest, DirectDocumentSetGet )
-    {
-        SerializableDocument doc;
-        nfx::datatypes::Int128 value( static_cast<std::int64_t>( 1234567890 ) );
-
-        doc.set<nfx::datatypes::Int128>( "int128Value", value );
-
-        auto retrieved = doc.get<nfx::datatypes::Int128>( "int128Value" );
-        ASSERT_TRUE( retrieved.has_value() );
-        EXPECT_EQ( retrieved.value(), value );
-    }
-
-    TEST_F( Int128ExtensionTest, DirectDocumentIsCheck )
-    {
-        SerializableDocument doc;
-        nfx::datatypes::Int128 value( static_cast<std::int64_t>( 9876543210 ) );
-
-        doc.set<nfx::datatypes::Int128>( "largeNumber", value );
-
-        EXPECT_TRUE( doc.is<nfx::datatypes::Int128>( "largeNumber" ) );
-        EXPECT_FALSE( doc.is<nfx::datatypes::Int128>( "nonExistent" ) );
-    }
-
     //=====================================================================
     // nfx-datatypes: Decimal tests
     //=====================================================================
@@ -724,101 +576,6 @@ namespace nfx::serialization::json::test
         auto restored = Serializer<nfx::datatypes::Decimal>::fromString( json );
 
         EXPECT_EQ( restored, original );
-    }
-
-    TEST_F( DecimalExtensionTest, DirectDocumentSetGet )
-    {
-        SerializableDocument doc;
-        nfx::datatypes::Decimal value( 123.456 );
-
-        doc.set<nfx::datatypes::Decimal>( "decimalValue", value );
-
-        auto retrieved = doc.get<nfx::datatypes::Decimal>( "decimalValue" );
-        ASSERT_TRUE( retrieved.has_value() );
-        EXPECT_EQ( retrieved.value(), value );
-    }
-
-    TEST_F( DecimalExtensionTest, DirectDocumentSetGetMove )
-    {
-        SerializableDocument doc;
-
-        doc.set<nfx::datatypes::Decimal>( "price", nfx::datatypes::Decimal( 99.99 ) );
-
-        auto retrieved = doc.get<nfx::datatypes::Decimal>( "price" );
-        ASSERT_TRUE( retrieved.has_value() );
-        EXPECT_EQ( retrieved.value(), nfx::datatypes::Decimal( 99.99 ) );
-    }
-
-    TEST_F( DecimalExtensionTest, DirectDocumentIsCheck )
-    {
-        SerializableDocument doc;
-        nfx::datatypes::Decimal value( "123.456789" );
-
-        doc.set<nfx::datatypes::Decimal>( "amount", value );
-
-        EXPECT_TRUE( doc.is<nfx::datatypes::Decimal>( "amount" ) );
-        EXPECT_FALSE( doc.is<nfx::datatypes::Decimal>( "missing" ) );
-    }
-
-    TEST_F( DecimalExtensionTest, DirectDocumentSetWithCString )
-    {
-        SerializableDocument doc;
-
-        // Test with explicit type parameter and const char*
-        doc.set<nfx::datatypes::Decimal>( "value1", "123456789.12345678913456789" );
-
-        auto retrieved = doc.get<nfx::datatypes::Decimal>( "value1" );
-        ASSERT_TRUE( retrieved.has_value() );
-        EXPECT_EQ( retrieved.value(), nfx::datatypes::Decimal( "123456789.12345678913456789" ) );
-    }
-
-    TEST_F( DecimalExtensionTest, DirectDocumentSetWithCStringHighPrecision )
-    {
-        SerializableDocument doc;
-
-        // Test with very high precision decimal
-        const char* highPrecision = "0.123456789123456789123456789";
-        doc.set<nfx::datatypes::Decimal>( "precision", highPrecision );
-
-        auto retrieved = doc.get<nfx::datatypes::Decimal>( "precision" );
-        ASSERT_TRUE( retrieved.has_value() );
-        EXPECT_EQ( retrieved.value(), nfx::datatypes::Decimal( highPrecision ) );
-    }
-
-    TEST_F( DecimalExtensionTest, DirectDocumentSetWithCStringNegative )
-    {
-        SerializableDocument doc;
-
-        // Test with negative value
-        doc.set<nfx::datatypes::Decimal>( "negative", "-999999.999999" );
-
-        auto retrieved = doc.get<nfx::datatypes::Decimal>( "negative" );
-        ASSERT_TRUE( retrieved.has_value() );
-        EXPECT_EQ( retrieved.value(), nfx::datatypes::Decimal( "-999999.999999" ) );
-    }
-
-    TEST_F( DecimalExtensionTest, DirectDocumentSetWithDouble )
-    {
-        SerializableDocument doc;
-
-        // Test with explicit type parameter and double
-        doc.set<nfx::datatypes::Decimal>( "offset", 2.5 );
-
-        auto retrieved = doc.get<nfx::datatypes::Decimal>( "offset" );
-        ASSERT_TRUE( retrieved.has_value() );
-        EXPECT_EQ( retrieved.value(), nfx::datatypes::Decimal( 2.5 ) );
-    }
-
-    TEST_F( DecimalExtensionTest, DirectDocumentSetWithInt )
-    {
-        SerializableDocument doc;
-
-        // Test with integer value
-        doc.set<nfx::datatypes::Decimal>( "count", 42 );
-
-        auto retrieved = doc.get<nfx::datatypes::Decimal>( "count" );
-        ASSERT_TRUE( retrieved.has_value() );
-        EXPECT_EQ( retrieved.value(), nfx::datatypes::Decimal( 42 ) );
     }
 
     //=====================================================================
@@ -896,29 +653,6 @@ namespace nfx::serialization::json::test
         EXPECT_EQ( restored.ticks(), original.ticks() );
     }
 
-    TEST_F( TimeSpanExtensionTest, DirectDocumentSetGet )
-    {
-        SerializableDocument doc;
-        nfx::time::TimeSpan duration = nfx::time::TimeSpan::fromHours( 3 ) + nfx::time::TimeSpan::fromMinutes( 45 );
-
-        doc.set<nfx::time::TimeSpan>( "duration", duration );
-
-        auto retrieved = doc.get<nfx::time::TimeSpan>( "duration" );
-        ASSERT_TRUE( retrieved.has_value() );
-        EXPECT_EQ( retrieved.value().ticks(), duration.ticks() );
-    }
-
-    TEST_F( TimeSpanExtensionTest, DirectDocumentIsCheck )
-    {
-        SerializableDocument doc;
-        nfx::time::TimeSpan value = nfx::time::TimeSpan::fromSeconds( 30 );
-
-        doc.set<nfx::time::TimeSpan>( "elapsed", value );
-
-        EXPECT_TRUE( doc.is<nfx::time::TimeSpan>( "elapsed" ) );
-        EXPECT_FALSE( doc.is<nfx::time::TimeSpan>( "notThere" ) );
-    }
-
     //=====================================================================
     // nfx-datetime: DateTime tests
     //=====================================================================
@@ -993,31 +727,6 @@ namespace nfx::serialization::json::test
         EXPECT_FALSE( json.empty() );
     }
 
-    TEST_F( DateTimeExtensionTest, DirectDocumentSetGet )
-    {
-        SerializableDocument doc;
-        nfx::time::DateTime value( 2025, 12, 25, 10, 30, 0 );
-
-        doc.set<nfx::time::DateTime>( "timestamp", value );
-
-        auto retrieved = doc.get<nfx::time::DateTime>( "timestamp" );
-        ASSERT_TRUE( retrieved.has_value() );
-        EXPECT_EQ( retrieved.value().year(), value.year() );
-        EXPECT_EQ( retrieved.value().month(), value.month() );
-        EXPECT_EQ( retrieved.value().day(), value.day() );
-    }
-
-    TEST_F( DateTimeExtensionTest, DirectDocumentIsCheck )
-    {
-        SerializableDocument doc;
-        nfx::time::DateTime value( 2025, 1, 1, 0, 0, 0 );
-
-        doc.set<nfx::time::DateTime>( "newYear", value );
-
-        EXPECT_TRUE( doc.is<nfx::time::DateTime>( "newYear" ) );
-        EXPECT_FALSE( doc.is<nfx::time::DateTime>( "notPresent" ) );
-    }
-
     //=====================================================================
     // nfx-datetime: DateTimeOffset tests
     //=====================================================================
@@ -1085,32 +794,6 @@ namespace nfx::serialization::json::test
         EXPECT_FALSE( json.empty() );
     }
 
-    TEST_F( DateTimeOffsetExtensionTest, DirectDocumentSetGet )
-    {
-        SerializableDocument doc;
-        nfx::time::DateTime dt( 2025, 6, 15, 14, 30, 0 );
-        nfx::time::TimeSpan offset = nfx::time::TimeSpan::fromHours( 2 );
-        nfx::time::DateTimeOffset value( dt, offset );
-
-        doc.set<nfx::time::DateTimeOffset>( "timestampWithZone", value );
-
-        auto retrieved = doc.get<nfx::time::DateTimeOffset>( "timestampWithZone" );
-        ASSERT_TRUE( retrieved.has_value() );
-        EXPECT_EQ( retrieved.value().utcDateTime().year(), value.utcDateTime().year() );
-        EXPECT_EQ( retrieved.value().utcDateTime().month(), value.utcDateTime().month() );
-    }
-
-    TEST_F( DateTimeOffsetExtensionTest, DirectDocumentIsCheck )
-    {
-        SerializableDocument doc;
-        nfx::time::DateTimeOffset value = nfx::time::DateTimeOffset::now();
-
-        doc.set<nfx::time::DateTimeOffset>( "currentTime", value );
-
-        EXPECT_TRUE( doc.is<nfx::time::DateTimeOffset>( "currentTime" ) );
-        EXPECT_FALSE( doc.is<nfx::time::DateTimeOffset>( "absent" ) );
-    }
-
     //=====================================================================
     // Integration tests - README sample validation
     //=====================================================================
@@ -1156,188 +839,5 @@ namespace nfx::serialization::json::test
 
         // Should contain T separator for ISO 8601
         EXPECT_NE( timeJson.find( "T" ), std::string::npos );
-    }
-
-    //=====================================================================
-    // STL Types via Document API (using Serializer)
-    //=====================================================================
-
-    TEST( DirectDocument_StlTypes, VectorIntSetGet )
-    {
-        SerializableDocument doc;
-        std::vector<int> vec = { 1, 2, 3, 4, 5 };
-
-        // Set via Document API
-        doc.set( "/data", vec );
-
-        // Get via Document API
-        auto result = doc.get<std::vector<int>>( "/data" );
-        ASSERT_TRUE( result.has_value() );
-        EXPECT_EQ( result.value(), vec );
-    }
-
-    TEST( DirectDocument_StlTypes, VectorIntIsCheck )
-    {
-        SerializableDocument doc;
-        std::vector<int> vec = { 10, 20, 30 };
-
-        doc.set( "/numbers", vec );
-
-        EXPECT_TRUE( doc.is<std::vector<int>>( "/numbers" ) );
-        EXPECT_FALSE( doc.is<std::vector<std::string>>( "/numbers" ) );
-        EXPECT_FALSE( doc.is<std::vector<int>>( "/nonexistent" ) );
-    }
-
-    TEST( DirectDocument_StlTypes, VectorStringSetGet )
-    {
-        SerializableDocument doc;
-        std::vector<std::string> vec = { "hello", "world", "test" };
-
-        doc.set( "/strings", vec );
-
-        auto result = doc.get<std::vector<std::string>>( "/strings" );
-        ASSERT_TRUE( result.has_value() );
-        EXPECT_EQ( result.value(), vec );
-    }
-
-    TEST( DirectDocument_StlTypes, OptionalIntSetGet )
-    {
-        SerializableDocument doc;
-
-        // Test with value
-        std::optional<int> opt = 42;
-        doc.set( "/opt_value", opt );
-
-        auto result1 = doc.get<std::optional<int>>( "/opt_value" );
-        ASSERT_TRUE( result1.has_value() );
-        EXPECT_TRUE( result1.value().has_value() );
-        EXPECT_EQ( result1.value().value(), 42 );
-
-        // Test with nullopt
-        std::optional<int> empty;
-        doc.set( "/opt_empty", empty );
-
-        auto result2 = doc.get<std::optional<int>>( "/opt_empty" );
-        ASSERT_TRUE( result2.has_value() );
-        EXPECT_FALSE( result2.value().has_value() );
-    }
-
-    TEST( DirectDocument_StlTypes, OptionalStringIsCheck )
-    {
-        SerializableDocument doc;
-        std::optional<std::string> opt = "test";
-
-        doc.set( "/opt", opt );
-
-        EXPECT_TRUE( doc.is<std::optional<std::string>>( "/opt" ) );
-        EXPECT_FALSE( doc.is<std::optional<int>>( "/opt" ) );
-    }
-
-    TEST( DirectDocument_StlTypes, UniquePtrSetGet )
-    {
-        SerializableDocument doc;
-
-        // Test with value
-        auto ptr = std::make_unique<int>( 123 );
-        doc.set( "/ptr_value", ptr );
-
-        auto result1 = doc.get<std::unique_ptr<int>>( "/ptr_value" );
-        ASSERT_TRUE( result1.has_value() );
-        ASSERT_NE( result1.value(), nullptr );
-        EXPECT_EQ( *result1.value(), 123 );
-
-        // Test with nullptr
-        std::unique_ptr<int> nullPtr;
-        doc.set( "/ptr_null", nullPtr );
-
-        auto result2 = doc.get<std::unique_ptr<int>>( "/ptr_null" );
-        ASSERT_TRUE( result2.has_value() );
-        EXPECT_EQ( result2.value(), nullptr );
-    }
-
-    TEST( DirectDocument_StlTypes, SharedPtrSetGet )
-    {
-        SerializableDocument doc;
-
-        auto ptr = std::make_shared<std::string>( "shared data" );
-        doc.set( "/shared", ptr );
-
-        auto result = doc.get<std::shared_ptr<std::string>>( "/shared" );
-        ASSERT_TRUE( result.has_value() );
-        ASSERT_NE( result.value(), nullptr );
-        EXPECT_EQ( *result.value(), "shared data" );
-    }
-
-    TEST( DirectDocument_StlTypes, MapStringIntSetGet )
-    {
-        SerializableDocument doc;
-        std::map<std::string, int> map = { { "one", 1 }, { "two", 2 }, { "three", 3 } };
-
-        doc.set( "/map", map );
-
-        auto result = doc.get<std::map<std::string, int>>( "/map" );
-        ASSERT_TRUE( result.has_value() );
-        EXPECT_EQ( result.value(), map );
-    }
-
-    TEST( DirectDocument_StlTypes, SetIntSetGet )
-    {
-        SerializableDocument doc;
-        std::set<int> set = { 1, 2, 3, 4, 5 };
-
-        doc.set( "/set", set );
-
-        auto result = doc.get<std::set<int>>( "/set" );
-        ASSERT_TRUE( result.has_value() );
-        EXPECT_EQ( result.value(), set );
-    }
-
-    TEST( DirectDocument_StlTypes, NestedVectorSetGet )
-    {
-        SerializableDocument doc;
-        std::vector<std::vector<int>> nested = { { 1, 2 }, { 3, 4 }, { 5, 6 } };
-
-        doc.set( "/nested", nested );
-
-        auto result = doc.get<std::vector<std::vector<int>>>( "/nested" );
-        ASSERT_TRUE( result.has_value() );
-        EXPECT_EQ( result.value(), nested );
-    }
-
-    TEST( DirectDocument_StlTypes, ComplexTypeSetGet )
-    {
-        SerializableDocument doc;
-        std::map<std::string, std::vector<int>> complex = { { "first", { 1, 2, 3 } }, { "second", { 4, 5, 6 } } };
-
-        doc.set( "/complex", complex );
-
-        auto result = doc.get<std::map<std::string, std::vector<int>>>( "/complex" );
-        ASSERT_TRUE( result.has_value() );
-        EXPECT_EQ( result.value(), complex );
-    }
-
-    TEST( DirectDocument_StlTypes, MixedWithExtensionTypes )
-    {
-        SerializableDocument doc;
-
-        // Extension type
-        nfx::datatypes::Decimal dec( "123.45" );
-        doc.set( "/decimal", dec );
-
-        // STL type
-        std::vector<int> vec = { 1, 2, 3 };
-        doc.set( "/vector", vec );
-
-        // Both should work
-        EXPECT_TRUE( doc.is<nfx::datatypes::Decimal>( "/decimal" ) );
-        EXPECT_TRUE( doc.is<std::vector<int>>( "/vector" ) );
-
-        auto decResult = doc.get<nfx::datatypes::Decimal>( "/decimal" );
-        auto vecResult = doc.get<std::vector<int>>( "/vector" );
-
-        ASSERT_TRUE( decResult.has_value() );
-        ASSERT_TRUE( vecResult.has_value() );
-        EXPECT_EQ( decResult.value().toString(), "123.45" );
-        EXPECT_EQ( vecResult.value(), vec );
     }
 } // namespace nfx::serialization::json::test

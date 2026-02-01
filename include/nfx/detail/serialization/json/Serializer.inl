@@ -51,89 +51,46 @@ namespace nfx::serialization::json
     namespace detail
     {
         /**
-         * @brief Type trait to detect if a type has a serialize method (void version)
+         * @brief Type trait to detect if a type has a toDocument method
          * @tparam T The type to check
-         * @details Uses SFINAE to detect if type T has a serialize method that accepts
+         * @details Uses SFINAE to detect if type T has a toDocument method that accepts
          *          a Serializer<T>& parameter and Document& parameter. Used for compile-time
          *          dispatch to custom serialization methods.
          */
         template <typename T>
-        struct has_serialize_method
+        struct has_toDocument_method
         {
         private:
             template <typename U>
             static auto test( int )
-                -> decltype( std::declval<const U&>().serialize( std::declval<const Serializer<U>&>(), std::declval<Document&>() ), std::true_type{} );
+                -> decltype( std::declval<const U&>().toDocument( std::declval<const Serializer<U>&>(), std::declval<Document&>() ), std::true_type{} );
             template <typename>
             static std::false_type test( ... );
 
         public:
-            /** @brief True if type T has a serialize method, false otherwise */
+            /** @brief True if type T has a toDocument method, false otherwise */
             static constexpr bool value = decltype( test<T>( 0 ) )::value;
         };
 
         /**
-         * @brief Type trait to detect if a type has a serialize method (Document return version)
+         * @brief Type trait to detect if a type has a fromDocument method
          * @tparam T The type to check
-         * @details Uses SFINAE to detect if type T has a serialize method that returns
-         *          Document and accepts a Serializer<T>& parameter. Used for compile-time
-         *          dispatch to custom serialization methods.
+         * @details Uses SFINAE to detect if type T has a fromDocument method that accepts
+         *          a const Document& and const Serializer<T>& parameter. Used for compile-time
+         *          dispatch to custom deserialization methods.
          */
         template <typename T>
-        struct has_serialize_method_returning_document
+        struct has_fromDocument_method
         {
         private:
             template <typename U>
             static auto test( int )
-                -> decltype( std::declval<const U&>().serialize( std::declval<const Serializer<U>&>() ), std::true_type{} );
+                -> decltype( std::declval<U>().fromDocument( std::declval<const Document&>(), std::declval<const Serializer<U>&>() ), std::true_type{} );
             template <typename>
             static std::false_type test( ... );
 
         public:
-            /** @brief True if type T has a serialize method returning Document, false otherwise */
-            static constexpr bool value = decltype( test<T>( 0 ) )::value;
-        };
-
-        /**
-         * @brief Type trait to detect if a type has a serialize method (no parameters version)
-         * @tparam T The type to check
-         * @details Uses SFINAE to detect if type T has a serialize method that returns
-         *          Document and takes no parameters. Used for compile-time dispatch to
-         *          custom serialization methods.
-         */
-        template <typename T>
-        struct has_serialize_method_no_params
-        {
-        private:
-            template <typename U>
-            static auto test( int ) -> decltype( std::declval<const U&>().serialize(), std::true_type{} );
-            template <typename>
-            static std::false_type test( ... );
-
-        public:
-            /** @brief True if type T has a serialize method taking no parameters, false otherwise */
-            static constexpr bool value = decltype( test<T>( 0 ) )::value;
-        };
-
-        /**
-         * @brief Type trait to detect if a type has a deserialize method
-         * @tparam T The type to check
-         * @details Uses SFINAE to detect if type T has a deserialize method that accepts
-         *          a const Serializer<T>& parameter. Used for compile-time dispatch to custom
-         *          deserialization methods.
-         */
-        template <typename T>
-        struct has_deserialize_method
-        {
-        private:
-            template <typename U>
-            static auto test( int )
-                -> decltype( std::declval<U>().deserialize( std::declval<const Serializer<U>&>(), std::declval<const Document&>() ), std::true_type{} );
-            template <typename>
-            static std::false_type test( ... );
-
-        public:
-            /** @brief True if type T has a deserialize method, false otherwise */
+            /** @brief True if type T has a fromDocument method, false otherwise */
             static constexpr bool value = decltype( test<T>( 0 ) )::value;
         };
 
@@ -196,18 +153,27 @@ namespace nfx::serialization::json
         {
         };
 
-        /**
-         * @brief Type trait to detect nfx container types
-         * @tparam T The type to check
-         * @details Base template that evaluates to false. Specialized for nfx container types.
-         */
-        template <typename T>
-        struct is_nfx_container : std::false_type
+        /** @brief Specialization for std::pair */
+        template <typename TFirst, typename TSecond>
+        struct is_container<std::pair<TFirst, TSecond>> : std::true_type
         {
         };
 
-        // NOTE: nfx container specializations are handled via SerializationTraits in SerializationTraits.h
-        // This keeps container support modular and conditional based on NFX_SERIALIZATION_WITH_CONTAINERS
+        /**
+         * @brief Type trait to detect if a type is std::pair
+         * @tparam T The type to check
+         * @details Base template that evaluates to false. Specialized for std::pair<T1, T2>.
+         */
+        template <typename T>
+        struct is_pair : std::false_type
+        {
+        };
+
+        /** @brief Specialization for std::pair */
+        template <typename TFirst, typename TSecond>
+        struct is_pair<std::pair<TFirst, TSecond>> : std::true_type
+        {
+        };
 
         /**
          * @brief Type trait to detect if a type is std::optional
@@ -312,72 +278,23 @@ namespace nfx::serialization::json
     inline std::string Serializer<T>::toString( const T& obj, const Serializer<T>::Options& options )
     {
         Serializer<T> serializer( options );
-        SerializableDocument doc = serializer.serialize( obj );
+        Builder builder( { .indent = options.prettyPrint ? 2 : 0 } );
+        serializer.serializeValue( obj, builder );
 
-        return doc.toString( options.prettyPrint ? 2 : 0 );
+        return builder.toString();
     }
 
     template <typename T>
     inline T Serializer<T>::fromString( std::string_view jsonStr, const Serializer<T>::Options& options )
     {
         Serializer<T> serializer( options );
-        auto optDoc = SerializableDocument::fromString( jsonStr );
+        auto optDoc = Document::fromString( jsonStr );
         if( !optDoc )
         {
             throw std::runtime_error{ "Failed to parse JSON string" };
         }
-        return serializer.deserialize( *optDoc );
-    }
-
-    //----------------------------------------------
-    // Instance serialization methods
-    //----------------------------------------------
-
-    template <typename T>
-    inline SerializableDocument Serializer<T>::serialize( const T& obj ) const
-    {
-        SerializableDocument doc;
-        // Look for serialize method with no parameters
-        if constexpr( detail::has_serialize_method_no_params<T>::value )
-        {
-            doc = obj.serialize();
-        }
-        // Look for serialize method returning Document with serializer parameter
-        else if constexpr( detail::has_serialize_method_returning_document<T>::value )
-        {
-            doc = obj.serialize( *this );
-        }
-        // Look for traditional serialize method with serializer and document parameters
-        else if constexpr( detail::has_serialize_method<T>::value )
-        {
-            // Initialize document as empty object for custom serialization
-            doc.set<nfx::json::Object>( "" );
-
-            // Use custom serialize method if available
-            obj.serialize( *this, doc );
-        }
-        else
-        {
-            // Use unified templated serialization
-            serializeValue( obj, doc );
-        }
-        return doc;
-    }
-
-    template <typename T>
-    inline T Serializer<T>::deserialize( const SerializableDocument& doc ) const
-    {
         T obj{};
-        if constexpr( detail::has_deserialize_method<T>::value )
-        {
-            // Use custom deserialize method if available
-            obj.deserialize( *this, doc );
-        }
-        else
-        {
-            // Use unified templated deserialization
-            deserializeValue( doc, obj );
-        }
+        serializer.deserializeValue( *optDoc, obj );
         return obj;
     }
 
@@ -387,58 +304,77 @@ namespace nfx::serialization::json
 
     template <typename T>
     template <typename U>
-    inline void Serializer<T>::serializeValue( const U& obj, SerializableDocument& doc ) const
+    inline void Serializer<T>::serializeValue( const U& obj, Builder& builder ) const
     {
+        // Priority order (performance-optimized):
+        // 1. SerializationTraits::serialize() - optimal streaming serialization
+        // 2. Built-in types - efficient direct serialization
+        // 3. Custom toDocument() - user override (performance hit: Document → JSON → Builder)
+
+        // Fast path
+        if constexpr( detail::has_streaming_serialization_v<U> )
+        {
+            SerializationTraits<U>::serialize( obj, builder );
+            return;
+        }
+
         // Handle built-in types with library-defined logic
         if constexpr( std::is_same_v<U, bool> )
         {
             // Handle bool separately (before is_integral check)
-            doc.set<bool>( "", obj );
+            builder.write( obj );
         }
         else if constexpr( std::is_integral_v<U> )
         {
             // Handle integral types (int, long, etc.)
-            doc.set<int64_t>( "", static_cast<int64_t>( obj ) );
+            builder.write( static_cast<int64_t>( obj ) );
         }
         else if constexpr( std::is_floating_point_v<U> )
         {
             // Handle floating point types
-            doc.set<double>( "", static_cast<double>( obj ) );
+            builder.write( static_cast<double>( obj ) );
         }
         else if constexpr( std::is_same_v<U, std::string> )
         {
             // Handle std::string
-            doc.set<std::string>( "", obj );
+            builder.write( obj );
         }
         else if constexpr( detail::is_optional<U>::value )
         {
             if( obj.has_value() )
             {
-                serializeValue( obj.value(), doc );
+                serializeValue( obj.value(), builder );
             }
             else
             {
-                doc.setNull( "" );
+                builder.write( nullptr );
             }
         }
         else if constexpr( detail::is_smart_pointer<U>::value )
         {
             if( obj )
             {
-                serializeValue( *obj, doc );
+                serializeValue( *obj, builder );
             }
             else
             {
-                doc.setNull( "" );
+                builder.write( nullptr );
             }
         }
-
         else if constexpr( detail::is_container<U>::value )
         {
-            if constexpr( requires { typename U::mapped_type; } )
+            // Handle std::pair - serialize as array [first, second]
+            if constexpr( detail::is_pair<U>::value )
+            {
+                builder.writeStartArray();
+                serializeValue( obj.first, builder );
+                serializeValue( obj.second, builder );
+                builder.writeEndArray();
+            }
+            else if constexpr( requires { typename U::mapped_type; } )
             {
                 // Map-like containers (std::map, std::unordered_map) - serialize as JSON object
-                doc.set<nfx::json::Object>( "" );
+                builder.writeStartObject();
 
                 for( const auto& pair : obj )
                 {
@@ -452,205 +388,57 @@ namespace nfx::serialization::json
                         key = std::to_string( pair.first );
                     }
 
-                    SerializableDocument valueDoc;
-                    serializeValue( pair.second, valueDoc );
-
-                    // Set field in object using JSON Pointer syntax
-                    std::string fieldPath = "/" + key;
-                    if( valueDoc.is<std::string>( "" ) )
-                    {
-                        auto str = valueDoc.get<std::string>( "" );
-                        doc.set<std::string>( fieldPath, *str );
-                    }
-                    else if( valueDoc.is<int>( "" ) )
-                    {
-                        auto val = valueDoc.get<int64_t>( "" );
-                        doc.set<int64_t>( fieldPath, *val );
-                    }
-                    else if( valueDoc.is<double>( "" ) )
-                    {
-                        auto val = valueDoc.get<double>( "" );
-                        doc.set<double>( fieldPath, *val );
-                    }
-                    else if( valueDoc.is<bool>( "" ) )
-                    {
-                        auto val = valueDoc.get<bool>( "" );
-                        doc.set<bool>( fieldPath, *val );
-                    }
-                    else if( valueDoc.isNull( "" ) )
-                    {
-                        doc.setNull( fieldPath );
-                    }
-                    else if( valueDoc.is<Array>( "" ) || valueDoc.is<Object>( "" ) )
-                    {
-                        // Handle nested arrays and objects (e.g., std::vector<int>, std::map<string, int>)
-                        doc.set<nfx::json::Document>(
-                            fieldPath, std::move( static_cast<nfx::json::Document&>( valueDoc ) ) );
-                    }
+                    builder.writeKey( key );
+                    serializeValue( pair.second, builder );
                 }
+
+                builder.writeEndObject();
             }
             else
             {
-                doc.set<nfx::json::Array>( "" );
+                // Sequence containers - serialize as JSON array
+                builder.writeStartArray();
 
-                size_t index = 0;
                 for( const auto& item : obj )
                 {
-                    SerializableDocument itemDoc;
-                    serializeValue( item, itemDoc );
-
-                    // Buffer sized for "/%zu" format: 1 (slash) + 20 (max digits for size_t) + 1 (null) = 22 bytes
-                    // minimum Using 32 bytes for comfortable margin and power-of-2 alignment
-                    char arrayPath[32];
-                    std::snprintf( arrayPath, sizeof( arrayPath ), "/%zu", index );
-                    if( itemDoc.is<std::string>( "" ) )
-                    {
-                        auto str = itemDoc.get<std::string>( "" );
-                        doc.set<std::string>( arrayPath, *str );
-                    }
-                    else if( itemDoc.is<int>( "" ) )
-                    {
-                        auto val = itemDoc.get<int64_t>( "" );
-                        doc.set<int64_t>( arrayPath, *val );
-                    }
-                    else if( itemDoc.is<double>( "" ) )
-                    {
-                        auto val = itemDoc.get<double>( "" );
-                        doc.set<double>( arrayPath, *val );
-                    }
-                    else if( itemDoc.is<bool>( "" ) )
-                    {
-                        auto val = itemDoc.get<bool>( "" );
-                        doc.set<bool>( arrayPath, *val );
-                    }
-                    else if( itemDoc.isNull( "" ) )
-                    {
-                        doc.setNull( arrayPath );
-                    }
-                    else if( itemDoc.is<Array>( "" ) || itemDoc.is<Object>( "" ) )
-                    {
-                        // Handle nested arrays and objects in array elements
-                        doc.set<nfx::json::Document>(
-                            arrayPath, std::move( static_cast<nfx::json::Document&>( itemDoc ) ) );
-                    }
-                    ++index;
+                    serializeValue( item, builder );
                 }
-            }
-        }
-        else if constexpr( detail::is_nfx_container<U>::value )
-        {
-            // Handle nfx containers
-            if constexpr( requires { typename U::mapped_type; } )
-            {
-                // Map-like nfx containers (HashMap, StringMap)
-                for( const auto& pair : obj )
-                {
-                    std::string key;
-                    if constexpr( std::is_convertible_v<decltype( pair.first ), std::string> )
-                    {
-                        key = std::string( pair.first );
-                    }
-                    else
-                    {
-                        key = std::to_string( pair.first );
-                    }
 
-                    SerializableDocument valueDoc;
-                    serializeValue( pair.second, valueDoc );
-
-                    // Set field in object using JSON Pointer syntax
-                    std::string fieldPath = "/" + key;
-                    if( valueDoc.is<std::string>( "" ) )
-                    {
-                        auto str = valueDoc.get<std::string>( "" );
-                        doc.set<std::string>( fieldPath, *str );
-                    }
-                    else if( valueDoc.is<int>( "" ) )
-                    {
-                        auto val = valueDoc.get<int64_t>( "" );
-                        doc.set<int64_t>( fieldPath, *val );
-                    }
-                    else if( valueDoc.is<double>( "" ) )
-                    {
-                        auto val = valueDoc.get<double>( "" );
-                        doc.set<double>( fieldPath, *val );
-                    }
-                    else if( valueDoc.is<bool>( "" ) )
-                    {
-                        auto val = valueDoc.get<bool>( "" );
-                        doc.set<bool>( fieldPath, *val );
-                    }
-                    else if( valueDoc.isNull( "" ) )
-                    {
-                        doc.setNull( fieldPath );
-                    }
-                    else if( valueDoc.is<Array>( "" ) || valueDoc.is<Object>( "" ) )
-                    {
-                        // Handle nested arrays and objects for nfx map containers
-                        doc.set<nfx::json::Document>(
-                            fieldPath, std::move( static_cast<nfx::json::Document&>( valueDoc ) ) );
-                    }
-                }
-            }
-            else
-            {
-                // Set-like nfx containers
-                doc.set<nfx::json::Array>( "" );
-
-                size_t index = 0;
-                for( const auto& item : obj )
-                {
-                    SerializableDocument itemDoc;
-                    serializeValue( item, itemDoc );
-
-                    // Buffer sized for "/%zu" format: 1 (slash) + 20 (max digits for size_t) + 1 (null) = 22 bytes
-                    // minimum Using 32 bytes for comfortable margin and power-of-2 alignment
-                    char arrayPath[32];
-                    std::snprintf( arrayPath, sizeof( arrayPath ), "/%zu", index );
-                    if( itemDoc.is<std::string>( "" ) )
-                    {
-                        auto str = itemDoc.get<std::string>( "" );
-                        doc.set<std::string>( arrayPath, *str );
-                    }
-                    else if( itemDoc.is<int>( "" ) )
-                    {
-                        auto val = itemDoc.get<int64_t>( "" );
-                        doc.set<int64_t>( arrayPath, *val );
-                    }
-                    else if( itemDoc.is<double>( "" ) )
-                    {
-                        auto val = itemDoc.get<double>( "" );
-                        doc.set<double>( arrayPath, *val );
-                    }
-                    else if( itemDoc.is<bool>( "" ) )
-                    {
-                        auto val = itemDoc.get<bool>( "" );
-                        doc.set<bool>( arrayPath, *val );
-                    }
-                    else if( itemDoc.isNull( "" ) )
-                    {
-                        doc.setNull( arrayPath );
-                    }
-                    else if( itemDoc.is<Array>( "" ) || itemDoc.is<Object>( "" ) )
-                    {
-                        // Handle nested arrays and objects for nfx set containers
-                        doc.set<nfx::json::Document>(
-                            arrayPath, std::move( static_cast<nfx::json::Document&>( itemDoc ) ) );
-                    }
-                    ++index;
-                }
+                builder.writeEndArray();
             }
         }
         else
         {
-            // Fall back to SerializationTraits (handles member methods or specializations)
-            SerializationTraits<U>::serialize( obj, doc );
+            // User-defined types - check for custom toDocument() method first
+            if constexpr( detail::has_toDocument_method<U>::value )
+            {
+                // Custom toDocument() method - performance hit (Document → JSON → Builder)
+                // NOTE: For better performance, implement SerializationTraits::serialize() instead
+                // Create a properly-typed serializer for this object
+                typename Serializer<U>::Options objOptions;
+                objOptions.includeNullFields = m_options.includeNullFields;
+                objOptions.prettyPrint = m_options.prettyPrint;
+                objOptions.validateOnDeserialize = m_options.validateOnDeserialize;
+                Serializer<U> objSerializer( objOptions );
+
+                Document tempDoc;
+                tempDoc.set<nfx::json::Object>( "" );
+                obj.toDocument( objSerializer, tempDoc );
+
+                std::string tempJson = tempDoc.toString( m_options.prettyPrint ? 2 : 0 );
+                builder.writeRawJson( tempJson );
+            }
+            // NOTE: No fallback to SerializationTraits::toDocument() - all types must either:
+            //       - Have SerializationTraits::serialize() (checked above)
+            //       - Have custom toDocument() method (checked above)
+            //       - Be built-in types (checked above)
+            // If none match, compilation will fail (by design)
         }
     }
 
     template <typename T>
     template <typename U>
-    inline void Serializer<T>::deserializeValue( const SerializableDocument& doc, U& obj ) const
+    inline void Serializer<T>::deserializeValue( const Document& doc, U& obj ) const
     {
         // Handle built-in types with library-defined logic
         if constexpr( std::is_same_v<U, bool> )
@@ -724,8 +512,30 @@ namespace nfx::serialization::json
 
         else if constexpr( detail::is_container<U>::value )
         {
+            // Handle std::pair - expect array [first, second]
+            if constexpr( detail::is_pair<U>::value )
+            {
+                if( doc.is<Array>( "" ) )
+                {
+                    auto arrOpt = doc.get<Array>( "" );
+                    if( arrOpt.has_value() && arrOpt.value().size() >= 2 )
+                    {
+                        // Deserialize from array elements
+                        deserializeValue( arrOpt.value()[0], obj.first );
+                        deserializeValue( arrOpt.value()[1], obj.second );
+                    }
+                    else if( arrOpt.has_value() )
+                    {
+                        throw std::runtime_error{ "Cannot deserialize array with less than 2 elements into std::pair" };
+                    }
+                }
+                else if( !doc.isNull( "" ) )
+                {
+                    throw std::runtime_error{ "Cannot deserialize non-array JSON value into std::pair" };
+                }
+            }
             // Handle STL containers with flexible JSON input types
-            if constexpr( requires { obj.clear(); } )
+            else if constexpr( requires { obj.clear(); } )
             {
                 obj.clear();
             }
@@ -839,141 +649,10 @@ namespace nfx::serialization::json
                 }
             }
         }
-        else if constexpr( detail::is_nfx_container<U>::value )
-        {
-            // Handle nfx containers
-            if constexpr( requires { obj.clear(); } )
-            {
-                obj.clear();
-            }
-
-            if constexpr( requires { typename U::mapped_type; } )
-            {
-                // Map-like nfx containers: only accept JSON objects
-                if( doc.is<Object>( "" ) )
-                {
-                    // Object → nfx map: iterate over object fields using Object::iterator
-                    auto objOpt = doc.get<Object>( "" );
-                    if( objOpt.has_value() )
-                    {
-                        for( const auto& [key, valueDoc] : objOpt.value() )
-                        {
-                            typename U::mapped_type value{};
-                            deserializeValue( valueDoc, value );
-
-                            // Try to insert into nfx map using different methods
-                            if constexpr( requires { obj[key] = std::move( value ); } )
-                            {
-                                obj[key] = std::move( value );
-                            }
-                            else if constexpr( requires { obj.insertOrAssign( key, std::move( value ) ); } )
-                            {
-                                obj.insertOrAssign( key, std::move( value ) );
-                            }
-                            else
-                            {
-                                throw std::runtime_error{
-                                    "nfx map container doesn't support standard assignment methods (operator[] or "
-                                    "insertOrAssign)"
-                                };
-                            }
-                        }
-                    }
-                }
-                else if( doc.isNull( "" ) )
-                {
-                    // Handle null → empty nfx map (obj.clear() already called above if supported)
-                }
-                else
-                {
-                    throw std::runtime_error{ "Cannot deserialize non-object JSON value into nfx map container" };
-                }
-            }
-            else
-            {
-                // Non-map nfx containers: accept arrays and single values
-                if( doc.is<Array>( "" ) )
-                {
-                    // Standard case: JSON array → nfx container using Array::iterator
-                    auto arrOpt = doc.get<Array>( "" );
-                    if( arrOpt.has_value() )
-                    {
-                        size_t arrayIndex = 0;
-
-                        for( const auto& elementDoc : arrOpt.value() )
-                        {
-                            typename U::value_type item{};
-
-                            deserializeValue( elementDoc, item );
-
-                            // Try different insertion methods based on nfx container API
-                            if constexpr( requires { obj.push_back( std::move( item ) ); } )
-                            {
-                                obj.push_back( std::move( item ) );
-                            }
-                            else if constexpr( requires { obj.insert( std::move( item ) ); } )
-                            {
-                                obj.insert( std::move( item ) );
-                            }
-                            else if constexpr( requires { obj.insert( obj.end(), std::move( item ) ); } )
-                            {
-                                obj.insert( obj.end(), std::move( item ) );
-                            }
-                            else if constexpr( requires { obj[arrayIndex] = std::move( item ); } )
-                            {
-                                if( arrayIndex < obj.size() )
-                                {
-                                    obj[arrayIndex] = std::move( item );
-                                }
-                            }
-                            else
-                            {
-                                throw std::runtime_error{
-                                    "nfx container doesn't support standard insertion methods (push_back, insert, or "
-                                    "indexed assignment)"
-                                };
-                            }
-
-                            ++arrayIndex;
-                        }
-                    }
-                }
-                else if( doc.isNull( "" ) )
-                {
-                    // Handle null → empty nfx container (obj.clear() already called above if supported)
-                }
-                else
-                {
-                    // Single value → nfx container
-                    typename U::value_type item{};
-                    deserializeValue( doc, item );
-
-                    if constexpr( requires { obj.push_back( std::move( item ) ); } )
-                    {
-                        obj.push_back( std::move( item ) );
-                    }
-                    else if constexpr( requires { obj.insert( std::move( item ) ); } )
-                    {
-                        obj.insert( std::move( item ) );
-                    }
-                    else if constexpr( requires { obj.insert( obj.end(), std::move( item ) ); } )
-                    {
-                        obj.insert( obj.end(), std::move( item ) );
-                    }
-                    else
-                    {
-                        throw std::runtime_error{
-                            "nfx container doesn't support standard insertion methods (push_back, insert, or indexed "
-                            "assignment)"
-                        };
-                    }
-                }
-            }
-        }
         else
         {
-            // Fall back to SerializationTraits (handles member methods or specializations)
-            SerializationTraits<U>::deserialize( obj, doc );
+            // Fall back to SerializationTraits::fromDocument() (custom types: nfx extensions and user types)
+            SerializationTraits<U>::fromDocument( doc, obj );
         }
     }
 } // namespace nfx::serialization::json

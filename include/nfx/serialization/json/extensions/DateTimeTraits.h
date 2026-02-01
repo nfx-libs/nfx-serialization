@@ -31,7 +31,7 @@
  *          This header is safe to include even if nfx-datetime is not available.
  *          Each datetime type is independently supported - you can use any subset.
  *
- *          #include <nfx/serialization/json/SerializationTraits.h>
+ *          #include <nfx/serialization/json/Serializer.h>
  *          #include <nfx/serialization/json/extensions/DateTimeTraits.h>
  *
  * @note Each specialization is only enabled if its corresponding header is available.
@@ -58,21 +58,22 @@ namespace nfx::serialization::json
     struct SerializationTraits<nfx::time::TimeSpan>
     {
         /**
-         * @brief Serialize TimeSpan to JSON document using platform-optimized methods
+         * @brief High-performance streaming serialization
          * @param obj The TimeSpan object to serialize
-         * @param doc The document to serialize into
+         * @param builder The builder to write to
+         * @details Serializes as JSON number (ticks) for compact representation
          */
-        static void serialize( const nfx::time::TimeSpan& obj, Document& doc )
+        static void serialize( const nfx::time::TimeSpan& obj, Builder& builder )
         {
-            doc.set<int64_t>( "", obj.ticks() );
+            builder.write( obj.ticks() );
         }
 
         /**
-         * @brief Deserialize TimeSpan from JSON document using platform-optimized methods
-         * @param obj The TimeSpan object to deserialize into
+         * @brief Deserialize TimeSpan from JSON document
          * @param doc The document to deserialize from
+         * @param obj The TimeSpan object to deserialize into
          */
-        static void deserialize( nfx::time::TimeSpan& obj, const Document& doc )
+        static void fromDocument( const Document& doc, nfx::time::TimeSpan& obj )
         {
             if( doc.is<int>( "" ) )
             {
@@ -109,22 +110,22 @@ namespace nfx::serialization::json
     struct SerializationTraits<nfx::time::DateTime>
     {
         /**
-         * @brief Serialize DateTime to JSON document using platform-optimized methods
+         * @brief High-performance streaming serialization
          * @param obj The DateTime object to serialize
-         * @param doc The document to serialize into
+         * @param builder The builder to write to
+         * @details Serializes as ISO 8601 string with precise tick resolution
          */
-        static void serialize( const nfx::time::DateTime& obj, Document& doc )
+        static void serialize( const nfx::time::DateTime& obj, Builder& builder )
         {
-            std::string value = obj.toString( nfx::time::DateTime::Format::Iso8601Precise );
-            doc.set<std::string>( "", value );
+            builder.write( obj.toString( nfx::time::DateTime::Format::Iso8601Precise ) );
         }
 
         /**
-         * @brief Deserialize DateTime from JSON document using platform-optimized methods
-         * @param obj The DateTime object to deserialize into
+         * @brief Deserialize DateTime from JSON document
          * @param doc The document to deserialize from
+         * @param obj The DateTime object to deserialize into
          */
-        static void deserialize( nfx::time::DateTime& obj, const Document& doc )
+        static void fromDocument( const Document& doc, nfx::time::DateTime& obj )
         {
             if( doc.is<std::string>( "" ) )
             {
@@ -160,22 +161,22 @@ namespace nfx::serialization::json
     struct SerializationTraits<nfx::time::DateTimeOffset>
     {
         /**
-         * @brief Serialize DateTimeOffset to JSON document using platform-optimized methods
+         * @brief High-performance streaming serialization
          * @param obj The DateTimeOffset object to serialize
-         * @param doc The document to serialize into
+         * @param builder The builder to write to
+         * @details Serializes as ISO 8601 string with timezone offset and precise tick resolution
          */
-        static void serialize( const nfx::time::DateTimeOffset& obj, Document& doc )
+        static void serialize( const nfx::time::DateTimeOffset& obj, Builder& builder )
         {
-            std::string value = obj.toString( nfx::time::DateTime::Format::Iso8601Precise );
-            doc.set<std::string>( "", value );
+            builder.write( obj.toString( nfx::time::DateTime::Format::Iso8601Precise ) );
         }
 
         /**
-         * @brief Deserialize DateTimeOffset from JSON document using platform-optimized methods
-         * @param obj The DateTimeOffset object to deserialize into
+         * @brief Deserialize DateTimeOffset from JSON document
          * @param doc The document to deserialize from
+         * @param obj The DateTimeOffset object to deserialize into
          */
-        static void deserialize( nfx::time::DateTimeOffset& obj, const Document& doc )
+        static void fromDocument( const Document& doc, nfx::time::DateTimeOffset& obj )
         {
             if( doc.is<std::string>( "" ) )
             {
