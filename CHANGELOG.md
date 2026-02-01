@@ -20,7 +20,8 @@
   - `Sample_JsonSerializationBasics.cpp` - Fundamental Document and Builder APIs
   - `Sample_JsonSerializationContainers.cpp` - Automatic STL container serialization
   - `Sample_JsonSerializationTraits.cpp` - Custom type serialization with SerializationTraits
-  - `Sample_JsonSerializationStlContainers.cpp` - Comprehensive guide to all STL container types
+  - `Sample_JsonSerializationStlContainers.cpp` - Comprehensive guide to all 20 STL container types
+  - `Sample_JsonSerializationNfxTypes.cpp` - Complete guide to nfx library extension types (11 types from nfx-containers, nfx-datatypes, nfx-datetime)
 - **ContainersTraits**: Added JSON serialization support for `nfx::containers::OrderedHashMap`
   - Serializes as JSON array of `{"key": K, "value": V}` objects
   - Preserves insertion order during serialization and deserialization

@@ -152,6 +152,41 @@ Complete reference covering every standard C++ container supported by nfx-serial
 
 ---
 
+### 5. Sample_JsonSerializationNfxTypes.cpp
+
+**Guide to nfx library extension types**
+
+Complete reference covering all nfx library types with compile-time detection. Progressive tutorial demonstrating high-performance containers, arbitrary-precision numerics, and ISO 8601 datetime serialization.
+
+**11 sections covering:**
+1. **nfx::containers::PerfectHashMap**: Immutable perfect hash map → `[{"key": K, "value": V}, ...]` (CHD algorithm, O(1) guaranteed)
+2. **nfx::containers::FastHashMap**: High-performance hash map → `[{"key": K, "value": V}, ...]` (inline storage)
+3. **nfx::containers::FastHashSet**: High-performance hash set → JSON array
+4. **nfx::containers::OrderedHashMap**: Insertion-order preserving map → `[{"key": K, "value": V}, ...]`
+5. **nfx::containers::OrderedHashSet**: Insertion-order preserving set → JSON array
+6. **nfx::containers::SmallVector**: Stack-optimized vector → JSON array (avoids heap for small sizes)
+7. **nfx::datatypes::Int128**: 128-bit integer → JSON string (preserves precision beyond JSON number limits)
+8. **nfx::datatypes::Decimal**: Arbitrary-precision decimal → JSON string (financial calculations)
+9. **nfx::datetime::DateTime**: Date and time → ISO 8601 string `"YYYY-MM-DDTHH:MM:SS.sssZ"`
+10. **nfx::datetime::DateTimeOffset**: Date, time, timezone → ISO 8601 with offset `"YYYY-MM-DDTHH:MM:SS.sss+HH:MM"`
+11. **nfx::datetime::TimeSpan**: Duration/interval → int64 (ticks)
+
+**Key features demonstrated:**
+- Compile-time detection using `__has_include()` for optional nfx dependencies
+- Perfect hashing with no collisions (PerfectHashMap: `count()` vs `size()`)
+- High-performance containers optimized for specific use cases
+- Arbitrary-precision arithmetic avoiding floating-point errors
+- ISO 8601 datetime serialization for cross-platform compatibility
+- Adaptive sample execution based on available libraries
+- Heterogeneous lookup support in hash containers
+
+**Run:**
+```bash
+./build/bin/Sample_JsonSerializationNfxTypes
+```
+
+---
+
 ## 🏗️ Building Samples
 
 Samples are built automatically when `NFX_SERIALIZATION_BUILD_SAMPLES` is enabled:
@@ -168,6 +203,7 @@ cmake --build build --config Release
 ./build/bin/Sample_JsonSerializationContainers
 ./build/bin/Sample_JsonSerializationTraits
 ./build/bin/Sample_JsonSerializationStlContainers
+./build/bin/Sample_JsonSerializationNfxTypes
 ```
 ---
 

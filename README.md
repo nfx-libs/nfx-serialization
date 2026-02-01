@@ -204,7 +204,8 @@ nfx-serialization includes tutorial samples demonstrating progressive JSON seria
 - **Sample_JsonSerializationBasics.cpp** - Document and Builder API fundamentals
 - **Sample_JsonSerializationContainers.cpp** - Automatic STL container serialization
 - **Sample_JsonSerializationTraits.cpp** - Custom type serialization with SerializationTraits
-- **Sample_JsonSerializationStlContainers.cpp** - Comprehensive guide to all STL container types
+- **Sample_JsonSerializationStlContainers.cpp** - Complete guide to all STL container types
+- **Sample_JsonSerializationNfxTypes.cpp** - Complete guide to nfx library extension types (containers, datatypes, datetime)
 
 See [samples/README.md](samples/README.md) for detailed descriptions and learning path.
 
@@ -222,6 +223,7 @@ cmake --build build --config Release
 ./build/bin/Sample_JsonSerializationContainers
 ./build/bin/Sample_JsonSerializationTraits
 ./build/bin/Sample_JsonSerializationStlContainers
+./build/bin/Sample_JsonSerializationNfxTypes
 ```
 
 ## Usage Examples
