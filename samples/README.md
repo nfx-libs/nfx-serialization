@@ -107,6 +107,47 @@ Demonstrates the extensibility of nfx-serialization through the `SerializationTr
 
 ---
 
+### 4. Sample_JsonSerializationStlContainers.cpp
+
+**Guide to all STL container types**
+
+Complete reference covering every standard C++ container supported by nfx-serialization. Progressive tutorial from simple types to complex associative containers.
+
+**18 sections covering:**
+1. **std::pair**: Tuple of 2 elements → `[first, second]`
+2. **std::tuple**: Heterogeneous tuple → `[elem0, elem1, ...]`
+3. **std::optional**: Nullable values → value or `null`
+4. **std::variant**: Tagged union → `{"tag": "TypeName", "data": value}`
+5. **std::array**: Fixed-size array → JSON array
+6. **std::vector**: Dynamic array → JSON array
+7. **std::deque**: Double-ended queue → JSON array
+8. **std::list**: Doubly-linked list → JSON array
+9. **std::set**: Ordered unique set → JSON array (sorted)
+10. **std::multiset**: Ordered set with duplicates → JSON array (sorted, duplicates preserved)
+11. **std::unordered_set**: Hash-based unique set → JSON array
+12. **std::unordered_multiset**: Hash-based set with duplicates → JSON array
+13. **std::map**: Ordered key-value map → JSON object `{"key": value}`
+14. **std::multimap**: Ordered map with duplicate keys → `[{"key": K, "value": V}, ...]`
+15. **std::unordered_map**: Hash-based map → JSON object
+16. **std::unordered_multimap**: Hash-based map with duplicate keys → `[{"key": K, "value": V}, ...]`
+17. **std::unique_ptr**: Unique smart pointer → value or `null`
+18. **std::shared_ptr**: Shared smart pointer → value or `null`
+
+**Key features demonstrated:**
+- Complete STL container reference in one place
+- JSON format for each container type clearly documented
+- Roundtrip validation for each type
+- Special handling for duplicate keys/values (multimap, multiset)
+- Cross-language compatibility notes (variant, multimap format)
+- Performance characteristics noted where relevant
+
+**Run:**
+```bash
+./build/bin/Sample_JsonSerializationStlContainers
+```
+
+---
+
 ## 🏗️ Building Samples
 
 Samples are built automatically when `NFX_SERIALIZATION_BUILD_SAMPLES` is enabled:
@@ -122,6 +163,7 @@ cmake --build build --config Release
 ./build/bin/Sample_JsonSerializationBasics
 ./build/bin/Sample_JsonSerializationContainers
 ./build/bin/Sample_JsonSerializationTraits
+./build/bin/Sample_JsonSerializationStlContainers
 ```
 ---
 

@@ -20,6 +20,7 @@ if(NFX_SERIALIZATION_WITH_JSON)
     list(APPEND sample_sources
         Sample_JsonSerializationBasics.cpp
         Sample_JsonSerializationContainers.cpp
+        Sample_JsonSerializationStlContainers.cpp
         Sample_JsonSerializationTraits.cpp
     )
 endif()
