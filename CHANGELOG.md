@@ -8,7 +8,10 @@
 
 ### Changed
 
-- NIL
+- Updated nfx-json dependency from 1.1.0 to 1.1.2
+- Updated nfx-containers dependency from 0.3.1 to 0.3.2 (extension tests)
+- Updated nfx-datatypes dependency from 0.2.0 to 0.4.0 (extension tests)
+- Updated nfx-datetime dependency from 0.3.0 to 0.4.1 (extension tests)
 
 ### Deprecated
 
