@@ -8,10 +8,7 @@
 
 ### Changed
 
-- Updated nfx-json dependency from 1.1.0 to 1.1.2
-- Updated nfx-containers dependency from 0.3.1 to 0.3.2 (extension tests)
-- Updated nfx-datatypes dependency from 0.2.0 to 0.4.0 (extension tests)
-- Updated nfx-datetime dependency from 0.3.0 to 0.4.1 (extension tests)
+- NIL
 
 ### Deprecated
 
@@ -23,11 +20,24 @@
 
 ### Fixed
 
-- **DateTimeTraits**: Fixed `TimeSpan` serialization to use ISO 8601 duration format instead of int64 ticks
+- NIL
 
 ### Security
 
 - NIL
+
+## [0.7.1] - 2026-02-03
+
+### Changed
+
+- Updated nfx-json dependency from 1.1.0 to 1.1.2
+- Updated nfx-containers dependency from 0.3.1 to 0.3.2 (extension tests)
+- Updated nfx-datatypes dependency from 0.2.0 to 0.4.0 (extension tests)
+- Updated nfx-datetime dependency from 0.3.0 to 0.4.1 (extension tests)
+- 
+### Fixed
+
+- **DateTimeTraits**: Fixed `TimeSpan` serialization to use ISO 8601 duration format instead of int64 ticks
 
 ## [0.7.0] - 2026-02-01
 
