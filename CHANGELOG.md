@@ -4,11 +4,11 @@
 
 ### Added
 
-- Extension benchmarks for DateTime, Datatypes, and Containers types
+- NIL
 
 ### Changed
 
-- Updated nfx-json from 1.1.2 to 1.2.1
+- NIL
 
 ### Deprecated
 
@@ -25,6 +25,16 @@
 ### Security
 
 - NIL
+
+## [0.7.2] - 2026-02-04
+
+### Added
+
+- Extension benchmarks for DateTime, Datatypes, and Containers types
+
+### Changed
+
+- Updated nfx-json from 1.1.2 to 1.2.1 (5-17x Builder performance improvements)
 
 ## [0.7.1] - 2026-02-03
 
