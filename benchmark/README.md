@@ -23,9 +23,9 @@
 
 | Platform    | OS         | Benchmark Framework     | C++ Compiler           | nfx-serialization Version | nfx-json Version |
 | ----------- | ---------- | ----------------------- | ---------------------- | :-----------------------: | :--------------: |
-| **Linux**   | LMDE 7     | Google Benchmark v1.9.4 | Clang 19.1.7-x64       |          v0.7.0           |      v1.1.0      |
-| **Windows** | Windows 10 | Google Benchmark v1.9.4 | MinGW GCC 14.2.0-x64   |          v0.7.0           |      v1.1.0      |
-| **Windows** | Windows 10 | Google Benchmark v1.9.4 | MSVC 19.44.35217.0-x64 |          v0.7.0           |      v1.1.0      |
+| **Linux**   | LMDE 7     | Google Benchmark v1.9.5 | Clang 19.1.7-x64       |          v0.7.1           |      v1.2.1      |
+| **Windows** | Windows 10 | Google Benchmark v1.9.5 | MinGW GCC 14.2.0-x64   |          v0.7.1           |      v1.2.1      |
+| **Windows** | Windows 10 | Google Benchmark v1.9.5 | MSVC 19.44.35217.0-x64 |          v0.7.1           |      v1.2.1      |
 
 ---
 
@@ -104,8 +104,32 @@
 | API             | Linux Clang | Windows MinGW GCC | Windows MSVC |
 | --------------- | ----------: | ----------------: | -----------: |
 | **Document**    |    2,986 ns |          4,326 ns |     5,644 ns |
-| **PrettyPrint** |    3,027 ns |          4,550 ns |      6,052ns |
+| **PrettyPrint** |    3,027 ns |          4,550 ns |     6,052 ns |
 
 ---
 
-_Updated on February 01, 2026_
+## Extension Types Serialization
+
+### Datatypes
+
+| Type                | Linux Clang | Windows MinGW GCC | Windows MSVC |
+| ------------------- | ----------: | ----------------: | -----------: |
+| **Int128** (small)  |     19.3 ns |           23.1 ns |      34.8 ns |
+| **Int128** (medium) |     64.7 ns |            113 ns |       117 ns |
+| **Int128** (large)  |      144 ns |            325 ns |       364 ns |
+| **Decimal** (small) |     35.0 ns |           62.5 ns |      67.6 ns |
+| **Decimal** (large) |      127 ns |            302 ns |       310 ns |
+| **Int128[10]**      |      253 ns |            307 ns |       639 ns |
+
+### DateTime Types
+
+| Type               | Linux Clang | Windows MinGW GCC | Windows MSVC |
+| ------------------ | ----------: | ----------------: | -----------: |
+| **DateTime**       |     68.3 ns |            116 ns |       149 ns |
+| **DateTimeOffset** |     88.2 ns |            132 ns |       184 ns |
+| **TimeSpan**       |     27.2 ns |           30.8 ns |      50.7 ns |
+| **DateTime[10]**   |      634 ns |            832 ns |      1141 ns |
+
+---
+
+_Updated on February 04, 2026_

@@ -11,6 +11,13 @@ if(NOT NFX_SERIALIZATION_BUILD_BENCHMARKS)
 endif()
 
 #----------------------------------------------
+# Fetch optional nfx extension libraries
+#----------------------------------------------
+
+include(nfxSerializationExtensions)
+nfx_serialization_fetch_extensions()
+
+#----------------------------------------------
 # Google Benchmark dependency
 #----------------------------------------------
 
@@ -58,6 +65,7 @@ set(benchmark_sources "")
 
 if(NFX_SERIALIZATION_WITH_JSON)
     list(APPEND benchmark_sources
+        extensions/BM_JsonExtensionsSerialization.cpp
         BM_JsonSerialization.cpp
     )
 endif()
@@ -80,6 +88,33 @@ foreach(benchmark_source ${benchmark_sources})
                 benchmark::benchmark
                 nfx-serialization::nfx-serialization
         )
+
+        #----------------------------------------------
+        # Additional linking for extensions benchmark
+        #----------------------------------------------
+
+        if(${benchmark_target_name} STREQUAL "BM_JsonExtensionsSerialization")
+            if(TARGET nfx-containers::nfx-containers)
+                target_link_libraries(${benchmark_target_name}
+                    PRIVATE
+                        nfx-containers::nfx-containers
+                )
+            endif()
+
+            if(TARGET nfx-datatypes::static)
+                target_link_libraries(${benchmark_target_name}
+                    PRIVATE
+                        nfx-datatypes::static
+                )
+            endif()
+
+            if(TARGET nfx-datetime::static)
+                target_link_libraries(${benchmark_target_name}
+                    PRIVATE
+                        nfx-datetime::static
+                )
+            endif()
+        endif()
 
         #----------------------------------------------
         # Enable specific CPU features

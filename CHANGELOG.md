@@ -4,11 +4,11 @@
 
 ### Added
 
-- NIL
+- Extension benchmarks for DateTime, Datatypes, and Containers types
 
 ### Changed
 
-- NIL
+- Updated nfx-json from 1.1.2 to 1.2.1
 
 ### Deprecated
 

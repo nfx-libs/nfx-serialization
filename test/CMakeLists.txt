@@ -51,53 +51,12 @@ endif()
 include(GoogleTest)
 
 #----------------------------------------------
-# Fetch optional nfx extension libraries for testing
+# Fetch optional nfx extension libraries
 #----------------------------------------------
 
 if(NFX_SERIALIZATION_BUILD_EXTENSION_TESTS)
-    include(FetchContent)
-
-    # Try to find libraries first, then fetch if not found
-    find_package(nfx-containers 0.3.2 QUIET)
-    find_package(nfx-datatypes  0.4.0 QUIET)
-    find_package(nfx-datetime   0.4.1 QUIET)
-
-    # nfx-containers (PerfectHashMap, FastHashMap, FastHashSet) - header-only
-    if(NOT nfx-containers_FOUND)
-        FetchContent_Declare(
-                nfx-containers
-                GIT_REPOSITORY https://github.com/nfx-libs/nfx-containers.git
-                GIT_TAG        main
-        )
-        list(APPEND nfx_libs_to_fetch nfx-containers)
-    endif()
-
-    # nfx-datatypes (Int128, Decimal) - requires static library
-    if(NOT nfx-datatypes_FOUND)
-        set(NFX_DATATYPES_BUILD_STATIC ON CACHE BOOL "" FORCE)
-        FetchContent_Declare(
-                nfx-datatypes
-                GIT_REPOSITORY https://github.com/nfx-libs/nfx-datatypes.git
-                GIT_TAG        main
-        )
-        list(APPEND nfx_libs_to_fetch nfx-datatypes)
-    endif()
-
-    # nfx-datetime (DateTime, DateTimeOffset, TimeSpan) - requires static library
-    if(NOT nfx-datetime_FOUND)
-        set(NFX_DATETIME_BUILD_STATIC ON CACHE BOOL "" FORCE)
-            FetchContent_Declare(
-                nfx-datetime
-                GIT_REPOSITORY https://github.com/nfx-libs/nfx-datetime.git
-                GIT_TAG        main
-        )
-        list(APPEND nfx_libs_to_fetch nfx-datetime)
-    endif()
-
-    # Only fetch libraries that weren't found
-    if(nfx_libs_to_fetch)
-        FetchContent_MakeAvailable(${nfx_libs_to_fetch})
-    endif()
+    include(nfxSerializationExtensions)
+    nfx_serialization_fetch_extensions()
 endif()
 
 #----------------------------------------------
@@ -168,12 +127,26 @@ foreach(test_source ${test_sources})
         #----------------------------------------------
 
         if(${test_target_name} STREQUAL "Tests_JsonExtensions")
-            target_link_libraries(${test_target_name}
-                PRIVATE
-                    nfx-containers::nfx-containers
-                    nfx-datatypes::static
-                    nfx-datetime::static
-            )
+            if(TARGET nfx-containers::nfx-containers)
+                target_link_libraries(${test_target_name}
+                    PRIVATE
+                        nfx-containers::nfx-containers
+                )
+            endif()
+
+            if(TARGET nfx-datatypes::static)
+                target_link_libraries(${test_target_name}
+                    PRIVATE
+                        nfx-datatypes::static
+                )
+            endif()
+
+            if(TARGET nfx-datetime::static)
+                target_link_libraries(${test_target_name}
+                    PRIVATE
+                        nfx-datetime::static
+                )
+            endif()
         endif()
 
         #----------------------------------------------
