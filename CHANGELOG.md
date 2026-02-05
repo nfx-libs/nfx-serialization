@@ -4,7 +4,12 @@
 
 ### Added
 
-- NIL
+- **SerializationTraits**: Added factory deserialization pattern support for immutable types
+  - New SFINAE trait `has_factory_deserialization_v<T>` detects static `T fromDocument(const Document&)` method
+  - Enables serialization of types with deleted default constructors (e.g., `const` members, immutable objects)
+  - Automatic dispatch: factory pattern preferred when available, falls back to mutable pattern for regular types
+  - Supports nested factory deserialization (immutable types containing other immutable types)
+  - New sample: `Sample_JsonSerializationTraits.cpp` Section 4 demonstrates factory pattern usage
 
 ### Changed
 

@@ -75,7 +75,7 @@ Demonstrates how nfx-serialization automatically handles standard C++ containers
 
 Demonstrates the extensibility of nfx-serialization through the `SerializationTraits` trait system. Shows how to implement custom serialization for user-defined types using the asymmetric read/write architecture.
 
-**3 sections covering:**
+**4 sections covering:**
 1. **Simple POD struct**: `Point2D` with x, y coordinates
    - Basic `serialize()` with Builder (streaming write)
    - Basic `fromDocument()` (DOM-based read)
@@ -92,13 +92,22 @@ Demonstrates the extensibility of nfx-serialization through the `SerializationTr
    - Complex real-world data structures
    - Demonstrates scalability of the trait system
 
+4. **Factory deserialization**: `ImmutablePerson` with deleted default constructor
+   - Static factory method `fromDocument(const Document&)` returns new instance
+   - SFINAE-based automatic detection via `has_factory_deserialization_v<T>`
+   - Enables serialization of immutable types (const members, no default constructor)
+   - Nested factory deserialization (immutable types containing other immutable types)
+   - Automatic dispatch: factory pattern when available, mutable pattern otherwise
+
 **Architecture highlights:**
 - **Asymmetric read/write pattern**:
   - **Write**: `serialize(const T&, Builder&)` - Streaming JSON generation (zero DOM overhead)
-  - **Read**: `fromDocument(const Document&, T&)` - Type-safe DOM navigation
+  - **Read**: `fromDocument(const Document&, T&)` - Type-safe DOM navigation (mutable pattern)
+  - **Read (alternative)**: `static T fromDocument(const Document&)` - Factory pattern (immutable types)
 - **Trait composition**: Custom types can contain other custom types
 - **STL integration**: Custom types work seamlessly with STL containers
 - **Compile-time dispatch**: SFINAE-based automatic trait detection
+- **Immutable type support**: Factory deserialization for types with deleted default constructors
 
 **Run:**
 ```bash

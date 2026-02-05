@@ -410,5 +410,82 @@ int main()
         std::cout << "\n";
     }
 
+    //=====================================================================
+    // 4. Factory Deserialization: Non-default-constructible types
+    //=====================================================================
+    {
+        std::cout << "4. Factory Deserialization: Non-default-constructible types\n";
+        std::cout << "--------------------------------------------------------------\n";
+
+        struct ImmutablePerson
+        {
+            const std::string name;
+            const int age;
+
+            // Only constructor requires both fields
+            ImmutablePerson( std::string n, int a )
+                : name{ std::move( n ) },
+                  age{ a }
+            {
+            }
+
+            // Delete default constructor
+            ImmutablePerson() = delete;
+
+            bool operator==( const ImmutablePerson& other ) const
+            {
+                return name == other.name && age == other.age;
+            }
+        };
+
+        // SerializationTraits with FACTORY pattern
+        struct SerializationTraits_ImmutablePerson
+        {
+            // Serialize (same as before)
+            static void serialize( const ImmutablePerson& obj, Builder& builder )
+            {
+                builder.writeStartObject();
+                builder.write( "name", obj.name );
+                builder.write( "age", obj.age );
+                builder.writeEndObject();
+            }
+
+            // Factory deserialization - returns NEW object (no default ctor needed!)
+            static ImmutablePerson fromDocument( const Document& doc )
+            {
+                auto name = doc.get<std::string>( "name" ).value();
+                auto age = doc.get<int>( "age" ).value();
+                return ImmutablePerson{ name, age }; // Construct with required arguments
+            }
+        };
+
+        ImmutablePerson alice{ "Alice", 30 };
+
+        // Serialize using traits
+        Builder builder;
+        SerializationTraits_ImmutablePerson::serialize( alice, builder );
+        std::string json = builder.toString();
+
+        std::cout << "Serialized ImmutablePerson:\n" << json << "\n";
+
+        // Deserialize using FACTORY pattern
+        auto maybeDoc = Document::fromString( json );
+        if( maybeDoc.has_value() )
+        {
+            // SFINAE automatically detects factory pattern!
+            ImmutablePerson deserialized = SerializationTraits_ImmutablePerson::fromDocument( maybeDoc.value() );
+
+            std::cout << "\nDeserialized ImmutablePerson:\n";
+            std::cout << "  Name: " << deserialized.name << "\n";
+            std::cout << "  Age:  " << deserialized.age << "\n";
+
+            bool success = ( alice == deserialized );
+            std::cout << "\n  " << ( success ? "OK" : "ERROR" ) << ": Factory deserialization works\n";
+            std::cout << "  Note: No default constructor required!\n";
+        }
+
+        std::cout << "\n";
+    }
+
     return 0;
 }

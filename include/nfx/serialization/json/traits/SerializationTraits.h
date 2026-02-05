@@ -100,6 +100,34 @@ namespace nfx::serialization::json
          */
         template <typename T>
         inline constexpr bool has_streaming_serialization_v = has_streaming_serialization<T>::value;
+
+        /**
+         * @brief SFINAE detector for factory deserialization
+         * @tparam T Type to check
+         */
+        template <typename T, typename = void>
+        struct has_factory_deserialization : std::false_type
+        {
+        };
+
+        /**
+         * @brief SFINAE detector for factory deserialization (specialized version)
+         * @tparam T Type to check
+         * @details Checks if SerializationTraits<T>::fromDocument(const Document&) -> T is valid
+         */
+        template <typename T>
+        struct has_factory_deserialization<
+            T,
+            std::void_t<decltype( SerializationTraits<T>::fromDocument( std::declval<const Document&>() ) )>>
+            : std::true_type
+        {
+        };
+
+        /**
+         * @brief Helper variable template for has_factory_deserialization
+         */
+        template <typename T>
+        inline constexpr bool has_factory_deserialization_v = has_factory_deserialization<T>::value;
     } // namespace detail
 
     //=====================================================================
@@ -113,10 +141,16 @@ namespace nfx::serialization::json
      *          Users can specialize this template for their types with one or both methods:
      *
      *          1. **serialize()** - High-performance streaming (write, no DOM overhead)
-     *          2. **fromDocument()** - DOM-based deserialization (read)
+     *          2. **fromDocument()** - DOM-based deserialization (read) - TWO OPTIONS:
+     *             - **Mutable**: `static void fromDocument(const Document&, T&)` - Works with default-constructible types
+     *             - **Factory**: `static T fromDocument(const Document&)` - Works with deleted default constructors
      *
      *          The serializer will prefer serialize() when available (detected via SFINAE),
      *          falling back to user types with member method fromDocument().
+     *
+     *          For deserialization, the serializer automatically detects which pattern to use:
+     *          - If factory method exists, it calls `SerializationTraits<T>::fromDocument(doc)`
+     *          - Otherwise, it creates a default object and calls `SerializationTraits<T>::fromDocument(doc, obj)`
      *
      *          User types can provide member method with this signature:
      *          - void fromDocument(const Document&, const Serializer<T>&)
@@ -134,10 +168,32 @@ namespace nfx::serialization::json
      *         builder.writeEndObject();
      *     }
      *
+     *     // Option A: Mutable deserialization (for default-constructible types)
      *     static void fromDocument( const Document& doc, MyType& obj )
      *     {
      *         obj.field1 = doc.get<int>("field1").value();
      *         obj.field2 = doc.get<string>("field2").value();
+     *     }
+     * };
+     * ```
+     *
+     * **Example: Factory deserialization (for types with deleted default constructor)**
+     * ```cpp
+     * template <>
+     * struct SerializationTraits<NonDefaultConstructibleType>
+     * {
+     *     static void serialize( const NonDefaultConstructibleType& obj, nfx::json::Builder& builder )
+     *     {
+     *         builder.writeStartObject();
+     *         builder.write( "requiredField", obj.requiredField );
+     *         builder.writeEndObject();
+     *     }
+     *
+     *     // Option B: Factory deserialization (returns new object)
+     *     static NonDefaultConstructibleType fromDocument( const Document& doc )
+     *     {
+     *         auto requiredField = doc.get<int>("requiredField").value();
+     *         return NonDefaultConstructibleType{ requiredField }; // Construct with required arguments
      *     }
      * };
      * ```

@@ -505,9 +505,20 @@ namespace nfx::serialization::json
         {
             throw std::runtime_error{ "Failed to parse JSON string" };
         }
-        T obj{};
-        serializer.deserializeValue( *optDoc, obj );
-        return obj;
+
+        // SFINAE dispatch: factory vs mutable deserialization
+        if constexpr( detail::has_factory_deserialization_v<T> )
+        {
+            // Option A: Factory deserialization (works with deleted default ctors)
+            return SerializationTraits<T>::fromDocument( *optDoc );
+        }
+        else
+        {
+            // Option B: Mutable deserialization (requires default ctor)
+            T obj{};
+            serializer.deserializeValue( *optDoc, obj );
+            return obj;
+        }
     }
 
     //----------------------------------------------

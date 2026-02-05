@@ -381,6 +381,66 @@ Person restored = Serializer<Person>::fromString(json);
 // restored == alice
 ```
 
+### Immutable Types with Factory Deserialization
+
+For types with deleted default constructors (e.g., types with `const` members or immutable objects), use the factory deserialization pattern. The serializer automatically detects which pattern to use via SFINAE:
+
+```cpp
+#include <nfx/Serialization.h>
+
+using namespace nfx::json;
+using namespace nfx::serialization::json;
+
+// Immutable configuration - cannot be default-constructed
+struct ImmutableConfig {
+    const std::string endpoint;
+    const int port;
+    const bool secure;
+    
+    // No default constructor - forces immutability
+    ImmutableConfig() = delete;
+    
+    // Constructor with required parameters
+    ImmutableConfig(std::string ep, int p, bool s)
+        : endpoint{std::move(ep)},
+          port{p},
+          secure{s}
+    {
+    }
+};
+
+// Factory deserialization pattern - returns new object instead of mutating
+template<>
+struct SerializationTraits<ImmutableConfig> {
+    // Serialization (same as mutable pattern)
+    static void serialize(const ImmutableConfig& config, Builder& builder) {
+        builder.writeStartObject();
+        builder.write("endpoint", config.endpoint);
+        builder.write("port", static_cast<int64_t>(config.port));
+        builder.write("secure", config.secure);
+        builder.writeEndObject();
+    }
+    
+    // Factory deserialization - returns new instance (not void)
+    static ImmutableConfig fromDocument(const Document& doc) {
+        auto endpoint = doc.get<std::string>("endpoint").value();
+        auto port = static_cast<int>(doc.get<int64_t>("port").value());
+        auto secure = doc.get<bool>("secure").value();
+        
+        // Construct and return new object with required arguments
+        return ImmutableConfig{std::move(endpoint), port, secure};
+    }
+};
+
+// Usage - automatic detection of factory pattern
+ImmutableConfig config{"https://api.example.com", 443, true};
+std::string json = Serializer<ImmutableConfig>::toString(config);
+// Result: {"endpoint":"https://api.example.com","port":443,"secure":true}
+
+// Deserialization automatically uses factory pattern (detected via SFINAE)
+ImmutableConfig restored = Serializer<ImmutableConfig>::fromString(json);
+// restored == config
+```
 ### Complete Example - Combining nfx-json and nfx-serialization
 
 ```cpp

@@ -597,7 +597,6 @@ namespace nfx::serialization::json::test
     TEST_F( JSONSerializerTest, SpanTypes )
     {
         // std::span is a non-owning view - serialization only, no deserialization
-        
         // Test std::span<int>
         {
             std::vector<int> data = { 1, 2, 3, 4, 5 };
@@ -605,7 +604,7 @@ namespace nfx::serialization::json::test
             std::string jsonStr = Serializer<std::span<int>>::toString( spanInt );
             EXPECT_EQ( jsonStr, "[1,2,3,4,5]" );
         }
-        
+
         // Test std::span<double>
         {
             std::vector<double> data = { 1.1, 2.2, 3.3 };
@@ -613,7 +612,7 @@ namespace nfx::serialization::json::test
             std::string jsonStr = Serializer<std::span<double>>::toString( spanDouble );
             EXPECT_EQ( jsonStr, "[1.1,2.2,3.3]" );
         }
-        
+
         // Test std::span<std::string>
         {
             std::vector<std::string> data = { "hello", "world" };
@@ -621,7 +620,7 @@ namespace nfx::serialization::json::test
             std::string jsonStr = Serializer<std::span<std::string>>::toString( spanString );
             EXPECT_EQ( jsonStr, R"(["hello","world"])" );
         }
-        
+
         // Test fixed-extent span
         {
             std::array<int, 4> data = { 10, 20, 30, 40 };
@@ -629,7 +628,7 @@ namespace nfx::serialization::json::test
             std::string jsonStr = Serializer<std::span<int, 4>>::toString( spanFixed );
             EXPECT_EQ( jsonStr, "[10,20,30,40]" );
         }
-        
+
         // Test subspan
         {
             std::vector<int> data = { 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -997,11 +996,180 @@ namespace nfx::serialization::json::test
             testRoundTrip( largeCustomMap );
         }
     }
+
+    //----------------------------------------------
+    // Factory Deserialization Tests
+    //----------------------------------------------
+
+    /**
+     * @brief Type with deleted default constructor (requires factory deserialization)
+     */
+    struct ImmutableConfig
+    {
+        const std::string endpoint;
+        const int port;
+        const bool secure;
+
+        ImmutableConfig( std::string ep, int p, bool s )
+            : endpoint{ std::move( ep ) },
+              port{ p },
+              secure{ s }
+        {
+        }
+
+        ImmutableConfig() = delete; // No default constructor!
+
+        bool operator==( const ImmutableConfig& other ) const
+        {
+            return endpoint == other.endpoint && port == other.port && secure == other.secure;
+        }
+    };
+
+    /**
+     * @brief Nested type with deleted default constructor
+     */
+    struct NestedImmutable
+    {
+        const ImmutableConfig config;
+        const std::vector<std::string> tags;
+
+        NestedImmutable( ImmutableConfig c, std::vector<std::string> t )
+            : config{ std::move( c ) },
+              tags{ std::move( t ) }
+        {
+        }
+
+        NestedImmutable() = delete;
+
+        bool operator==( const NestedImmutable& other ) const
+        {
+            return config == other.config && tags == other.tags;
+        }
+    };
+
+    TEST_F( JSONSerializerTest, FactoryDeserialization )
+    {
+        ImmutableConfig config{ "https://api.example.com", 443, true };
+
+        std::string json = Serializer<ImmutableConfig>::toString( config );
+
+        EXPECT_FALSE( json.empty() );
+        EXPECT_NE( json.find( "https://api.example.com" ), std::string::npos );
+        EXPECT_NE( json.find( "443" ), std::string::npos );
+        EXPECT_NE( json.find( "true" ), std::string::npos );
+
+        // Factory deserialization should work automatically via SFINAE
+        ImmutableConfig deserialized = Serializer<ImmutableConfig>::fromString( json );
+
+        EXPECT_EQ( deserialized, config );
+        EXPECT_EQ( deserialized.endpoint, "https://api.example.com" );
+        EXPECT_EQ( deserialized.port, 443 );
+        EXPECT_TRUE( deserialized.secure );
+    }
+
+    TEST_F( JSONSerializerTest, FactoryDeserializationComplex )
+    {
+        NestedImmutable nested{ ImmutableConfig{ "https://prod.example.com", 8443, true },
+                                { "production", "primary", "eu-west" } };
+
+        std::string json = Serializer<NestedImmutable>::toString( nested );
+        NestedImmutable deserialized = Serializer<NestedImmutable>::fromString( json );
+
+        EXPECT_EQ( deserialized, nested );
+        EXPECT_EQ( deserialized.config.endpoint, "https://prod.example.com" );
+        EXPECT_EQ( deserialized.config.port, 8443 );
+        EXPECT_EQ( deserialized.tags.size(), 3 );
+    }
 } // namespace nfx::serialization::json::test
 
 //=====================================================================
 // SerializationTraits specializations for custom types
 //=====================================================================
+
+// Factory deserialization for ImmutableConfig
+namespace nfx::serialization::json
+{
+    template <>
+    struct SerializationTraits<::nfx::serialization::json::test::ImmutableConfig>
+    {
+        using ImmutableConfig = ::nfx::serialization::json::test::ImmutableConfig;
+
+        static void serialize( const ImmutableConfig& obj, Builder& builder )
+        {
+            builder.writeStartObject();
+            builder.write( "endpoint", obj.endpoint );
+            builder.write( "port", obj.port );
+            builder.write( "secure", obj.secure );
+            builder.writeEndObject();
+        }
+
+        // Factory method - returns new object (no default ctor needed!)
+        static ImmutableConfig fromDocument( const Document& doc )
+        {
+            auto endpoint = doc.get<std::string>( "endpoint" ).value();
+            auto port = doc.get<int>( "port" ).value();
+            auto secure = doc.get<bool>( "secure" ).value();
+            return ImmutableConfig{ endpoint, port, secure };
+        }
+    };
+
+    // Nested factory deserialization
+    template <>
+    struct SerializationTraits<::nfx::serialization::json::test::NestedImmutable>
+    {
+        using NestedImmutable = ::nfx::serialization::json::test::NestedImmutable;
+        using ImmutableConfig = ::nfx::serialization::json::test::ImmutableConfig;
+
+        static void serialize( const NestedImmutable& obj, Builder& builder )
+        {
+            builder.writeStartObject();
+
+            // Serialize nested ImmutableConfig using its traits
+            builder.writeKey( "config" );
+            SerializationTraits<ImmutableConfig>::serialize( obj.config, builder );
+
+            // Serialize tags array manually
+            builder.writeKey( "tags" );
+            builder.writeStartArray();
+            for( const auto& tag : obj.tags )
+            {
+                builder.write( tag );
+            }
+            builder.writeEndArray();
+
+            builder.writeEndObject();
+        }
+
+        static NestedImmutable fromDocument( const Document& doc )
+        {
+            // Extract nested config as Object and deserialize
+            auto configOpt = doc.get<Object>( "config" );
+            if( !configOpt.has_value() )
+            {
+                throw std::runtime_error{ "Missing config field" };
+            }
+            Document configDoc{ configOpt.value() };
+            ImmutableConfig config = SerializationTraits<ImmutableConfig>::fromDocument( configDoc );
+
+            // Extract tags array
+            auto tagsOpt = doc.get<Array>( "tags" );
+            if( !tagsOpt.has_value() )
+            {
+                throw std::runtime_error{ "Missing tags field" };
+            }
+            std::vector<std::string> tags;
+            for( const auto& tagDoc : tagsOpt.value() )
+            {
+                if( auto tag = tagDoc.get<std::string>( "" ) )
+                {
+                    tags.push_back( *tag );
+                }
+            }
+
+            return NestedImmutable{ std::move( config ), std::move( tags ) };
+        }
+    };
+} // namespace nfx::serialization::json
 
 namespace nfx::serialization::json::detail
 {
