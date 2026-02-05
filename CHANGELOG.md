@@ -4,6 +4,32 @@
 
 ### Added
 
+- NIL
+
+### Changed
+
+- NIL
+
+### Deprecated
+
+- NIL
+
+### Removed
+
+- NIL
+
+### Fixed
+
+- NIL
+
+### Security
+
+- NIL
+
+## [0.8.0] - 2026-02-05
+
+### Added
+
 - **SerializationTraits**: Added factory deserialization pattern support for immutable types
   - New SFINAE trait `has_factory_deserialization_v<T>` detects static `T fromDocument(const Document&)` method
   - Enables serialization of types with deleted default constructors (e.g., `const` members, immutable objects)
