@@ -58,7 +58,7 @@ install(
 include(CMakePackageConfigHelpers)
 
 # Set dependency version for config file substitution
-set(NFX_DEPS_NFX_JSON_VERSION "1.3.0")
+set(NFX_DEPS_NFX_JSON_VERSION "1.3.1")
 
 write_basic_package_version_file(
     "${CMAKE_CURRENT_BINARY_DIR}/nfx-serialization-config-version.cmake"
