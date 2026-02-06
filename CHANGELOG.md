@@ -8,7 +8,7 @@
 
 ### Changed
 
-- Updated nfx-json dependency to 1.3.1
+- NIL
 
 ### Deprecated
 
@@ -25,6 +25,12 @@
 ### Security
 
 - NIL
+
+## [0.8.1] - 2026-02-06
+
+### Changed
+
+- Updated nfx-json dependency to 1.3.1 (improves RFC 8259 compliance for forward slash escaping)
 
 ## [0.8.0] - 2026-02-05
 
