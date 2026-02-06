@@ -442,6 +442,7 @@ namespace nfx::serialization::json
         includeNullFields = other.includeNullFields;
         prettyPrint = other.prettyPrint;
         validateOnDeserialize = other.validateOnDeserialize;
+        escapeNonAscii = other.escapeNonAscii;
     }
 
     template <typename T>
@@ -453,6 +454,7 @@ namespace nfx::serialization::json
         result.includeNullFields = other.includeNullFields;
         result.prettyPrint = other.prettyPrint;
         result.validateOnDeserialize = other.validateOnDeserialize;
+        result.escapeNonAscii = other.escapeNonAscii;
         return result;
     }
 
@@ -490,7 +492,7 @@ namespace nfx::serialization::json
     inline std::string Serializer<T>::toString( const T& obj, const Serializer<T>::Options& options )
     {
         Serializer<T> serializer( options );
-        Builder builder( { .indent = options.prettyPrint ? 2 : 0 } );
+        Builder builder( { .indent = options.prettyPrint ? 2 : 0, .escapeNonAscii = options.escapeNonAscii } );
         serializer.serializeValue( obj, builder );
 
         return builder.toString();
@@ -1110,8 +1112,8 @@ namespace nfx::serialization::json
                         }
 
                         // Reverse forward_list since we used push_front (only if no push_back available)
-                        if constexpr( !requires { obj.push_back( typename U::value_type{} ); } &&
-                                      requires { obj.reverse(); } )
+                        if constexpr(
+                            !requires { obj.push_back( typename U::value_type{} ); } && requires { obj.reverse(); } )
                         {
                             obj.reverse();
                         }

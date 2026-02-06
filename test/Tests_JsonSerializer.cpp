@@ -386,6 +386,24 @@ namespace nfx::serialization::json::test
         testRoundTrip( std::string{ "Unicode: 你好 🌍" } );
     }
 
+    TEST_F( JSONSerializerTest, StringTypesEscapeNonAscii )
+    {
+        const std::string input{ "Unicode: 你好 🌍" };
+
+        Serializer<std::string>::Options options;
+        options.escapeNonAscii = true;
+
+        std::string jsonStr = Serializer<std::string>::toString( input, options );
+
+        EXPECT_FALSE( jsonStr.empty() );
+        EXPECT_NE( jsonStr.find( "\\u" ), std::string::npos );
+        EXPECT_EQ( jsonStr.find( "你好" ), std::string::npos );
+        EXPECT_EQ( jsonStr.find( "🌍" ), std::string::npos );
+
+        std::string deserialized = Serializer<std::string>::fromString( jsonStr, options );
+        EXPECT_EQ( deserialized, input );
+    }
+
     //----------------------------------------------
     // STL containers
     //----------------------------------------------

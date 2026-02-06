@@ -69,6 +69,7 @@ namespace nfx::serialization::json
             bool includeNullFields = false;    ///< Include fields with null values in output
             bool prettyPrint = false;          ///< Format output with indentation
             bool validateOnDeserialize = true; ///< Validate data during deserialization
+            bool escapeNonAscii = false;       ///< Escape non-ASCII characters (> 127) as \\uXXXX
 
             /**
              * @brief Default constructor
