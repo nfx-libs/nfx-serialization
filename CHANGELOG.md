@@ -8,9 +8,7 @@
 
 ### Changed
 
-- Updated nfx-json dependency from 1.3.1 to 1.3.3
-- Updated nfx-containers dependency from 0.3.2 to 0.4.1 (breaking: `SmallVector` renamed to `StackVector`)
-- **ContainersTraits**: Updated to use `nfx::containers::StackVector` (renamed from `SmallVector` in nfx-containers 0.4.0)
+- NIL
 
 ### Deprecated
 
@@ -19,6 +17,28 @@
 ### Removed
 
 - NIL
+
+### Fixed
+
+- NIL
+
+### Security
+
+- NIL
+
+## [0.9.0] - 2026-02-08
+
+### Added
+
+- **ContainersTraits**: Added serialization support for `nfx::containers::StackHashMap<K, V, N>` and `nfx::containers::StackHashSet<T, N>`
+  - New sample: `Sample_JsonSerializationNfxTypes.cpp` Sections 7-8 demonstrate StackHashMap/StackHashSet usage
+  - Includes unit tests for both containers
+
+### Changed
+
+- **BREAKING**: Updated nfx-containers dependency from 0.3.2 to 0.4.1 (`SmallVector` renamed to `StackVector`)
+- Updated nfx-json dependency from 1.3.1 to 1.3.3
+- **ContainersTraits**: Updated to use `nfx::containers::StackVector` (renamed from `SmallVector` in nfx-containers 0.4.0)
 
 ### Fixed
 
@@ -44,26 +64,6 @@
   - Automatic dispatch: factory pattern preferred when available, falls back to mutable pattern for regular types
   - Supports nested factory deserialization (immutable types containing other immutable types)
   - New sample: `Sample_JsonSerializationTraits.cpp` Section 4 demonstrates factory pattern usage
-
-### Changed
-
-- NIL
-
-### Deprecated
-
-- NIL
-
-### Removed
-
-- NIL
-
-### Fixed
-
-- NIL
-
-### Security
-
-- NIL
 
 ## [0.7.2] - 2026-02-04
 
