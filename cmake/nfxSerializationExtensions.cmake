@@ -13,12 +13,12 @@ function(nfx_serialization_fetch_extensions)
     # Extension library versions
     #----------------------------------------------
 
-    set(NFX_SERIALIZATION_DEPS_NFX_CONTAINERS_VERSION "0.3.2")
+    set(NFX_SERIALIZATION_DEPS_NFX_CONTAINERS_VERSION "0.4.1")
     set(NFX_SERIALIZATION_DEPS_NFX_DATATYPES_VERSION  "0.4.0")
     set(NFX_SERIALIZATION_DEPS_NFX_DATETIME_VERSION   "0.4.1")
 
     #----------------------------------------------
-    # nfx-containers (PerfectHashMap, FastHashMap, FastHashSet)
+    # nfx-containers
     #----------------------------------------------
 
     if(NOT nfx-containers_FOUND)
@@ -37,6 +37,7 @@ function(nfx_serialization_fetch_extensions)
             nfx-containers
             GIT_REPOSITORY https://github.com/nfx-libs/nfx-containers.git
             GIT_TAG        ${NFX_SERIALIZATION_DEPS_NFX_CONTAINERS_VERSION}
+            EXCLUDE_FROM_ALL
         )
         list(APPEND nfx_libs_to_fetch nfx-containers)
     endif()
@@ -63,6 +64,7 @@ function(nfx_serialization_fetch_extensions)
             nfx-datatypes
             GIT_REPOSITORY https://github.com/nfx-libs/nfx-datatypes.git
             GIT_TAG        ${NFX_SERIALIZATION_DEPS_NFX_DATATYPES_VERSION}
+            EXCLUDE_FROM_ALL
         )
         list(APPEND nfx_libs_to_fetch nfx-datatypes)
     endif()
@@ -89,6 +91,7 @@ function(nfx_serialization_fetch_extensions)
             nfx-datetime
             GIT_REPOSITORY https://github.com/nfx-libs/nfx-datetime.git
             GIT_TAG        ${NFX_SERIALIZATION_DEPS_NFX_DATETIME_VERSION}
+            EXCLUDE_FROM_ALL
         )
         list(APPEND nfx_libs_to_fetch nfx-datetime)
     endif()

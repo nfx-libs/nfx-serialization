@@ -18,7 +18,7 @@ set(CMAKE_FIND_QUIETLY      ON     )
 # Dependency versions
 #----------------------------------------------
 
-set(NFX_DEPS_NFX_JSON_VERSION "1.3.1")
+set(NFX_DEPS_NFX_JSON_VERSION "1.3.3")
 
 #----------------------------------------------
 # FetchContent dependencies
@@ -54,6 +54,7 @@ if(NFX_SERIALIZATION_WITH_JSON)
                 GIT_REPOSITORY https://github.com/nfx-libs/nfx-json.git
                 GIT_TAG        ${NFX_DEPS_NFX_JSON_VERSION}
                 GIT_SHALLOW    TRUE
+                EXCLUDE_FROM_ALL
         )
     endif()
 

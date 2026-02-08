@@ -26,7 +26,7 @@
  * @file Sample_JsonSerializationNfxTypes.cpp
  * @brief Complete guide to nfx library type serialization
  * @details Progressive tutorial covering all nfx library types:
- *          - nfx-containers: PerfectHashMap, FastHashMap, FastHashSet, OrderedHashMap, OrderedHashSet, SmallVector
+ *          - nfx-containers: PerfectHashMap, FastHashMap, FastHashSet, OrderedHashMap, OrderedHashSet, StackVector
  *          - nfx-datatypes: Int128, Decimal
  *          - nfx-datetime: DateTime, DateTimeOffset, TimeSpan
  *          Uses compile-time detection to show only available types.
@@ -89,7 +89,8 @@ int main()
         bool success = ( restored.count() == 3 ) && widthPtr && ( *widthPtr == 1920 );
         std::cout << "\nDeserialized " << restored.count() << " entries (table size: " << restored.size() << ")\n";
         std::cout << "\n  " << ( success ? "OK" : "ERROR" ) << ": Perfect hash with no collisions (CHD algorithm)\n";
-        std::cout << "  Note: Immutable, O(1) guaranteed, count()=" << restored.count() << " vs size()=" << restored.size() << " (sparse table)\n";
+        std::cout << "  Note: Immutable, O(1) guaranteed, count()=" << restored.count()
+                  << " vs size()=" << restored.size() << " (sparse table)\n";
         std::cout << "\n";
     }
 
@@ -202,28 +203,28 @@ int main()
     }
 
     //=====================================================================
-    // 6. nfx::containers::SmallVector - Stack-optimized vector
+    // 6. nfx::containers::StackVector - Stack-optimized vector
     //=====================================================================
     {
-        std::cout << "6. nfx::containers::SmallVector<T, N> - Stack-optimized vector\n";
+        std::cout << "6. nfx::containers::StackVector<T, N> - Stack-optimized vector\n";
         std::cout << "---------------------------------------------------------------\n";
 
-        nfx::containers::SmallVector<int, 8> numbers; // 8 elements on stack
+        nfx::containers::StackVector<int, 8> numbers; // 8 elements on stack
         numbers.push_back( 10 );
         numbers.push_back( 20 );
         numbers.push_back( 30 );
 
-        Serializer<nfx::containers::SmallVector<int, 8>>::Options opts;
+        Serializer<nfx::containers::StackVector<int, 8>>::Options opts;
         opts.prettyPrint = true;
-        std::string json = Serializer<nfx::containers::SmallVector<int, 8>>::toString( numbers, opts );
+        std::string json = Serializer<nfx::containers::StackVector<int, 8>>::toString( numbers, opts );
 
-        std::cout << "SmallVector<int, 8>:\n" << json << "\n";
+        std::cout << "StackVector<int, 8>:\n" << json << "\n";
 
-        auto restored = Serializer<nfx::containers::SmallVector<int, 8>>::fromString( json );
+        auto restored = Serializer<nfx::containers::StackVector<int, 8>>::fromString( json );
 
         bool success = ( restored.size() == 3 ) && ( restored[0] == 10 );
         std::cout << "\nDeserialized " << restored.size() << " elements\n";
-        std::cout << "\n  " << ( success ? "OK" : "ERROR" ) << ": SmallVector serializes as JSON array\n";
+        std::cout << "\n  " << ( success ? "OK" : "ERROR" ) << ": StackVector serializes as JSON array\n";
         std::cout << "  Note: Avoids heap allocation for small sizes\n";
         std::cout << "\n";
     }

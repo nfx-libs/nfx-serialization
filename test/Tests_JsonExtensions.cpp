@@ -26,7 +26,7 @@
  * @file Tests_JsonExtensions.cpp
  * @brief Unit tests for extension traits (nfx-containers, nfx-datatypes, nfx-datetime)
  * @details Tests covering serialization and deserialization of external nfx library types:
- *          - nfx-containers: PerfectHashMap, FastHashMap, FastHashSet, OrderedHashMap, OrderedHashSet, SmallVector
+ *          - nfx-containers: PerfectHashMap, FastHashMap, FastHashSet, OrderedHashMap, OrderedHashSet, StackVector
  *          - nfx-datatypes: Int128, Decimal
  *          - nfx-datetime: DateTime, DateTimeOffset, TimeSpan
  */
@@ -525,10 +525,10 @@ namespace nfx::serialization::json::test
     }
 
     //=====================================================================
-    // nfx-containers: SmallVector tests
+    // nfx-containers: StackVector tests
     //=====================================================================
 
-    class SmallVectorExtensionTest : public ::testing::Test
+    class StackVectorExtensionTest : public ::testing::Test
     {
     protected:
         void SetUp() override
@@ -540,9 +540,9 @@ namespace nfx::serialization::json::test
         }
     };
 
-    TEST_F( SmallVectorExtensionTest, SerializeEmptyVector )
+    TEST_F( StackVectorExtensionTest, SerializeEmptyVector )
     {
-        nfx::containers::SmallVector<int, 8> vec;
+        nfx::containers::StackVector<int, 8> vec;
 
         std::string json = Serializer<decltype( vec )>::toString( vec );
 
@@ -550,9 +550,9 @@ namespace nfx::serialization::json::test
         EXPECT_EQ( json, "[]" );
     }
 
-    TEST_F( SmallVectorExtensionTest, SerializeIntVector )
+    TEST_F( StackVectorExtensionTest, SerializeIntVector )
     {
-        nfx::containers::SmallVector<int, 8> vec;
+        nfx::containers::StackVector<int, 8> vec;
         vec.push_back( 10 );
         vec.push_back( 20 );
         vec.push_back( 30 );
@@ -569,9 +569,9 @@ namespace nfx::serialization::json::test
         EXPECT_EQ( restored[2], 30 );
     }
 
-    TEST_F( SmallVectorExtensionTest, SerializeStringVector )
+    TEST_F( StackVectorExtensionTest, SerializeStringVector )
     {
-        nfx::containers::SmallVector<std::string, 4> vec;
+        nfx::containers::StackVector<std::string, 4> vec;
         vec.push_back( "apple" );
         vec.push_back( "banana" );
         vec.push_back( "cherry" );
@@ -588,9 +588,9 @@ namespace nfx::serialization::json::test
         EXPECT_EQ( restored[2], "cherry" );
     }
 
-    TEST_F( SmallVectorExtensionTest, SerializeDoubleVector )
+    TEST_F( StackVectorExtensionTest, SerializeDoubleVector )
     {
-        nfx::containers::SmallVector<double, 8> vec;
+        nfx::containers::StackVector<double, 8> vec;
         vec.push_back( 3.14 );
         vec.push_back( 2.71 );
         vec.push_back( 1.41 );
@@ -607,9 +607,9 @@ namespace nfx::serialization::json::test
         EXPECT_DOUBLE_EQ( restored[2], 1.41 );
     }
 
-    TEST_F( SmallVectorExtensionTest, RoundTripPreservesData )
+    TEST_F( StackVectorExtensionTest, RoundTripPreservesData )
     {
-        nfx::containers::SmallVector<int, 8> original;
+        nfx::containers::StackVector<int, 8> original;
         original.push_back( 100 );
         original.push_back( 200 );
         original.push_back( 300 );
@@ -626,10 +626,10 @@ namespace nfx::serialization::json::test
         }
     }
 
-    TEST_F( SmallVectorExtensionTest, SmallCapacityStackStorage )
+    TEST_F( StackVectorExtensionTest, SmallCapacityStackStorage )
     {
         // Test with size within stack capacity (N=8)
-        nfx::containers::SmallVector<int, 8> vec;
+        nfx::containers::StackVector<int, 8> vec;
         for( int i = 0; i < 5; ++i )
         {
             vec.push_back( i * 10 );
@@ -645,10 +645,10 @@ namespace nfx::serialization::json::test
         }
     }
 
-    TEST_F( SmallVectorExtensionTest, LargeCapacityHeapStorage )
+    TEST_F( StackVectorExtensionTest, LargeCapacityHeapStorage )
     {
         // Test with size exceeding stack capacity (N=8)
-        nfx::containers::SmallVector<int, 8> vec;
+        nfx::containers::StackVector<int, 8> vec;
         for( int i = 0; i < 20; ++i )
         {
             vec.push_back( i );
@@ -664,17 +664,17 @@ namespace nfx::serialization::json::test
         }
     }
 
-    TEST_F( SmallVectorExtensionTest, NestedSmallVectors )
+    TEST_F( StackVectorExtensionTest, NestedStackVectors )
     {
-        // Round-trip test for nested SmallVectors
-        nfx::containers::SmallVector<nfx::containers::SmallVector<int, 4>, 4> nested;
+        // Round-trip test for nested StackVectors
+        nfx::containers::StackVector<nfx::containers::StackVector<int, 4>, 4> nested;
 
-        nfx::containers::SmallVector<int, 4> row1;
+        nfx::containers::StackVector<int, 4> row1;
         row1.push_back( 1 );
         row1.push_back( 2 );
         nested.push_back( row1 );
 
-        nfx::containers::SmallVector<int, 4> row2;
+        nfx::containers::StackVector<int, 4> row2;
         row2.push_back( 3 );
         row2.push_back( 4 );
         nested.push_back( row2 );

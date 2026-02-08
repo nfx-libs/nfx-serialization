@@ -493,31 +493,31 @@ namespace nfx::serialization::json
 #endif // __has_include(<nfx/containers/FastHashSet.h>)
 
 //=====================================================================
-// SmallVector support - enabled only if header is available
+// StackVector support - enabled only if header is available
 //=====================================================================
 
-#if __has_include( <nfx/containers/SmallVector.h>)
+#if __has_include( <nfx/containers/StackVector.h>)
 
-#    include <nfx/containers/SmallVector.h>
+#    include <nfx/containers/StackVector.h>
 
 namespace nfx::serialization::json
 {
     /**
-     * @brief Specialization for nfx::containers::SmallVector
+     * @brief Specialization for nfx::containers::StackVector
      */
     template <typename T, std::size_t N>
-    struct SerializationTraits<nfx::containers::SmallVector<T, N>>
+    struct SerializationTraits<nfx::containers::StackVector<T, N>>
     {
         /**
-         * @brief Deserialize SmallVector from JSON document
+         * @brief Deserialize StackVector from JSON document
          * @param doc The document to deserialize from
-         * @param obj The SmallVector object to deserialize into
+         * @param obj The StackVector object to deserialize into
          */
-        static void fromDocument( const Document& doc, nfx::containers::SmallVector<T, N>& obj )
+        static void fromDocument( const Document& doc, nfx::containers::StackVector<T, N>& obj )
         {
             if( !doc.is<Array>( "" ) )
             {
-                throw std::runtime_error{ "Cannot deserialize non-array JSON value into SmallVector" };
+                throw std::runtime_error{ "Cannot deserialize non-array JSON value into StackVector" };
             }
 
             // Clear existing content
@@ -541,11 +541,11 @@ namespace nfx::serialization::json
 
         /**
          * @brief High-performance streaming serialization
-         * @param obj The SmallVector object to serialize
+         * @param obj The StackVector object to serialize
          * @param builder The builder to write to
          * @details Serializes as JSON array of elements
          */
-        static void serialize( const nfx::containers::SmallVector<T, N>& obj, nfx::json::Builder& builder )
+        static void serialize( const nfx::containers::StackVector<T, N>& obj, nfx::json::Builder& builder )
         {
             builder.writeStartArray();
 
@@ -559,7 +559,7 @@ namespace nfx::serialization::json
     };
 } // namespace nfx::serialization::json
 
-#endif // __has_include(<nfx/containers/SmallVector.h>)
+#endif // __has_include(<nfx/containers/StackVector.h>)
 
 //=====================================================================
 // OrderedHashMap support - enabled only if header is available

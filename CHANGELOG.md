@@ -8,7 +8,9 @@
 
 ### Changed
 
-- NIL
+- Updated nfx-json dependency from 1.3.1 to 1.3.3
+- Updated nfx-containers dependency from 0.3.2 to 0.4.1 (breaking: `SmallVector` renamed to `StackVector`)
+- **ContainersTraits**: Updated to use `nfx::containers::StackVector` (renamed from `SmallVector` in nfx-containers 0.4.0)
 
 ### Deprecated
 
@@ -20,7 +22,7 @@
 
 ### Fixed
 
-- NIL
+- **CMake**: Fixed nfx-json dependency always being fetched even when `NFX_SERIALIZATION_WITH_JSON=OFF`
 
 ### Security
 
