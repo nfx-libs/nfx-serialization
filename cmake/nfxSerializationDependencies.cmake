@@ -34,30 +34,32 @@ endif()
 set(FETCHCONTENT_QUIET OFF)
 
 # --- nfx-json ---
-find_package(nfx-json ${NFX_DEPS_NFX_JSON_VERSION} QUIET)
-if(NOT nfx-json_FOUND)
-    set(NFX_JSON_BUILD_STATIC        ON  CACHE BOOL "")
-    set(NFX_JSON_BUILD_SHARED        OFF CACHE BOOL "")
-    set(NFX_JSON_BUILD_TESTS         OFF CACHE BOOL "")
-    set(NFX_JSON_BUILD_SAMPLES       OFF CACHE BOOL "")
-    set(NFX_JSON_BUILD_BENCHMARKS    OFF CACHE BOOL "")
-    set(NFX_JSON_BUILD_DOCUMENTATION OFF CACHE BOOL "")
-    set(NFX_JSON_INSTALL_PROJECT     OFF CACHE BOOL "")
-    set(NFX_JSON_PACKAGE_SOURCE      OFF CACHE BOOL "")
-    set(NFX_JSON_PACKAGE_ARCHIVE     OFF CACHE BOOL "")
-    set(NFX_JSON_PACKAGE_DEB         OFF CACHE BOOL "")
-    set(NFX_JSON_PACKAGE_RPM         OFF CACHE BOOL "")
+if(NFX_SERIALIZATION_WITH_JSON)
+    find_package(nfx-json ${NFX_DEPS_NFX_JSON_VERSION} QUIET)
+    if(NOT nfx-json_FOUND)
+        set(NFX_JSON_BUILD_STATIC        ON  CACHE BOOL "")
+        set(NFX_JSON_BUILD_SHARED        OFF CACHE BOOL "")
+        set(NFX_JSON_BUILD_TESTS         OFF CACHE BOOL "")
+        set(NFX_JSON_BUILD_SAMPLES       OFF CACHE BOOL "")
+        set(NFX_JSON_BUILD_BENCHMARKS    OFF CACHE BOOL "")
+        set(NFX_JSON_BUILD_DOCUMENTATION OFF CACHE BOOL "")
+        set(NFX_JSON_INSTALL_PROJECT     OFF CACHE BOOL "")
+        set(NFX_JSON_PACKAGE_SOURCE      OFF CACHE BOOL "")
+        set(NFX_JSON_PACKAGE_ARCHIVE     OFF CACHE BOOL "")
+        set(NFX_JSON_PACKAGE_DEB         OFF CACHE BOOL "")
+        set(NFX_JSON_PACKAGE_RPM         OFF CACHE BOOL "")
 
-    FetchContent_Declare(
-        nfx-json
-            GIT_REPOSITORY https://github.com/nfx-libs/nfx-json.git
-            GIT_TAG        ${NFX_DEPS_NFX_JSON_VERSION}
-            GIT_SHALLOW    TRUE
-    )
-endif()
+        FetchContent_Declare(
+            nfx-json
+                GIT_REPOSITORY https://github.com/nfx-libs/nfx-json.git
+                GIT_TAG        ${NFX_DEPS_NFX_JSON_VERSION}
+                GIT_SHALLOW    TRUE
+        )
+    endif()
 
-if(NOT nfx-json_FOUND)
-    FetchContent_MakeAvailable(nfx-json)
+    if(NOT nfx-json_FOUND)
+        FetchContent_MakeAvailable(nfx-json)
+    endif()
 endif()
 
 #----------------------------------------------

@@ -24,11 +24,13 @@ target_include_directories(${PROJECT_NAME}
         $<INSTALL_INTERFACE:include>
 )
 
-# Link to nfx-json dependency
-target_link_libraries(${PROJECT_NAME}
-    INTERFACE
-        $<BUILD_INTERFACE:nfx-json::static>
-)
+# Link to nfx-json dependency (if JSON support enabled)
+if(NFX_SERIALIZATION_WITH_JSON)
+    target_link_libraries(${PROJECT_NAME}
+        INTERFACE
+            $<BUILD_INTERFACE:nfx-json::static>
+    )
+endif()
 
 # C++20 requirement
 target_compile_features(${PROJECT_NAME}
