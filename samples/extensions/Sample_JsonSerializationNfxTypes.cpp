@@ -26,7 +26,8 @@
  * @file Sample_JsonSerializationNfxTypes.cpp
  * @brief Complete guide to nfx library type serialization
  * @details Progressive tutorial covering all nfx library types:
- *          - nfx-containers: PerfectHashMap, FastHashMap, FastHashSet, OrderedHashMap, OrderedHashSet, StackVector
+ *          - nfx-containers: PerfectHashMap, FastHashMap, FastHashSet, OrderedHashMap, OrderedHashSet, StackVector,
+ * StackHashMap, StackHashSet
  *          - nfx-datatypes: Int128, Decimal
  *          - nfx-datetime: DateTime, DateTimeOffset, TimeSpan
  *          Uses compile-time detection to show only available types.
@@ -228,6 +229,62 @@ int main()
         std::cout << "  Note: Avoids heap allocation for small sizes\n";
         std::cout << "\n";
     }
+
+    //=====================================================================
+    // 7. nfx::containers::StackHashMap - Stack-optimized hash map
+    //=====================================================================
+    {
+        std::cout << "7. nfx::containers::StackHashMap<K, V, N> - Stack-optimized hash map\n";
+        std::cout << "---------------------------------------------------------------------\n";
+
+        nfx::containers::StackHashMap<std::string, int, 8> config; // 8 entries on stack
+        config.insertOrAssign( "width", 1920 );
+        config.insertOrAssign( "height", 1080 );
+        config.insertOrAssign( "fps", 60 );
+
+        Serializer<nfx::containers::StackHashMap<std::string, int, 8>>::Options opts;
+        opts.prettyPrint = true;
+        std::string json = Serializer<nfx::containers::StackHashMap<std::string, int, 8>>::toString( config, opts );
+
+        std::cout << "StackHashMap<string, int, 8>:\n" << json << "\n";
+
+        auto restored = Serializer<nfx::containers::StackHashMap<std::string, int, 8>>::fromString( json );
+
+        bool success = ( restored.size() == 3 );
+        const int* width = restored.find( "width" );
+        success = success && width && ( *width == 1920 );
+        std::cout << "\nDeserialized " << restored.size() << " entries\n";
+        std::cout << "\n  " << ( success ? "OK" : "ERROR" ) << ": StackHashMap serializes as JSON array\n";
+        std::cout << "  Note: Hybrid storage - stack for ≤N items, heap for >N items\n";
+        std::cout << "\n";
+    }
+
+    //=====================================================================
+    // 8. nfx::containers::StackHashSet - Stack-optimized hash set
+    //=====================================================================
+    {
+        std::cout << "8. nfx::containers::StackHashSet<T, N> - Stack-optimized hash set\n";
+        std::cout << "------------------------------------------------------------------\n";
+
+        nfx::containers::StackHashSet<std::string, 8> tags; // 8 elements on stack
+        tags.insert( "cpp" );
+        tags.insert( "json" );
+        tags.insert( "performance" );
+
+        Serializer<nfx::containers::StackHashSet<std::string, 8>>::Options opts;
+        opts.prettyPrint = true;
+        std::string json = Serializer<nfx::containers::StackHashSet<std::string, 8>>::toString( tags, opts );
+
+        std::cout << "StackHashSet<string, 8>:\n" << json << "\n";
+
+        auto restored = Serializer<nfx::containers::StackHashSet<std::string, 8>>::fromString( json );
+
+        bool success = ( restored.size() == 3 ) && restored.contains( "cpp" );
+        std::cout << "\nDeserialized " << restored.size() << " elements\n";
+        std::cout << "\n  " << ( success ? "OK" : "ERROR" ) << ": StackHashSet serializes as JSON array\n";
+        std::cout << "  Note: Zero heap allocations for small sets\n";
+        std::cout << "\n";
+    }
 #endif
 
     //=====================================================================
@@ -236,10 +293,10 @@ int main()
 
 #ifdef NFX_DATATYPES_AVAILABLE
     //=====================================================================
-    // 7. nfx::datatypes::Int128 - 128-bit integer
+    // 9. nfx::datatypes::Int128 - 128-bit integer
     //=====================================================================
     {
-        std::cout << "7. nfx::datatypes::Int128 - 128-bit integer\n";
+        std::cout << "9. nfx::datatypes::Int128 - 128-bit integer\n";
         std::cout << "--------------------------------------------\n";
 
         nfx::datatypes::Int128 bigNumber( "123456789012345678901234567890" );
@@ -260,11 +317,11 @@ int main()
     }
 
     //=====================================================================
-    // 8. nfx::datatypes::Decimal - Arbitrary-precision decimal
+    // 10. nfx::datatypes::Decimal - Arbitrary-precision decimal
     //=====================================================================
     {
-        std::cout << "8. nfx::datatypes::Decimal - Arbitrary-precision decimal\n";
-        std::cout << "---------------------------------------------------------\n";
+        std::cout << "10. nfx::datatypes::Decimal - Arbitrary-precision decimal\n";
+        std::cout << "----------------------------------------------------------\n";
 
         nfx::datatypes::Decimal price( "123.456789" );
 
@@ -290,11 +347,11 @@ int main()
 
 #ifdef NFX_DATETIME_AVAILABLE
     //=====================================================================
-    // 9. nfx::datetime::DateTime - Date and time
+    // 11. nfx::datetime::DateTime - Date and time
     //=====================================================================
     {
-        std::cout << "9. nfx::datetime::DateTime - Date and time\n";
-        std::cout << "-------------------------------------------\n";
+        std::cout << "11. nfx::datetime::DateTime - Date and time\n";
+        std::cout << "--------------------------------------------\n";
 
         nfx::time::DateTime now = nfx::time::DateTime::now();
 
@@ -314,11 +371,11 @@ int main()
     }
 
     //=====================================================================
-    // 10. nfx::datetime::DateTimeOffset - Date, time, and timezone offset
+    // 12. nfx::datetime::DateTimeOffset - Date, time, and timezone offset
     //=====================================================================
     {
-        std::cout << "10. nfx::datetime::DateTimeOffset - Date, time, and timezone offset\n";
-        std::cout << "-------------------------------------------------------------------\n";
+        std::cout << "12. nfx::datetime::DateTimeOffset - Date, time, and timezone offset\n";
+        std::cout << "--------------------------------------------------------------------\n";
 
         nfx::time::DateTimeOffset timestamp = nfx::time::DateTimeOffset::now();
 
@@ -338,10 +395,10 @@ int main()
     }
 
     //=====================================================================
-    // 11. nfx::datetime::TimeSpan - Duration/interval
+    // 13. nfx::datetime::TimeSpan - Duration/interval
     //=====================================================================
     {
-        std::cout << "11. nfx::datetime::TimeSpan - Duration/interval\n";
+        std::cout << "13. nfx::datetime::TimeSpan - Duration/interval\n";
         std::cout << "------------------------------------------------\n";
 
         nfx::time::TimeSpan duration = nfx::time::TimeSpan::fromHours( 2.5 );

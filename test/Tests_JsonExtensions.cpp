@@ -26,7 +26,8 @@
  * @file Tests_JsonExtensions.cpp
  * @brief Unit tests for extension traits (nfx-containers, nfx-datatypes, nfx-datetime)
  * @details Tests covering serialization and deserialization of external nfx library types:
- *          - nfx-containers: PerfectHashMap, FastHashMap, FastHashSet, OrderedHashMap, OrderedHashSet, StackVector
+ *          - nfx-containers: PerfectHashMap, FastHashMap, FastHashSet, OrderedHashMap, OrderedHashSet, StackVector,
+ * StackHashMap, StackHashSet
  *          - nfx-datatypes: Int128, Decimal
  *          - nfx-datetime: DateTime, DateTimeOffset, TimeSpan
  */
@@ -689,6 +690,261 @@ namespace nfx::serialization::json::test
         EXPECT_EQ( retrieved[0][1], 2 );
         EXPECT_EQ( retrieved[1][0], 3 );
         EXPECT_EQ( retrieved[1][1], 4 );
+    }
+
+    //=====================================================================
+    // nfx-containers: StackHashMap tests
+    //=====================================================================
+
+    class StackHashMapExtensionTest : public ::testing::Test
+    {
+    protected:
+        void SetUp() override
+        {
+        }
+
+        void TearDown() override
+        {
+        }
+    };
+
+    TEST_F( StackHashMapExtensionTest, SerializeEmptyMap )
+    {
+        nfx::containers::StackHashMap<std::string, int, 8> map;
+
+        std::string json = Serializer<decltype( map )>::toString( map );
+
+        EXPECT_FALSE( json.empty() );
+        EXPECT_EQ( json, "[]" );
+    }
+
+    TEST_F( StackHashMapExtensionTest, SerializeStringIntMap )
+    {
+        nfx::containers::StackHashMap<std::string, int, 8> map;
+        map.insertOrAssign( "Alice", 95 );
+        map.insertOrAssign( "Bob", 87 );
+        map.insertOrAssign( "Charlie", 92 );
+
+        std::string json = Serializer<decltype( map )>::toString( map );
+
+        EXPECT_FALSE( json.empty() );
+
+        // Deserialize and verify
+        auto restored = Serializer<decltype( map )>::fromString( json );
+        EXPECT_EQ( restored.size(), 3 );
+
+        // find() returns pointer
+        const int* alice = restored.find( "Alice" );
+        ASSERT_NE( alice, nullptr );
+        EXPECT_EQ( *alice, 95 );
+
+        const int* bob = restored.find( "Bob" );
+        ASSERT_NE( bob, nullptr );
+        EXPECT_EQ( *bob, 87 );
+
+        const int* charlie = restored.find( "Charlie" );
+        ASSERT_NE( charlie, nullptr );
+        EXPECT_EQ( *charlie, 92 );
+    }
+
+    TEST_F( StackHashMapExtensionTest, SerializeIntStringMap )
+    {
+        nfx::containers::StackHashMap<int, std::string, 8> map;
+        map.insertOrAssign( 1, "one" );
+        map.insertOrAssign( 2, "two" );
+        map.insertOrAssign( 3, "three" );
+
+        std::string json = Serializer<decltype( map )>::toString( map );
+
+        EXPECT_FALSE( json.empty() );
+
+        // Deserialize and verify
+        auto restored = Serializer<decltype( map )>::fromString( json );
+        EXPECT_EQ( restored.size(), 3 );
+
+        const std::string* one = restored.find( 1 );
+        ASSERT_NE( one, nullptr );
+        EXPECT_EQ( *one, "one" );
+    }
+
+    TEST_F( StackHashMapExtensionTest, RoundTripPreservesData )
+    {
+        nfx::containers::StackHashMap<std::string, double, 8> original;
+        original.insertOrAssign( "pi", 3.14159 );
+        original.insertOrAssign( "e", 2.71828 );
+        original.insertOrAssign( "phi", 1.61803 );
+
+        std::string json = Serializer<decltype( original )>::toString( original );
+        auto restored = Serializer<decltype( original )>::fromString( json );
+
+        EXPECT_EQ( restored.size(), original.size() );
+
+        // Verify all values using forEach
+        original.forEach( [&restored]( const std::string& key, const double& value ) {
+            const double* restoredValue = restored.find( key );
+            ASSERT_NE( restoredValue, nullptr );
+            EXPECT_DOUBLE_EQ( *restoredValue, value );
+        } );
+    }
+
+    TEST_F( StackHashMapExtensionTest, SmallCapacityStackStorage )
+    {
+        // Test with size within stack capacity (N=8)
+        nfx::containers::StackHashMap<int, std::string, 8> map;
+        for( int i = 0; i < 5; ++i )
+        {
+            map.insertOrAssign( i, "value" + std::to_string( i ) );
+        }
+
+        std::string json = Serializer<decltype( map )>::toString( map );
+        auto restored = Serializer<decltype( map )>::fromString( json );
+
+        EXPECT_EQ( restored.size(), 5 );
+        for( int i = 0; i < 5; ++i )
+        {
+            const std::string* value = restored.find( i );
+            ASSERT_NE( value, nullptr );
+            EXPECT_EQ( *value, "value" + std::to_string( i ) );
+        }
+    }
+
+    TEST_F( StackHashMapExtensionTest, LargeCapacityHeapStorage )
+    {
+        // Test with size exceeding stack capacity (N=8)
+        nfx::containers::StackHashMap<int, int, 8> map;
+        for( int i = 0; i < 20; ++i )
+        {
+            map.insertOrAssign( i, i * 10 );
+        }
+
+        std::string json = Serializer<decltype( map )>::toString( map );
+        auto restored = Serializer<decltype( map )>::fromString( json );
+
+        EXPECT_EQ( restored.size(), 20 );
+        for( int i = 0; i < 20; ++i )
+        {
+            const int* value = restored.find( i );
+            ASSERT_NE( value, nullptr );
+            EXPECT_EQ( *value, i * 10 );
+        }
+    }
+
+    //=====================================================================
+    // nfx-containers: StackHashSet tests
+    //=====================================================================
+
+    class StackHashSetExtensionTest : public ::testing::Test
+    {
+    protected:
+        void SetUp() override
+        {
+        }
+
+        void TearDown() override
+        {
+        }
+    };
+
+    TEST_F( StackHashSetExtensionTest, SerializeEmptySet )
+    {
+        nfx::containers::StackHashSet<std::string, 8> set;
+
+        std::string json = Serializer<decltype( set )>::toString( set );
+
+        EXPECT_FALSE( json.empty() );
+        EXPECT_EQ( json, "[]" );
+    }
+
+    TEST_F( StackHashSetExtensionTest, SerializeStringSet )
+    {
+        nfx::containers::StackHashSet<std::string, 8> set;
+        set.insert( "apple" );
+        set.insert( "banana" );
+        set.insert( "cherry" );
+
+        std::string json = Serializer<decltype( set )>::toString( set );
+
+        EXPECT_FALSE( json.empty() );
+
+        // Deserialize and verify
+        auto restored = Serializer<decltype( set )>::fromString( json );
+        EXPECT_EQ( restored.size(), 3 );
+        EXPECT_TRUE( restored.contains( "apple" ) );
+        EXPECT_TRUE( restored.contains( "banana" ) );
+        EXPECT_TRUE( restored.contains( "cherry" ) );
+    }
+
+    TEST_F( StackHashSetExtensionTest, SerializeIntSet )
+    {
+        nfx::containers::StackHashSet<int, 8> set;
+        set.insert( 10 );
+        set.insert( 20 );
+        set.insert( 30 );
+
+        std::string json = Serializer<decltype( set )>::toString( set );
+
+        EXPECT_FALSE( json.empty() );
+
+        // Deserialize and verify
+        auto restored = Serializer<decltype( set )>::fromString( json );
+        EXPECT_EQ( restored.size(), 3 );
+        EXPECT_TRUE( restored.contains( 10 ) );
+        EXPECT_TRUE( restored.contains( 20 ) );
+        EXPECT_TRUE( restored.contains( 30 ) );
+    }
+
+    TEST_F( StackHashSetExtensionTest, RoundTripPreservesData )
+    {
+        nfx::containers::StackHashSet<std::string, 8> original;
+        original.insert( "red" );
+        original.insert( "green" );
+        original.insert( "blue" );
+
+        std::string json = Serializer<decltype( original )>::toString( original );
+        auto restored = Serializer<decltype( original )>::fromString( json );
+
+        EXPECT_EQ( restored.size(), original.size() );
+
+        // Verify all values using forEach
+        original.forEach( [&restored]( const std::string& value ) { EXPECT_TRUE( restored.contains( value ) ); } );
+    }
+
+    TEST_F( StackHashSetExtensionTest, SmallCapacityStackStorage )
+    {
+        // Test with size within stack capacity (N=8)
+        nfx::containers::StackHashSet<int, 8> set;
+        for( int i = 0; i < 5; ++i )
+        {
+            set.insert( i * 10 );
+        }
+
+        std::string json = Serializer<decltype( set )>::toString( set );
+        auto restored = Serializer<decltype( set )>::fromString( json );
+
+        EXPECT_EQ( restored.size(), 5 );
+        for( int i = 0; i < 5; ++i )
+        {
+            EXPECT_TRUE( restored.contains( i * 10 ) );
+        }
+    }
+
+    TEST_F( StackHashSetExtensionTest, LargeCapacityHeapStorage )
+    {
+        // Test with size exceeding stack capacity (N=8)
+        nfx::containers::StackHashSet<int, 8> set;
+        for( int i = 0; i < 20; ++i )
+        {
+            set.insert( i );
+        }
+
+        std::string json = Serializer<decltype( set )>::toString( set );
+        auto restored = Serializer<decltype( set )>::fromString( json );
+
+        EXPECT_EQ( restored.size(), 20 );
+        for( int i = 0; i < 20; ++i )
+        {
+            EXPECT_TRUE( restored.contains( i ) );
+        }
     }
 
     //=====================================================================

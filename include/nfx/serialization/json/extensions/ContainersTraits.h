@@ -834,3 +834,160 @@ namespace nfx::serialization::json
 } // namespace nfx::serialization::json
 
 #endif // __has_include(<nfx/containers/OrderedHashSet.h>)
+
+//=====================================================================
+// StackHashMap support - enabled only if header is available
+//=====================================================================
+
+#if __has_include( <nfx/containers/StackHashMap.h>)
+
+#    include <nfx/containers/StackHashMap.h>
+
+namespace nfx::serialization::json
+{
+    /**
+     * @brief Specialization for nfx::containers::StackHashMap
+     */
+    template <typename TKey, typename TValue, std::size_t N, typename KeyEqual>
+    struct SerializationTraits<nfx::containers::StackHashMap<TKey, TValue, N, KeyEqual>>
+    {
+        /**
+         * @brief Deserialize StackHashMap from JSON document
+         * @param doc The document to deserialize from
+         * @param obj The StackHashMap object to deserialize into
+         * @details Expects array format with key-value pair objects
+         */
+        static void fromDocument( const Document& doc, nfx::containers::StackHashMap<TKey, TValue, N, KeyEqual>& obj )
+        {
+            if( !doc.is<Array>( "" ) )
+            {
+                throw std::runtime_error{ "Cannot deserialize non-array JSON value into StackHashMap" };
+            }
+
+            // Clear existing content
+            obj.clear();
+
+            // Get array and iterate using STL iterator
+            auto arrayOpt = doc.get<Array>( "" );
+            if( arrayOpt.has_value() )
+            {
+                for( const auto& pairDoc : arrayOpt.value() )
+                {
+                    // Extract key
+                    auto keyDoc = pairDoc.get<Document>( "key" );
+                    if( !keyDoc )
+                    {
+                        throw std::runtime_error{ "Missing 'key' field in StackHashMap array element" };
+                    }
+                    TKey key{};
+                    Serializer<TKey>{}.deserializeValue( *keyDoc, key );
+
+                    // Extract value
+                    auto valueDoc = pairDoc.get<Document>( "value" );
+                    if( !valueDoc )
+                    {
+                        throw std::runtime_error{ "Missing 'value' field in StackHashMap array element" };
+                    }
+                    TValue value{};
+                    Serializer<TValue>{}.deserializeValue( *valueDoc, value );
+
+                    obj.insertOrAssign( std::move( key ), std::move( value ) );
+                }
+            }
+        }
+
+        /**
+         * @brief High-performance streaming serialization
+         * @param obj The StackHashMap object to serialize
+         * @param builder The builder to write to
+         * @details Serializes as array of {key, value} objects: [{key:..., value:...}, ...]
+         */
+        static void serialize(
+            const nfx::containers::StackHashMap<TKey, TValue, N, KeyEqual>& obj, nfx::json::Builder& builder )
+        {
+            builder.writeStartArray();
+
+            obj.forEach( [&builder]( const TKey& key, const TValue& value ) {
+                builder.writeStartObject();
+
+                // Write key
+                builder.writeKey( "key" );
+                Serializer<TKey>{}.serializeValue( key, builder );
+
+                // Write value
+                builder.writeKey( "value" );
+                Serializer<TValue>{}.serializeValue( value, builder );
+
+                builder.writeEndObject();
+            } );
+
+            builder.writeEndArray();
+        }
+    };
+} // namespace nfx::serialization::json
+
+#endif // __has_include(<nfx/containers/StackHashMap.h>)
+
+//=====================================================================
+// StackHashSet support - enabled only if header is available
+//=====================================================================
+
+#if __has_include( <nfx/containers/StackHashSet.h>)
+
+#    include <nfx/containers/StackHashSet.h>
+
+namespace nfx::serialization::json
+{
+    /**
+     * @brief Specialization for nfx::containers::StackHashSet
+     */
+    template <typename TKey, std::size_t N, typename KeyEqual>
+    struct SerializationTraits<nfx::containers::StackHashSet<TKey, N, KeyEqual>>
+    {
+        /**
+         * @brief Deserialize StackHashSet from JSON document
+         * @param doc The document to deserialize from
+         * @param obj The StackHashSet object to deserialize into
+         */
+        static void fromDocument( const Document& doc, nfx::containers::StackHashSet<TKey, N, KeyEqual>& obj )
+        {
+            if( !doc.is<Array>( "" ) )
+            {
+                throw std::runtime_error{ "Cannot deserialize non-array JSON value into StackHashSet" };
+            }
+
+            // Clear existing content
+            obj.clear();
+
+            // Get array and iterate using STL iterator
+            auto arrayOpt = doc.get<Array>( "" );
+            if( arrayOpt.has_value() )
+            {
+                for( const auto& itemDoc : arrayOpt.value() )
+                {
+                    TKey item{};
+                    Serializer<TKey>{}.deserializeValue( itemDoc, item );
+                    obj.insert( std::move( item ) );
+                }
+            }
+        }
+
+        /**
+         * @brief High-performance streaming serialization
+         * @param obj The StackHashSet object to serialize
+         * @param builder The builder to write to
+         * @details Serializes as JSON array of elements
+         */
+        static void serialize(
+            const nfx::containers::StackHashSet<TKey, N, KeyEqual>& obj, nfx::json::Builder& builder )
+        {
+            builder.writeStartArray();
+
+            obj.forEach( [&builder]( const TKey& element ) { Serializer<TKey>{}.serializeValue( element, builder ); } );
+
+            builder.writeEndArray();
+        }
+    };
+} // namespace nfx::serialization::json
+
+#endif // __has_include(<nfx/containers/StackHashSet.h>)
