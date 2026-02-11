@@ -18,7 +18,7 @@ set(CMAKE_FIND_QUIETLY      ON     )
 # Dependency versions
 #----------------------------------------------
 
-set(NFX_DEPS_NFX_JSON_VERSION "1.3.3")
+set(NFX_DEPS_NFX_JSON_VERSION "1.3.4")
 
 #----------------------------------------------
 # FetchContent dependencies
