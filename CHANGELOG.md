@@ -26,6 +26,13 @@
 
 - NIL
 
+## [0.9.1] - 2026-02-11
+
+### Changed
+
+- Updated nfx-json dependency from 1.3.3 to 1.3.4
+- Updated nfx-datetime dependency from 0.4.1 to 0.4.2
+
 ## [0.9.0] - 2026-02-08
 
 ### Added
