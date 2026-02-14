@@ -83,7 +83,7 @@ namespace nfx::serialization::json::benchmark
         // Called by SerializationTraits default implementation via SFINAE
         // Path: Serializer → SerializationTraits → toDocument() → Document → JSON
         // Overhead: Creates intermediate Document object (DOM allocation + navigation)
-        void toDocument( const Serializer<PersonLegacy>& serializer, Document& doc ) const
+        void toDocument( [[maybe_unused]] const Serializer<PersonLegacy>& serializer, Document& doc ) const
         {
             doc.set( "/name", name );
             doc.set( "/age", age );
@@ -108,7 +108,7 @@ namespace nfx::serialization::json::benchmark
         //   2. Calls person.toDocument() → fills Document
         //   3. Adds Document to Array
         // This is very inefficient compared to Builder streaming!
-        void toDocument( const Serializer<CompanyLegacy>& serializer, Document& doc ) const
+        void toDocument( [[maybe_unused]] const Serializer<CompanyLegacy>& serializer, Document& doc ) const
         {
             doc.set( "/name", name );
             doc.set( "/industry", industry );
@@ -354,7 +354,7 @@ namespace nfx::serialization::json::benchmark
             Document doc;
             Array arr;
             for( int val : data )
-                arr.push_back( val );
+                arr.emplace_back( val );
             doc.set<Array>( "", arr );
             std::string json = doc.toString();
             ::benchmark::DoNotOptimize( json );
@@ -404,7 +404,7 @@ namespace nfx::serialization::json::benchmark
             Document doc;
             Array arr;
             for( int val : data )
-                arr.push_back( val );
+                arr.emplace_back( val );
             doc.set<Array>( "", arr );
             std::string json = doc.toString();
             ::benchmark::DoNotOptimize( json );
@@ -616,7 +616,7 @@ namespace nfx::serialization::json::benchmark
                 personDoc.set<int>( "age", p.age );
                 personDoc.set<std::string>( "email", p.email );
                 personDoc.set<bool>( "active", p.active );
-                arr.push_back( personDoc );
+                arr.emplace_back( std::move( personDoc ) );
             }
             doc.set<Array>( "", arr );
             std::string json = doc.toString();
@@ -694,7 +694,7 @@ namespace nfx::serialization::json::benchmark
                 personDoc.set<int>( "age", p.age );
                 personDoc.set<std::string>( "email", p.email );
                 personDoc.set<bool>( "active", p.active );
-                staffArr.push_back( personDoc );
+                staffArr.emplace_back( std::move( personDoc ) );
             }
             doc.set<Array>( "staff", staffArr );
             std::string json = doc.toString();
@@ -752,6 +752,30 @@ namespace nfx::serialization::json::benchmark
         for( auto _ : state )
         {
             std::string json = serializer.toString( company );
+            ::benchmark::DoNotOptimize( json );
+        }
+    }
+
+    //=====================================================================
+    // Small Document (3 fields)
+    //=====================================================================
+
+    static void BM_SmallDocument_Document( ::benchmark::State& state )
+    {
+        for( auto _ : state )
+        {
+            Document doc = createSmallDocument();
+            std::string json = doc.toString();
+            ::benchmark::DoNotOptimize( json );
+        }
+    }
+
+    static void BM_SmallDocument_PrettyPrint( ::benchmark::State& state )
+    {
+        for( auto _ : state )
+        {
+            Document doc = createSmallDocument();
+            std::string json = doc.toString( 2 );
             ::benchmark::DoNotOptimize( json );
         }
     }
@@ -817,6 +841,9 @@ namespace nfx::serialization::json::benchmark
     BENCHMARK( BM_Company_Builder );
     BENCHMARK( BM_Company_SerializerTraits );
     BENCHMARK( BM_Company_SerializerLegacy );
+
+    BENCHMARK( BM_SmallDocument_Document );
+    BENCHMARK( BM_SmallDocument_PrettyPrint );
 
     BENCHMARK( BM_LargeDocument_Document );
     BENCHMARK( BM_LargeDocument_PrettyPrint );
