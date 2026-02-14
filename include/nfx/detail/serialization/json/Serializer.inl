@@ -365,10 +365,15 @@ namespace nfx::serialization::json
                 {
                     return simplified.substr( 0, template_start );
                 }
-                return simplified;
+                else
+                {
+                    return simplified;
+                }
             }
-
-            return type_full;
+            else
+            {
+                return type_full;
+            }
         }
 
         /**
