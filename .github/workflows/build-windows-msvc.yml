@@ -2,13 +2,13 @@ name: nfx-serialization - Windows MSVC
 
 on:
   push:
-    branches: [main]
+    branches: [main, compiler-warnings]
     paths-ignore:
       - "**/*.md"
       - "LICENSE.txt"
       - ".gitignore"
   pull_request:
-    branches: [main]
+    branches: [main, compiler-warnings]
     paths-ignore:
       - "**/*.md"
       - "LICENSE.txt"
@@ -42,7 +42,7 @@ jobs:
             ${{ runner.os }}-msvc2022-vs2022-
 
       - name: Configure CMake
-        run: cmake -B build -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DNFX_SERIALIZATION_WITH_JSON=ON -DNFX_SERIALIZATION_BUILD_TESTS=ON -DNFX_SERIALIZATION_BUILD_EXTENSION_TESTS=ON -DNFX_SERIALIZATION_BUILD_SAMPLES=OFF -DNFX_SERIALIZATION_BUILD_BENCHMARKS=OFF -DNFX_SERIALIZATION_BUILD_DOCUMENTATION=OFF
+        run: cmake -B build -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DNFX_SERIALIZATION_WITH_JSON=ON -DNFX_SERIALIZATION_BUILD_TESTS=ON -DNFX_SERIALIZATION_BUILD_EXTENSION_TESTS=ON -DNFX_SERIALIZATION_BUILD_SAMPLES=ON -DNFX_SERIALIZATION_BUILD_BENCHMARKS=ON -DNFX_SERIALIZATION_BUILD_DOCUMENTATION=OFF
 
       - name: Build with MSVC
         run: |
