@@ -26,6 +26,25 @@
 
 - NIL
 
+## [0.9.2] - 2026-02-14
+
+### Added
+
+- New benchmarks for small JSON documents serialization (single object, small array, simple nested structure)
+
+### Changed
+
+- Updated nfx-json dependency from 1.3.4 to 1.4.1
+- Updated nfx-containers dependency from 0.4.1 to 0.5.1
+- Updated nfx-datatypes dependency from 0.4.0 to 0.4.1
+- Updated nfx-datetime dependency from 0.4.2 to 0.5.0
+- Added strict compiler warning options (-Wall -Wextra -Werror) for MSVC and GCC/Clang builds
+- CI now enables benchmarks and samples for all build configurations
+- 
+### Fixed
+
+- Improved return logic in serializer for better type handling
+
 ## [0.9.1] - 2026-02-11
 
 ### Changed

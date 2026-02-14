@@ -18,7 +18,7 @@ set(CMAKE_FIND_QUIETLY      ON     )
 # Dependency versions
 #----------------------------------------------
 
-set(NFX_DEPS_NFX_JSON_VERSION "1.4.1")
+set(NFX_SERIALIZATION_DEPS_NFX_JSON_VERSION "1.4.1")
 
 #----------------------------------------------
 # FetchContent dependencies
@@ -35,7 +35,7 @@ set(FETCHCONTENT_QUIET OFF)
 
 # --- nfx-json ---
 if(NFX_SERIALIZATION_WITH_JSON)
-    find_package(nfx-json ${NFX_DEPS_NFX_JSON_VERSION} QUIET)
+    find_package(nfx-json ${NFX_SERIALIZATION_DEPS_NFX_JSON_VERSION} QUIET)
     if(NOT nfx-json_FOUND)
         set(NFX_JSON_BUILD_STATIC        ON  CACHE BOOL "")
         set(NFX_JSON_BUILD_SHARED        OFF CACHE BOOL "")
@@ -52,7 +52,7 @@ if(NFX_SERIALIZATION_WITH_JSON)
         FetchContent_Declare(
             nfx-json
                 GIT_REPOSITORY https://github.com/nfx-libs/nfx-json.git
-                GIT_TAG        ${NFX_DEPS_NFX_JSON_VERSION}
+                GIT_TAG        ${NFX_SERIALIZATION_DEPS_NFX_JSON_VERSION}
                 GIT_SHALLOW    TRUE
                 EXCLUDE_FROM_ALL
         )
