@@ -354,7 +354,7 @@ namespace nfx::serialization::json::benchmark
             Document doc;
             Array arr;
             for( int val : data )
-                arr.push_back( val );
+                arr.emplace_back( val );
             doc.set<Array>( "", arr );
             std::string json = doc.toString();
             ::benchmark::DoNotOptimize( json );
@@ -404,7 +404,7 @@ namespace nfx::serialization::json::benchmark
             Document doc;
             Array arr;
             for( int val : data )
-                arr.push_back( val );
+                arr.emplace_back( val );
             doc.set<Array>( "", arr );
             std::string json = doc.toString();
             ::benchmark::DoNotOptimize( json );
@@ -616,7 +616,7 @@ namespace nfx::serialization::json::benchmark
                 personDoc.set<int>( "age", p.age );
                 personDoc.set<std::string>( "email", p.email );
                 personDoc.set<bool>( "active", p.active );
-                arr.push_back( personDoc );
+                arr.emplace_back( std::move( personDoc ) );
             }
             doc.set<Array>( "", arr );
             std::string json = doc.toString();
@@ -694,7 +694,7 @@ namespace nfx::serialization::json::benchmark
                 personDoc.set<int>( "age", p.age );
                 personDoc.set<std::string>( "email", p.email );
                 personDoc.set<bool>( "active", p.active );
-                staffArr.push_back( personDoc );
+                staffArr.emplace_back( std::move( personDoc ) );
             }
             doc.set<Array>( "staff", staffArr );
             std::string json = doc.toString();

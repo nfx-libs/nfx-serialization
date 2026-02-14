@@ -127,9 +127,6 @@ foreach(benchmark_source ${benchmark_sources})
 
                 $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
                 $<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>:-Wall -Wextra -Werror>
-                
-                # GCC 14+ false positive on std::variant move in nfx::json::Document
-                $<$<CXX_COMPILER_ID:GNU>:-Wno-maybe-uninitialized>
         )
 
         #----------------------------------------------
