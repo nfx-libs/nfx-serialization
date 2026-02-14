@@ -13,9 +13,9 @@ function(nfx_serialization_fetch_extensions)
     # Extension library versions
     #----------------------------------------------
 
-    set(NFX_SERIALIZATION_DEPS_NFX_CONTAINERS_VERSION "0.4.1")
-    set(NFX_SERIALIZATION_DEPS_NFX_DATATYPES_VERSION  "0.4.0")
-    set(NFX_SERIALIZATION_DEPS_NFX_DATETIME_VERSION   "0.4.2")
+    set(NFX_SERIALIZATION_DEPS_NFX_CONTAINERS_VERSION "0.5.1")
+    set(NFX_SERIALIZATION_DEPS_NFX_DATATYPES_VERSION  "0.4.1")
+    set(NFX_SERIALIZATION_DEPS_NFX_DATETIME_VERSION   "0.5.0")
 
     #----------------------------------------------
     # nfx-containers
