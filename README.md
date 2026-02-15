@@ -88,6 +88,9 @@ nfx-serialization is built on [nfx-json](https://github.com/nfx-libs/nfx-json), 
 # --- JSON serialization support ---
 option(NFX_SERIALIZATION_WITH_JSON             "Enable JSON serialization support"  OFF)
 
+# --- Performance optimizations ---
+option(NFX_SERIALIZATION_ENABLE_SIMD           "Enable SIMD CPU optimizations"      ON )
+
 # --- Build components ---
 option(NFX_SERIALIZATION_BUILD_TESTS           "Build tests"                        OFF)
 option(NFX_SERIALIZATION_BUILD_EXTENSION_TESTS "Build extension tests"              OFF)

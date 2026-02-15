@@ -43,6 +43,7 @@ function(nfx_serialization_fetch_extensions)
     #----------------------------------------------
 
     if(NOT nfx-datatypes_FOUND)
+        set(NFX_DATATYPES_ENABLE_SIMD         ${NFX_SERIALIZATION_ENABLE_SIMD} CACHE BOOL "Enable SIMD optimizations" FORCE)
         set(NFX_DATATYPES_BUILD_STATIC        ON  CACHE BOOL "Build static library"              FORCE)
         set(NFX_DATATYPES_BUILD_SHARED        OFF CACHE BOOL "Build shared library"              FORCE)
         set(NFX_DATATYPES_BUILD_TESTS         OFF CACHE BOOL "Build tests"                       FORCE)
@@ -66,6 +67,7 @@ function(nfx_serialization_fetch_extensions)
     #----------------------------------------------
 
     if(NOT nfx-datetime_FOUND)
+        set(NFX_DATETIME_ENABLE_SIMD         ${NFX_SERIALIZATION_ENABLE_SIMD} CACHE BOOL "Enable SIMD optimizations" FORCE)
         set(NFX_DATETIME_BUILD_STATIC        ON  CACHE BOOL "Build static library"              FORCE)
         set(NFX_DATETIME_BUILD_SHARED        OFF CACHE BOOL "Build shared library"              FORCE)
         set(NFX_DATETIME_BUILD_TESTS         OFF CACHE BOOL "Build tests"                       FORCE)
