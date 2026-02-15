@@ -26,6 +26,20 @@
 
 - NIL
 
+## [0.9.3] - 2026-02-15
+
+### Added
+
+- New build option `NFX_SERIALIZATION_ENABLE_SIMD` to control SIMD CPU optimizations (enabled by default)
+  - Automatically propagates to all nfx dependencies (nfx-json, nfx-datatypes, nfx-datetime)
+
+### Changed
+
+- Updated nfx-json dependency from 1.4.1 to 1.5.0
+- Updated nfx-containers dependency from 0.5.1 to 0.6.0
+- Updated nfx-datatypes dependency from 0.4.1 to 0.5.0
+- Updated nfx-datetime dependency from 0.5.0 to 0.6.0
+
 ## [0.9.2] - 2026-02-14
 
 ### Added

@@ -9,7 +9,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 project(nfx-serialization
-    VERSION 0.9.2
+    VERSION 0.9.3
     DESCRIPTION "Cross-platform C++ JSON serialization library with extensible trait capabilities"
     HOMEPAGE_URL "https://github.com/nfx-libs/nfx-serialization"
     LANGUAGES CXX
