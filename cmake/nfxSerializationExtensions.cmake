@@ -28,10 +28,6 @@ function(nfx_serialization_fetch_extensions)
         set(NFX_CONTAINERS_BUILD_DOCUMENTATION OFF CACHE BOOL "Build Doxygen documentation" FORCE)
         set(NFX_CONTAINERS_INSTALL_PROJECT     OFF CACHE BOOL "Install project"             FORCE)
         set(NFX_CONTAINERS_PACKAGE_SOURCE      OFF CACHE BOOL "Enable source package"       FORCE)
-        set(NFX_CONTAINERS_PACKAGE_ARCHIVE     OFF CACHE BOOL "Enable archive package"      FORCE)
-        set(NFX_CONTAINERS_PACKAGE_DEB         OFF CACHE BOOL "Enable DEB package"          FORCE)
-        set(NFX_CONTAINERS_PACKAGE_RPM         OFF CACHE BOOL "Enable RPM package"          FORCE)
-        set(NFX_CONTAINERS_PACKAGE_WIX         OFF CACHE BOOL "Enable WIX package"          FORCE)
 
         FetchContent_Declare(
             nfx-containers
@@ -55,10 +51,6 @@ function(nfx_serialization_fetch_extensions)
         set(NFX_DATATYPES_BUILD_DOCUMENTATION OFF CACHE BOOL "Build Doxygen documentation"       FORCE)
         set(NFX_DATATYPES_INSTALL_PROJECT     OFF CACHE BOOL "Install project"                   FORCE)
         set(NFX_DATATYPES_PACKAGE_SOURCE      OFF CACHE BOOL "Enable source package generation"  FORCE)
-        set(NFX_DATATYPES_PACKAGE_ARCHIVE     OFF CACHE BOOL "Enable TGZ/ZIP package generation" FORCE)
-        set(NFX_DATATYPES_PACKAGE_DEB         OFF CACHE BOOL "Enable DEB package generation"     FORCE)
-        set(NFX_DATATYPES_PACKAGE_RPM         OFF CACHE BOOL "Enable RPM package generation"     FORCE)
-        set(NFX_DATATYPES_PACKAGE_WIX         OFF CACHE BOOL "Enable WiX MSI installer"          FORCE)
 
         FetchContent_Declare(
             nfx-datatypes
@@ -82,10 +74,6 @@ function(nfx_serialization_fetch_extensions)
         set(NFX_DATETIME_BUILD_DOCUMENTATION OFF CACHE BOOL "Build Doxygen documentation"       FORCE)
         set(NFX_DATETIME_INSTALL_PROJECT     OFF CACHE BOOL "Install project"                   FORCE)
         set(NFX_DATETIME_PACKAGE_SOURCE      OFF CACHE BOOL "Enable source package generation"  FORCE)
-        set(NFX_DATETIME_PACKAGE_ARCHIVE     OFF CACHE BOOL "Enable TGZ/ZIP package generation" FORCE)
-        set(NFX_DATETIME_PACKAGE_DEB         OFF CACHE BOOL "Enable DEB package generation"     FORCE)
-        set(NFX_DATETIME_PACKAGE_RPM         OFF CACHE BOOL "Enable RPM package generation"     FORCE)
-        set(NFX_DATETIME_PACKAGE_WIX         OFF CACHE BOOL "Enable WiX MSI installer"          FORCE)
 
         FetchContent_Declare(
             nfx-datetime

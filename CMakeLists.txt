@@ -16,22 +16,6 @@ project(nfx-serialization
 )
 
 #----------------------------------------------
-# Installation prefix configuration
-#----------------------------------------------
-
-include(GNUInstallDirs)
-
-# Set default installation path to nfx
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    if(WIN32)
-        set(CMAKE_INSTALL_PREFIX "C:/Program Files/nfx" CACHE PATH "Installation directory" FORCE)
-    else()
-        set(CMAKE_INSTALL_PREFIX "/usr/local/nfx" CACHE PATH "Installation directory" FORCE)
-    endif()
-    message(STATUS "Setting install prefix to '${CMAKE_INSTALL_PREFIX}'")
-endif()
-
-#----------------------------------------------
 # Version configuration
 #----------------------------------------------
 
@@ -44,8 +28,7 @@ set(NFX_SERIALIZATION_VERSION       ${PROJECT_VERSION}       CACHE INTERNAL "nfx
 # Project metadata
 #----------------------------------------------
 
-set(NFX_SERIALIZATION_LICENSE "MIT")
-set(NFX_SERIALIZATION_LICENSE_FILE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt")
+set(NFX_SERIALIZATION_LICENSE_FILE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 
 #----------------------------------------------
 # Testing setup
@@ -67,15 +50,9 @@ option(NFX_SERIALIZATION_BUILD_SAMPLES         "Build samples"                  
 option(NFX_SERIALIZATION_BUILD_BENCHMARKS      "Build benchmarks"                   OFF)
 option(NFX_SERIALIZATION_BUILD_DOCUMENTATION   "Build Doxygen documentation"        OFF)
 
-# --- Installation ---
+# --- Installation & packaging ---
 option(NFX_SERIALIZATION_INSTALL_PROJECT       "Install project"                    OFF)
-
-# --- Packaging ---
 option(NFX_SERIALIZATION_PACKAGE_SOURCE        "Enable source package generation"   OFF)
-option(NFX_SERIALIZATION_PACKAGE_ARCHIVE       "Enable TGZ/ZIP package generation"  OFF)
-option(NFX_SERIALIZATION_PACKAGE_DEB           "Enable DEB package generation"      OFF)
-option(NFX_SERIALIZATION_PACKAGE_RPM           "Enable RPM package generation"      OFF)
-option(NFX_SERIALIZATION_PACKAGE_WIX           "Enable WiX Windows installer (MSI)" OFF)
 
 #----------------------------------------------
 # CMake modules configuration

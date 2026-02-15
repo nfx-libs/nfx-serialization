@@ -2,7 +2,7 @@
 
 <!-- Project Info -->
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://github.com/nfx-libs/nfx-serialization/blob/main/LICENSE.txt) [![GitHub release (latest by date)](https://img.shields.io/github/v/release/nfx-libs/nfx-serialization?style=flat-square)](https://github.com/nfx-libs/nfx-serialization/releases) [![GitHub tag (latest by date)](https://img.shields.io/github/tag/nfx-libs/nfx-serialization?style=flat-square)](https://github.com/nfx-libs/nfx-serialization/tags)<br/>
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://github.com/nfx-libs/nfx-serialization/blob/main/LICENSE) [![GitHub release (latest by date)](https://img.shields.io/github/v/release/nfx-libs/nfx-serialization?style=flat-square)](https://github.com/nfx-libs/nfx-serialization/releases) [![GitHub tag (latest by date)](https://img.shields.io/github/tag/nfx-libs/nfx-serialization?style=flat-square)](https://github.com/nfx-libs/nfx-serialization/tags)<br/>
 
 ![C++20](https://img.shields.io/badge/C%2B%2B-20-blue?style=flat-square) ![CMake](https://img.shields.io/badge/CMake-3.20%2B-green.svg?style=flat-square) ![Cross Platform](https://img.shields.io/badge/Platform-Linux_Windows-lightgrey?style=flat-square)
 
@@ -86,7 +86,7 @@ nfx-serialization is built on [nfx-json](https://github.com/nfx-libs/nfx-json), 
 
 ```cmake
 # --- JSON serialization support ---
-option(NFX_SERIALIZATION_WITH_JSON             "Enable JSON serialization support"  ON )
+option(NFX_SERIALIZATION_WITH_JSON             "Enable JSON serialization support"  OFF)
 
 # --- Build components ---
 option(NFX_SERIALIZATION_BUILD_TESTS           "Build tests"                        OFF)
@@ -95,15 +95,9 @@ option(NFX_SERIALIZATION_BUILD_SAMPLES         "Build samples"                  
 option(NFX_SERIALIZATION_BUILD_BENCHMARKS      "Build benchmarks"                   OFF)
 option(NFX_SERIALIZATION_BUILD_DOCUMENTATION   "Build Doxygen documentation"        OFF)
 
-# --- Installation ---
+# --- Installation & packaging ---
 option(NFX_SERIALIZATION_INSTALL_PROJECT       "Install project"                    OFF)
-
-# --- Packaging ---
 option(NFX_SERIALIZATION_PACKAGE_SOURCE        "Enable source package generation"   OFF)
-option(NFX_SERIALIZATION_PACKAGE_ARCHIVE       "Enable TGZ/ZIP package generation"  OFF)
-option(NFX_SERIALIZATION_PACKAGE_DEB           "Enable DEB package generation"      OFF)
-option(NFX_SERIALIZATION_PACKAGE_RPM           "Enable RPM package generation"      OFF)
-option(NFX_SERIALIZATION_PACKAGE_WIX           "Enable WiX Windows installer (MSI)" OFF)
 ```
 
 ### Using in Your Project
@@ -671,54 +665,6 @@ std::string timeJson = Serializer<nfx::time::DateTime>::toString(now);
 
 **Note**: These extensions are header-only and zero-cost - if you don't include them or don't have the external library installed, they have no impact on compile time or binary size.
 
-## Installation & Packaging
-
-nfx-serialization provides packaging options for distribution.
-
-### Package Generation
-
-```bash
-# Configure with packaging options
-cmake .. -DCMAKE_BUILD_TYPE=Release \
-         -DNFX_SERIALIZATION_PACKAGE_ARCHIVE=ON \
-         -DNFX_SERIALIZATION_PACKAGE_DEB=ON \
-         -DNFX_SERIALIZATION_PACKAGE_RPM=ON
-
-# Generate binary packages
-cmake --build . --target package
-# or
-cd build && cpack
-
-# Generate source packages
-cd build && cpack --config CPackSourceConfig.cmake
-```
-
-### Supported Package Formats
-
-| Format      | Platform       | Description                        | Requirements |
-| ----------- | -------------- | ---------------------------------- | ------------ |
-| **TGZ/ZIP** | Cross-platform | Compressed archive packages        | None         |
-| **DEB**     | Debian/Ubuntu  | Native Debian packages             | `dpkg-dev`   |
-| **RPM**     | RedHat/SUSE    | Native RPM packages                | `rpm-build`  |
-| **WiX**     | Windows        | Professional MSI installer         | `WiX 3.11+`  |
-| **Source**  | Cross-platform | Source code distribution (TGZ+ZIP) | None         |
-
-### Installation
-
-```bash
-# Linux (DEB-based systems)
-sudo dpkg -i nfx-serialization_*_amd64.deb
-
-# Linux (RPM-based systems)
-sudo rpm -ivh nfx-serialization-*-Linux.rpm
-
-# Windows (MSI installer)
-nfx-serialization-0.1.0-MSVC.msi
-
-# Manual installation (extract archive)
-tar -xzf nfx-serialization-*-Linux.tar.gz -C /usr/local/
-```
-
 ## Project Structure
 
 ```
@@ -771,4 +717,4 @@ All dependencies are automatically fetched via CMake FetchContent when building 
 
 ---
 
-_Updated on February 01, 2026_
+_Updated on February 15, 2026_

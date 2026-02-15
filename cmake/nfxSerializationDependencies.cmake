@@ -45,9 +45,6 @@ if(NFX_SERIALIZATION_WITH_JSON)
         set(NFX_JSON_BUILD_DOCUMENTATION OFF CACHE BOOL "")
         set(NFX_JSON_INSTALL_PROJECT     OFF CACHE BOOL "")
         set(NFX_JSON_PACKAGE_SOURCE      OFF CACHE BOOL "")
-        set(NFX_JSON_PACKAGE_ARCHIVE     OFF CACHE BOOL "")
-        set(NFX_JSON_PACKAGE_DEB         OFF CACHE BOOL "")
-        set(NFX_JSON_PACKAGE_RPM         OFF CACHE BOOL "")
 
         FetchContent_Declare(
             nfx-json
