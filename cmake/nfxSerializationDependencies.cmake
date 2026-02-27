@@ -18,7 +18,7 @@ set(CMAKE_FIND_QUIETLY      ON     )
 # Dependency versions
 #----------------------------------------------
 
-set(NFX_SERIALIZATION_DEPS_NFX_JSON_VERSION "1.5.0")
+set(NFX_SERIALIZATION_DEPS_NFX_JSON_VERSION "1.5.1")
 
 #----------------------------------------------
 # FetchContent dependencies

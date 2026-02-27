@@ -26,6 +26,14 @@
 
 - NIL
 
+## [0.9.4] - 2026-02-27
+
+### Changed
+
+- Updated nfx-json dependency from 1.5.0 to 1.5.1
+- Set `CMAKE_CXX_STANDARD` and `CMAKE_CXX_STANDARD_REQUIRED` globally to C++20
+- Enabled `CMAKE_EXPORT_COMPILE_COMMANDS` for improved tooling support (clangd, static analyzers)
+
 ## [0.9.3] - 2026-02-15
 
 ### Added
